@@ -71,6 +71,7 @@ function platformMatches(platform, query) {
     platform.id,
     platform.id.replace(/-/g, " "),
     platform.id.replace(/-/g, ""),
+    ...(platform.searchAliases ?? []),
   ].map((s) => s.toLowerCase());
 
   return terms.some((term) => term.includes(query));

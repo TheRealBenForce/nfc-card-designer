@@ -1,4 +1,4 @@
-import { PLACEHOLDER_SVG } from "../config.js";
+import { PLACEHOLDER_SVG } from "./config.js";
 
 const IMAGE_FIELD_MAP = {
   boxArt: "boxArt",

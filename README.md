@@ -19,8 +19,9 @@ index.html                 # GitHub Pages entry (must stay at repo root)
 assets/
   css/styles.css
   js/                      # Application modules
-  images/games/            # Downloaded artwork (same-origin for canvas/PDF)
+  images/platforms/        # Downloaded artwork (platform/game folders)
 scripts/
+  fetch-game-list.mjs      # Dev-only: pull full RA catalogs into games.js
   fetch-images.mjs         # Dev-only: download RA images with your API key
 ```
 
@@ -42,7 +43,25 @@ The live site does not call the RetroAchievements API. Download images once on y
 cp .env.example .env
 # Edit .env — add your Web API Key (see below)
 npm run test-ra-auth
-npm run fetch-images
+npm run fetch-game-list    # full game catalogs per platform → games.js
+npm run fetch-images       # download artwork (can take a while)
+```
+
+Images are stored as:
+
+```
+assets/images/platforms/<platformId>/games/<raGameId>/boxArt.png
+assets/images/platforms/<platformId>/games/<raGameId>/titleScreen.png
+assets/images/platforms/<platformId>/games/<raGameId>/gamePicture.png
+```
+
+Optional flags:
+
+```bash
+npm run fetch-game-list -- --platform=nes
+npm run fetch-game-list -- --with-achievements   # smaller lists
+npm run fetch-images -- --platform=genesis
+npm run fetch-images -- --force                  # re-download existing files
 ```
 
 ### API key
@@ -57,7 +76,7 @@ RETROACHIEVEMENTS_API_KEY=your_key_here
 
 ## Deploy to GitHub Pages
 
-1. Push to GitHub (including `assets/images/games/` if you fetched artwork).
+1. Push to GitHub (including `assets/images/platforms/` if you fetched artwork).
 2. **Settings → Pages** → Source: `main` branch, `/ (root)` folder.
 3. Site publishes at `https://<username>.github.io/<repository>/`.
 
@@ -84,6 +103,6 @@ Portrait 52 × 84 mm (long edge = height). First split is **vertical** (long-edg
 
 ## Notes
 
-- Expand game lists in `assets/js/data/games.js` (each game needs a `raGameId` from RetroAchievements).
-- Verify `raGameId` values at `https://retroachievements.org/game/<id>`.
-- Neo Geo and Arcade titles may need manual `raGameId` curation.
+- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of games).
+- Re-run `fetch-images` safely — it skips files that already exist.
+- Use `--platform=<id>` to fetch one platform at a time (e.g. `nes`, `genesis`).

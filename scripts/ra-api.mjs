@@ -88,3 +88,20 @@ export async function raFetch(endpoint, params = {}) {
 export async function getGame(gameId) {
   return raFetch("API_GetGame.php", { i: gameId });
 }
+
+/**
+ * @param {number} consoleId
+ * @param {{ onlyWithAchievements?: boolean }} [options]
+ */
+export async function getGameList(consoleId, options = {}) {
+  const params = { i: consoleId };
+  if (options.onlyWithAchievements) {
+    params.f = 1;
+  }
+  return raFetch("API_GetGameList.php", params);
+}
+
+/** @param {number} ms */
+export function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

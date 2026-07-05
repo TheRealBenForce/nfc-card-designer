@@ -5,6 +5,7 @@
   "scripts": {
     "start": "npx --yes serve -l 8000",
     "test-ra-auth": "node scripts/test-ra-auth.mjs",
+    "fetch-game-list": "node scripts/fetch-game-list.mjs",
     "fetch-images": "node scripts/fetch-images.mjs"
   }
 }

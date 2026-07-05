@@ -82,24 +82,22 @@ RETROACHIEVEMENTS_API_KEY=your_key_here
 
 ## Card layout
 
-Portrait 52 × 84 mm (long edge = height). First split is **vertical** (long-edge to long-edge):
+Portrait 52 × 84 mm (long edge = height). Splits stack **top to bottom**:
 
 ```
-┌────────────────────────────┬───────┐
-│                            │ LOGO  │
-│        ARTWORK (75%)       │ (75%  │
-│        full height         │ of    │
-│                            │ col)  │
-│                            ├───────┤
-│                            │ COLOR │
-└────────────────────────────┴───────┘
-         ~75% width            ~25%
+┌──────────────────────────────┐
+│  LOGO (75%)   │ COLOR (25%)  │  ← top ~25% of card height
+├──────────────────────────────┤
+│                              │
+│        ARTWORK (75%)         │  ← bottom ~75% of card height
+│                              │
+└──────────────────────────────┘
 ```
 
-- **Left ~75%** — game artwork (cover-fill, full card height)
-- **Right ~25%** — platform column, split by height:
-  - **Top ~75%** — logo
-  - **Bottom ~25%** — platform color
+- **Top ~25%** — platform strip, split left to right:
+  - **Left ~75%** — logo
+  - **Right ~25%** — platform color
+- **Bottom ~75%** — game artwork (cover-fill, full card width)
 
 ## Notes
 

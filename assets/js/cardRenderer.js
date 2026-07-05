@@ -1,8 +1,8 @@
 import {
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
-  ART_WIDTH_RATIO,
-  LOGO_HEIGHT_RATIO,
+  PLATFORM_STRIP_RATIO,
+  LOGO_STRIP_RATIO,
   PLACEHOLDER_SVG,
 } from "./config.js";
 import { platformById } from "./data/platforms.js";
@@ -69,29 +69,29 @@ export async function renderCard(card, platformColors) {
   const platform = platformById[card.platformId];
   const color = platformColors[card.platformId] ?? platform?.defaultColor ?? "#333";
 
+  const cardW = CARD_RENDER_WIDTH_PX;
   const cardH = CARD_RENDER_HEIGHT_PX;
-  const artW = Math.round(CARD_RENDER_WIDTH_PX * ART_WIDTH_RATIO);
-  const colW = CARD_RENDER_WIDTH_PX - artW;
-  const colX = artW;
-  const logoH = Math.round(cardH * LOGO_HEIGHT_RATIO);
-  const colorH = cardH - logoH;
+  const stripH = Math.round(cardH * PLATFORM_STRIP_RATIO);
+  const artH = cardH - stripH;
+  const logoW = Math.round(cardW * LOGO_STRIP_RATIO);
+  const colorW = cardW - logoW;
 
   ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, cardW, cardH);
 
   const { url: imageSrc } = await resolveCardImage(card);
   try {
     const img = await loadImage(imageSrc);
-    drawCoverImage(ctx, img, 0, 0, artW, cardH);
+    drawCoverImage(ctx, img, 0, stripH, cardW, artH);
   } catch {
     const img = await loadImage(PLACEHOLDER_SVG);
-    drawCoverImage(ctx, img, 0, 0, artW, cardH);
+    drawCoverImage(ctx, img, 0, stripH, cardW, artH);
   }
 
-  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", colX, 0, colW, logoH);
+  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", 0, 0, logoW, stripH);
 
   ctx.fillStyle = color;
-  ctx.fillRect(colX, logoH, colW, colorH);
+  ctx.fillRect(logoW, 0, colorW, stripH);
 
   return canvas;
 }

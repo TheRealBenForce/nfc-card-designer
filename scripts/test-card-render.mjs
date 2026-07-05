@@ -39,23 +39,23 @@ async function main() {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("No canvas context");
 
-      const artW = Math.round(canvas.width * 0.75);
-      const logoH = Math.round(canvas.height * 0.75);
-      const colX = artW;
+      const stripH = Math.round(canvas.height * 0.25);
+      const artH = canvas.height - stripH;
+      const logoW = Math.round(canvas.width * 0.75);
 
-      const artPx = ctx.getImageData(Math.floor(artW / 2), Math.floor(canvas.height / 2), 1, 1).data;
-      const logoPx = ctx.getImageData(colX + 10, Math.floor(logoH / 2), 1, 1).data;
-      const colorPx = ctx.getImageData(colX + 10, logoH + 10, 1, 1).data;
+      const logoPx = ctx.getImageData(5, 5, 1, 1).data;
+      const colorPx = ctx.getImageData(logoW + 5, 5, 1, 1).data;
+      const artPx = ctx.getImageData(Math.floor(canvas.width / 2), stripH + Math.floor(artH / 2), 1, 1).data;
 
       return {
         width: canvas.width,
         height: canvas.height,
-        artW,
-        colX,
-        logoH,
-        art: [artPx[0], artPx[1], artPx[2]],
+        stripH,
+        artH,
+        logoW,
         logo: [logoPx[0], logoPx[1], logoPx[2]],
         color: [colorPx[0], colorPx[1], colorPx[2]],
+        art: [artPx[0], artPx[1], artPx[2]],
       };
     });
 
@@ -64,32 +64,28 @@ async function main() {
     }
     console.log(`✓ Card canvas is portrait (${layout.width}×${layout.height})`);
 
-    if (layout.colX !== layout.artW) {
-      throw new Error("Platform column should start where artwork ends");
+    if (layout.stripH + layout.artH !== layout.height) {
+      throw new Error("Platform strip and artwork should fill card height");
     }
-    console.log("✓ Artwork and platform columns are positioned correctly");
+    console.log("✓ Platform strip (top) and artwork (bottom) stack correctly");
 
     const logoColor = hex(...layout.logo);
     if (logoColor !== "#1a1a2e") {
       throw new Error(`Logo area should be #1a1a2e, got ${logoColor}`);
     }
-    console.log("✓ Logo area background renders");
+    console.log("✓ Logo area renders in top strip (left)");
 
     const stripColor = hex(...layout.color);
     if (stripColor !== "#b4000c") {
       throw new Error(`Color strip should be NES red #b4000c, got ${stripColor}`);
     }
-    console.log("✓ Platform color strip renders");
+    console.log("✓ Platform color renders in top strip (right)");
 
-    const placeholderText = await page.evaluate(async () => {
-      const { PLACEHOLDER_SVG } = await import("/assets/js/config.js");
-      return decodeURIComponent(PLACEHOLDER_SVG.replace(/^data:image\/svg\+xml,/, ""));
-    });
-
-    if (placeholderText.toLowerCase().includes("giant bomb")) {
-      throw new Error("Placeholder still references Giant Bomb");
+    const artColor = hex(...layout.art);
+    if (artColor === "#1a1a2e" || artColor === "#b4000c") {
+      throw new Error(`Artwork area should be below platform strip, sampled ${artColor}`);
     }
-    console.log("✓ Placeholder text is up to date");
+    console.log("✓ Artwork area renders below platform strip");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

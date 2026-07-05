@@ -8,6 +8,7 @@
     "fetch-game-list": "node scripts/fetch-game-list.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
+    "test:card-render": "node scripts/test-card-render.mjs",
     "verify": "node scripts/verify.mjs"
   }
 }

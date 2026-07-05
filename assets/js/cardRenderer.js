@@ -6,7 +6,7 @@ import {
   PLACEHOLDER_SVG,
 } from "./config.js";
 import { platformById } from "./data/platforms.js";
-import { loadImage } from "./imageProvider.js";
+import { loadImage, resolveCardImage } from "./imageProvider.js";
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -79,7 +79,7 @@ export async function renderCard(card, platformColors) {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const imageSrc = card.imageUrl ?? PLACEHOLDER_SVG;
+  const { url: imageSrc } = await resolveCardImage(card);
   try {
     const img = await loadImage(imageSrc);
     drawCoverImage(ctx, img, 0, 0, artW, cardH);

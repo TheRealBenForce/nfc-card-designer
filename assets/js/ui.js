@@ -1,5 +1,5 @@
 import { platforms } from "./data/platforms.js";
-import { gamesForPlatform } from "./data/games.js";
+import { gamesForPlatform, gameByRaId } from "./data/games.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import {
@@ -207,15 +207,13 @@ async function addGameCard(game) {
     gameName: game.name,
     raGameId: game.raGameId,
     imageType: settings.imageType,
-    imageUrl: null,
-    imageFailed: false,
   };
 
   addCard(card);
 
-  const { url, failed } = await resolveGameImage(game, settings.imageType);
+  const { failed } = await resolveGameImage(game, settings.imageType);
 
-  updateCard(card.id, { imageUrl: url, imageFailed: failed });
+  updateCard(card.id, { imageFailed: failed });
 
   if (gameSearchInput) {
     gameSearchInput.value = "";
@@ -280,6 +278,17 @@ function renderDeck() {
 
   const selected = deckListEl.querySelector(".deck-item--selected");
   selected?.scrollIntoView({ block: "nearest" });
+}
+
+async function refreshDeckImageStatus() {
+  for (const card of getDeck()) {
+    const game = gameByRaId(card.raGameId);
+    if (!game) continue;
+    const { failed } = await resolveGameImage(game, card.imageType);
+    if (Boolean(card.imageFailed) !== failed) {
+      updateCard(card.id, { imageFailed: failed });
+    }
+  }
 }
 
 async function refreshPreview() {
@@ -450,7 +459,10 @@ export function initUI() {
   bindEvents();
   syncPlatformControls();
   renderDeck();
-  refreshPreview();
+  refreshDeckImageStatus().then(() => {
+    renderDeck();
+    refreshPreview();
+  });
 
   subscribe((event) => {
     if (event === "settings") saveSettings(getSettings());

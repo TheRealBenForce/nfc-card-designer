@@ -34,10 +34,9 @@ export const STORAGE_KEY = "nfc-card-designer-settings";
 export const DECK_STORAGE_KEY = "nfc-card-designer-deck";
 
 export const PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-  <rect width="400" height="400" fill="#2a2a3e"/>
-  <rect x="40" y="40" width="320" height="320" rx="12" fill="#3d3d5c" stroke="#5a5a8a" stroke-width="4"/>
-  <text x="200" y="185" text-anchor="middle" fill="#8888aa" font-family="system-ui,sans-serif" font-size="22">No Image</text>
-  <text x="200" y="220" text-anchor="middle" fill="#666688" font-family="system-ui,sans-serif" font-size="16">Run npm run fetch-images</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="840" viewBox="0 0 520 840">
+  <rect width="520" height="840" fill="#2a2a3e"/>
+  <text x="260" y="400" text-anchor="middle" fill="#8888aa" font-family="system-ui,sans-serif" font-size="28">No Image</text>
+  <text x="260" y="440" text-anchor="middle" fill="#666688" font-family="system-ui,sans-serif" font-size="20">Artwork not downloaded</text>
 </svg>
 `)}`;

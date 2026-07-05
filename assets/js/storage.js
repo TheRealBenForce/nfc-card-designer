@@ -48,7 +48,15 @@ export function loadSettings() {
  * @param {import('./state.js').Card[]} deck
  */
 export function saveDeck(deck) {
-  localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(deck));
+  const stored = deck.map(({ id, platformId, gameName, raGameId, imageType, imageFailed }) => ({
+    id,
+    platformId,
+    gameName,
+    raGameId,
+    imageType,
+    ...(imageFailed ? { imageFailed: true } : {}),
+  }));
+  localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(stored));
 }
 
 /** @returns {import('./state.js').Card[]} */
@@ -56,7 +64,12 @@ export function loadDeck() {
   try {
     const raw = localStorage.getItem(DECK_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((card) => {
+      const { imageUrl: _removed, ...rest } = card;
+      return rest;
+    });
   } catch {
     return [];
   }

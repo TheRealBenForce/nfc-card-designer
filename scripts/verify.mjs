@@ -79,6 +79,10 @@ async function main() {
     await run("node", ["scripts/test-platform-search.mjs"], {
       env: { ...process.env, TEST_BASE_URL: BASE },
     });
+
+    await run("node", ["scripts/test-card-render.mjs"], {
+      env: { ...process.env, TEST_BASE_URL: BASE },
+    });
   } finally {
     stopServer(server);
   }

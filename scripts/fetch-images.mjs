@@ -53,6 +53,13 @@ async function main() {
     process.exit(1);
   }
 
+  if (games.length < 100) {
+    console.warn(
+      `\nWarning: games.js only has ${games.length} games (starter list).\n` +
+        "Run npm run fetch-game-list first to pull the full RetroAchievements catalog.\n",
+    );
+  }
+
   const stats = { downloaded: 0, skipped: 0, failed: 0, gamesDone: 0 };
   const updatedById = new Map(games.map((g) => [g.raGameId, { ...g, images: { ...g.images } }]));
 

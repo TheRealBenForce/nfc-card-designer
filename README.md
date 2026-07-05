@@ -49,19 +49,10 @@ npm run fetch-images
 
 Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
 
-Add to `.env` (either name works):
+Add to `.env`:
 
 ```env
 RETROACHIEVEMENTS_API_KEY=your_key_here
-```
-
-Auth uses query param `y` only — no username required (same as the RA Python examples).
-
-PowerShell bypass:
-
-```powershell
-$env:RETROACHIEVEMENTS_API_KEY="your_key"
-npm run test-ra-auth
 ```
 
 ## Deploy to GitHub Pages

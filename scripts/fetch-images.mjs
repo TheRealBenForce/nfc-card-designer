@@ -2,49 +2,30 @@
 /**
  * Downloads RetroAchievements artwork into assets/images/games/ and updates
  * assets/js/data/games.js with local image paths.
- *
- * Usage:
- *   cp .env.example .env
- *   npm run test-ra-auth
- *   npm run fetch-images
  */
 
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getGame, raFetch } from "./ra-api.mjs";
+import { getGame } from "./ra-api.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const gamesPath = path.join(root, "assets/js/data/games.js");
 const imagesDir = path.join(root, "assets/images/games");
-
 const RA_BASE = "https://retroachievements.org";
-
-async function verifyAuth() {
-  await raFetch("API_GetTopTenUsers.php");
-}
 
 async function downloadImage(relativePath, destPath) {
   if (!relativePath) return false;
   const url = relativePath.startsWith("http") ? relativePath : `${RA_BASE}${relativePath}`;
   const res = await fetch(url, { headers: { "User-Agent": "nfc-card-designer/1.0" } });
   if (!res.ok) return false;
-  const buf = Buffer.from(await res.arrayBuffer());
-  await writeFile(destPath, buf);
+  await writeFile(destPath, Buffer.from(await res.arrayBuffer()));
   return true;
 }
 
-function relativeAssetPath(filename) {
-  return `assets/images/games/${filename}`;
-}
-
 async function main() {
-  console.log("Verifying API credentials…");
-  await verifyAuth();
-
   const { games } = await import(pathToFileURL(gamesPath).href);
-
   await mkdir(imagesDir, { recursive: true });
 
   const updated = [];
@@ -56,19 +37,16 @@ async function main() {
     try {
       const data = await getGame(game.raGameId);
       const mapping = [
-        ["boxArt", data.ImageBoxArt ?? data.imageBoxArt],
-        ["titleScreen", data.ImageTitle ?? data.imageTitle],
-        ["gamePicture", data.ImageIngame ?? data.imageIngame],
+        ["boxArt", data.ImageBoxArt],
+        ["titleScreen", data.ImageTitle],
+        ["gamePicture", data.ImageIngame],
       ];
 
       for (const [type, relPath] of mapping) {
         if (!relPath) continue;
         const filename = `${game.raGameId}-${type}.png`;
-        const dest = path.join(imagesDir, filename);
-        const ok = await downloadImage(relPath, dest);
-        if (ok) {
-          images[type] = relativeAssetPath(filename);
-        }
+        const ok = await downloadImage(relPath, path.join(imagesDir, filename));
+        if (ok) images[type] = `assets/images/games/${filename}`;
       }
       console.log("done");
     } catch (err) {
@@ -78,7 +56,7 @@ async function main() {
     updated.push({ ...game, images });
   }
 
-  const fileContent = `/**
+  const header = `/**
  * @typedef {Object} GameImages
  * @property {string} [boxArt]
  * @property {string} [titleScreen]
@@ -94,8 +72,9 @@ async function main() {
  */
 
 /** @type {Game[]} */
-export const games = ${JSON.stringify(updated, null, 2)};
+`;
 
+  const footer = `
 export function gamesForPlatform(platformId) {
   return games.filter((g) => g.platformId === platformId);
 }
@@ -105,7 +84,12 @@ export function gameByRaId(raGameId) {
 }
 `;
 
-  await writeFile(gamesPath, fileContent);
+  await writeFile(
+    gamesPath,
+    `${header}export const games = ${JSON.stringify(updated, null, 2)};
+${footer}`,
+  );
+
   console.log(`\nUpdated ${gamesPath}`);
 }
 

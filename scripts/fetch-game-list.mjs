@@ -6,8 +6,9 @@
 
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { existsSync } from "node:fs";
 import { getGameList, delay } from "./ra-api.mjs";
-import { writeGamesJs } from "./games-data.mjs";
+import { gamesPath, writeGamesJs } from "./games-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const platformsPath = path.join(root, "assets/js/data/platforms.js");
@@ -35,7 +36,14 @@ async function main() {
   const { platforms } = await import(pathToFileURL(platformsPath).href);
 
   /** @type {import("../assets/js/data/games.js").Game[]} */
-  const games = [];
+  let existing = [];
+  if (platformId && existsSync(gamesPath)) {
+    const { games } = await import(pathToFileURL(gamesPath).href);
+    existing = games.filter((g) => g.platformId !== platformId);
+  }
+
+  /** @type {import("../assets/js/data/games.js").Game[]} */
+  const games = [...existing];
 
   for (const platform of platforms) {
     if (platformId && platform.id !== platformId) continue;

@@ -64,11 +64,21 @@ function setStatus(message, isError = false) {
   statusEl.classList.toggle("status--error", isError);
 }
 
+/** @param {import('./data/platforms.js').Platform} platform @param {string} query */
+function platformMatches(platform, query) {
+  const terms = [
+    platform.name,
+    platform.id,
+    platform.id.replace(/-/g, " "),
+    platform.id.replace(/-/g, ""),
+  ].map((s) => s.toLowerCase());
+
+  return terms.some((term) => term.includes(query));
+}
+
 function filterPlatforms(query) {
   const q = query.trim().toLowerCase();
-  filteredPlatforms = q
-    ? platforms.filter((p) => p.name.toLowerCase().includes(q))
-    : [...platforms];
+  filteredPlatforms = q ? platforms.filter((p) => platformMatches(p, q)) : [...platforms];
   platformHighlightIndex = 0;
   renderPlatformResults();
 }
@@ -87,6 +97,14 @@ function renderPlatformResults() {
   const settings = getSettings();
   platformResultsEl.innerHTML = "";
 
+  if (filteredPlatforms.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-hint";
+    empty.textContent = "No platforms match your search.";
+    platformResultsEl.appendChild(empty);
+    return;
+  }
+
   filteredPlatforms.forEach((platform, index) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -103,10 +121,20 @@ function renderGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.innerHTML = "";
 
+  const settings = getSettings();
+  const catalogSize = gamesForPlatform(settings.selectedPlatformId).length;
+  const query = gameSearchInput?.value.trim() ?? "";
+
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
-    empty.textContent = "No games found for this platform.";
+    if (catalogSize === 0) {
+      empty.textContent = "No games in catalog for this platform yet.";
+    } else if (query) {
+      empty.textContent = `No games matching "${query}".`;
+    } else {
+      empty.textContent = "No games found for this platform.";
+    }
     gameResultsEl.appendChild(empty);
     return;
   }
@@ -126,6 +154,7 @@ function renderGameResults() {
 }
 
 function selectPlatform(platformId) {
+  if (platformSearchInput) platformSearchInput.value = "";
   updateSettings({ selectedPlatformId: platformId });
   saveSettings(getSettings());
   syncPlatformControls();
@@ -272,6 +301,10 @@ async function refreshPreview() {
 
 function bindEvents() {
   platformSearchInput?.addEventListener("input", (e) => {
+    filterPlatforms(/** @type {HTMLInputElement} */ (e.target).value);
+  });
+
+  platformSearchInput?.addEventListener("search", (e) => {
     filterPlatforms(/** @type {HTMLInputElement} */ (e.target).value);
   });
 

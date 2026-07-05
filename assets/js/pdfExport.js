@@ -1,12 +1,6 @@
-import {
-  CARD_WIDTH_MM,
-  CARD_HEIGHT_MM,
-  LETTER_WIDTH_MM,
-  LETTER_HEIGHT_MM,
-  CARDS_PER_ROW,
-  CARDS_PER_COL,
-} from "./config.js";
 import { renderCard } from "./cardRenderer.js";
+import { CARD_WIDTH_MM, CARD_HEIGHT_MM, CARDS_PER_ROW, CARDS_PER_COL } from "./config.js";
+import { cardPositionMm } from "./pdfLayout.js";
 
 const CUT_MARK_MM = 3;
 const CUT_OFFSET_MM = 1.5;
@@ -50,11 +44,6 @@ export async function exportLetterPdf(deck, platformColors) {
   const cardsPerSheet = CARDS_PER_ROW * CARDS_PER_COL;
   const sheetCount = Math.max(1, Math.ceil(deck.length / cardsPerSheet));
 
-  const gridW = CARDS_PER_ROW * CARD_WIDTH_MM;
-  const gridH = CARDS_PER_COL * CARD_HEIGHT_MM;
-  const marginX = (LETTER_WIDTH_MM - gridW) / 2;
-  const marginY = (LETTER_HEIGHT_MM - gridH) / 2;
-
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -68,8 +57,7 @@ export async function exportLetterPdf(deck, platformColors) {
       const cardIndex = sheet * cardsPerSheet + slot;
       const col = slot % CARDS_PER_ROW;
       const row = Math.floor(slot / CARDS_PER_ROW);
-      const x = marginX + col * CARD_WIDTH_MM;
-      const y = marginY + row * CARD_HEIGHT_MM;
+      const { x, y } = cardPositionMm(col, row);
 
       drawCutMarks(pdf, x, y, CARD_WIDTH_MM, CARD_HEIGHT_MM);
 

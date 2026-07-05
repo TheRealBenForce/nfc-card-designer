@@ -17,6 +17,9 @@ export const LETTER_HEIGHT_MM = 279.4;
 export const CARDS_PER_ROW = 3;
 export const CARDS_PER_COL = 3;
 
+/** Gap between adjacent cards on the letter PDF sheet (mm). */
+export const PDF_CARD_GAP_MM = 3;
+
 /** Render resolution for canvas (approx. 300 dpi). */
 export const CARD_RENDER_WIDTH_PX = Math.round((CARD_WIDTH_MM / 25.4) * 300);
 export const CARD_RENDER_HEIGHT_PX = Math.round((CARD_HEIGHT_MM / 25.4) * 300);

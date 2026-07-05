@@ -9,6 +9,7 @@
     "fetch-images": "node scripts/fetch-images.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
     "test:card-render": "node scripts/test-card-render.mjs",
+    "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
     "verify": "node scripts/verify.mjs"
   }
 }

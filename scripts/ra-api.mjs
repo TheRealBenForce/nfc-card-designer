@@ -7,8 +7,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BASE_URL = "https://retroachievements.org/API";
 const USER_AGENT = "nfc-card-designer/1.0";
 
-const KEY_NAMES = ["RETROACHIEVEMENTS_API_KEY", "RA_API_KEY"];
-
 /** @param {Buffer} buffer */
 function decodeEnvFile(buffer) {
   if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
@@ -34,11 +32,9 @@ function normalizeApiKey(value) {
 }
 
 async function loadApiKey() {
-  for (const name of KEY_NAMES) {
-    const fromEnv = process.env[name];
-    if (fromEnv?.trim()) {
-      return normalizeApiKey(fromEnv);
-    }
+  const fromEnv = process.env.RETROACHIEVEMENTS_API_KEY;
+  if (fromEnv?.trim()) {
+    return normalizeApiKey(fromEnv);
   }
 
   const envPath = path.join(root, ".env");
@@ -55,14 +51,14 @@ async function loadApiKey() {
     if (eq === -1) continue;
 
     const key = trimmed.slice(0, eq).trim();
-    if (!KEY_NAMES.includes(key)) continue;
+    if (key !== "RETROACHIEVEMENTS_API_KEY") continue;
 
     const value = normalizeApiKey(trimmed.slice(eq + 1));
     if (value) return value;
   }
 
   throw new Error(
-    "RETROACHIEVEMENTS_API_KEY not found in .env — use RETROACHIEVEMENTS_API_KEY=your_key (UTF-8, one line, no spaces around =)",
+    "RETROACHIEVEMENTS_API_KEY not found in .env — use RETROACHIEVEMENTS_API_KEY=your_key",
   );
 }
 

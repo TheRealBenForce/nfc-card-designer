@@ -36,43 +36,33 @@ Open [http://localhost:8000](http://localhost:8000).
 
 ## Artwork setup (RetroAchievements)
 
-The live site **does not** call the RetroAchievements API. Download images once on your machine and commit them to the repo.
+The live site does not call the RetroAchievements API. Download images once on your machine and commit them to the repo.
 
 ```bash
 cp .env.example .env
-# Edit .env — see notes below
-npm install
-npm run test-ra-auth    # verify credentials first
+# Edit .env — add your Web API Key (see below)
+npm run test-ra-auth
 npm run fetch-images
 ```
 
-### `.env` credentials
+### API key
 
-Get both from https://retroachievements.org/controlpanel.php:
+Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
 
-| Variable | Where to find it |
-|----------|------------------|
-| `RA_USERNAME` | Your **login** username (what you sign in with) |
-| `RA_API_KEY` | Settings → Keys → **Web API Key** (click to copy) |
+Add to `.env` (either name works):
 
-Common causes of HTTP 401:
-
-- Copied the wrong key (connect token ≠ Web API Key)
-- Username is a display name, not your login username
-- Extra quotes or spaces in `.env` (don't wrap values in quotes)
-- Key was reset on the website but `.env` still has the old key
-
-Bypass `.env` file issues (PowerShell):
-
-```powershell
-$env:RA_USERNAME="YourLoginUsername"
-$env:RA_API_KEY="paste_web_api_key"
-npm run test-ra-auth
+```env
+RETROACHIEVEMENTS_API_KEY=your_key_here
 ```
 
-Save `.env` as **UTF-8** in your editor (not UTF-16). RA keys are typically **32 characters** — if you see 33, there may be a hidden character; the script now strips whitespace automatically.
+Auth uses query param `y` only — no username required (same as the RA Python examples).
 
-Docs: https://api-docs.retroachievements.org/getting-started.html
+PowerShell bypass:
+
+```powershell
+$env:RETROACHIEVEMENTS_API_KEY="your_key"
+npm run test-ra-auth
+```
 
 ## Deploy to GitHub Pages
 

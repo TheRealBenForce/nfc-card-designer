@@ -6,8 +6,5 @@
     "start": "npx --yes serve -l 8000",
     "test-ra-auth": "node scripts/test-ra-auth.mjs",
     "fetch-images": "node scripts/fetch-images.mjs"
-  },
-  "devDependencies": {
-    "@retroachievements/api": "^2.10.0"
   }
 }

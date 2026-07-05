@@ -12,8 +12,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildAuthorization, getGame, getTopTenUsers } from "@retroachievements/api";
-import { loadRaCredentials, sanitizeApiKey } from "./env.js";
+import { getGame, raFetch } from "./ra-api.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -22,20 +21,14 @@ const imagesDir = path.join(root, "assets/images/games");
 
 const RA_BASE = "https://retroachievements.org";
 
-async function verifyAuth(authorization) {
-  try {
-    await getTopTenUsers(authorization);
-  } catch {
-    throw new Error(
-      "RetroAchievements API authentication failed. Run: npm run test-ra-auth",
-    );
-  }
+async function verifyAuth() {
+  await raFetch("API_GetTopTenUsers.php");
 }
 
 async function downloadImage(relativePath, destPath) {
   if (!relativePath) return false;
   const url = relativePath.startsWith("http") ? relativePath : `${RA_BASE}${relativePath}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: { "User-Agent": "nfc-card-designer/1.0" } });
   if (!res.ok) return false;
   const buf = Buffer.from(await res.arrayBuffer());
   await writeFile(destPath, buf);
@@ -47,11 +40,8 @@ function relativeAssetPath(filename) {
 }
 
 async function main() {
-  const { username, apiKey } = await loadRaCredentials();
-  const authorization = buildAuthorization({ username, webApiKey: sanitizeApiKey(apiKey) });
-
   console.log("Verifying API credentials…");
-  await verifyAuth(authorization);
+  await verifyAuth();
 
   const { games } = await import(pathToFileURL(gamesPath).href);
 
@@ -64,11 +54,11 @@ async function main() {
     let images = { ...game.images };
 
     try {
-      const data = await getGame(authorization, { gameId: game.raGameId });
+      const data = await getGame(game.raGameId);
       const mapping = [
-        ["boxArt", data.imageBoxArt],
-        ["titleScreen", data.imageTitle],
-        ["gamePicture", data.imageIngame],
+        ["boxArt", data.ImageBoxArt ?? data.imageBoxArt],
+        ["titleScreen", data.ImageTitle ?? data.imageTitle],
+        ["gamePicture", data.ImageIngame ?? data.imageIngame],
       ];
 
       for (const [type, relPath] of mapping) {

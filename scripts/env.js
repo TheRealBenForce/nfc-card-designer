@@ -60,59 +60,37 @@ export function sanitizeApiKey(value) {
   return value.replace(/\s+/g, "");
 }
 
-/**
- * @param {string} value
- */
-export function inspectSecret(value, label) {
-  const lines = [`${label}:`];
-  lines.push(`  length: ${value.length}`);
-  lines.push(`  first code: ${value.charCodeAt(0)} (${JSON.stringify(value[0])})`);
-  lines.push(`  last code: ${value.charCodeAt(value.length - 1)} (${JSON.stringify(value.at(-1))})`);
-  if (/\s/.test(value)) {
-    lines.push("  warning: contains whitespace — will be stripped for API calls");
-  }
-  if (!/^[A-Za-z0-9]+$/.test(value)) {
-    lines.push("  warning: contains non-alphanumeric characters");
-  }
-  return lines.join("\n");
-}
+export async function loadRaApiKey() {
+  const fromEnv =
+    process.env.RETROACHIEVEMENTS_API_KEY?.trim() ||
+    process.env.RA_API_KEY?.trim();
 
-export async function loadRaCredentials() {
-  let username = process.env.RA_USERNAME?.trim();
-  let apiKey = process.env.RA_API_KEY?.trim();
-  let encoding = "environment";
-
-  if (!username || !apiKey) {
-    const envPath = path.join(root, ".env");
-    if (!existsSync(envPath)) {
-      throw new Error(
-        "Missing .env file. Copy .env.example to .env and set RA_USERNAME and RA_API_KEY.",
-      );
-    }
-
-    const buffer = await readFile(envPath);
-    const decoded = decodeEnvBuffer(buffer);
-    encoding = decoded.encoding;
-    const vars = parseEnvText(decoded.text);
-
-    username = username || vars.RA_USERNAME?.trim();
-    apiKey = apiKey || vars.RA_API_KEY?.trim();
+  if (fromEnv) {
+    return sanitizeApiKey(fromEnv);
   }
 
-  if (!apiKey) {
-    throw new Error("RA_API_KEY is required in .env or environment");
-  }
-
-  if (!username) {
+  const envPath = path.join(root, ".env");
+  if (!existsSync(envPath)) {
     throw new Error(
-      "RA_USERNAME is required in .env (your RetroAchievements login username).",
+      "Missing API key. Set RETROACHIEVEMENTS_API_KEY or RA_API_KEY in .env",
     );
   }
 
-  const rawKey = apiKey;
-  apiKey = sanitizeApiKey(apiKey);
+  const buffer = await readFile(envPath);
+  const decoded = decodeEnvBuffer(buffer);
+  const vars = parseEnvText(decoded.text);
 
-  return { username, apiKey, rawKey, encoding };
+  const apiKey = sanitizeApiKey(
+    vars.RETROACHIEVEMENTS_API_KEY || vars.RA_API_KEY || "",
+  );
+
+  if (!apiKey) {
+    throw new Error(
+      "Missing API key. Set RETROACHIEVEMENTS_API_KEY or RA_API_KEY in .env",
+    );
+  }
+
+  return apiKey;
 }
 
 /**

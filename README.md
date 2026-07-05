@@ -36,15 +36,33 @@ Open [http://localhost:8000](http://localhost:8000).
 
 ## Artwork setup (RetroAchievements)
 
-The live site **does not** call the RetroAchievements API (your API key must never ship to GitHub Pages). Instead, download images once on your machine and commit them to the repo:
+The live site **does not** call the RetroAchievements API. Download images once on your machine and commit them to the repo.
 
 ```bash
 cp .env.example .env
-# Edit .env: set RA_USERNAME and RA_API_KEY from https://retroachievements.org/controlpanel.php
+# Edit .env — see notes below
+npm install
+npm run test-ra-auth    # verify credentials first
 npm run fetch-images
 ```
 
-This downloads images into `assets/images/games/` and updates `assets/js/data/games.js` with local paths. Commit the images when you're happy with them.
+### `.env` credentials
+
+Get both from https://retroachievements.org/controlpanel.php:
+
+| Variable | Where to find it |
+|----------|------------------|
+| `RA_USERNAME` | Your **login** username (what you sign in with) |
+| `RA_API_KEY` | Settings → Keys → **Web API Key** (click to copy) |
+
+Common causes of HTTP 401:
+
+- Copied the wrong key (connect token ≠ Web API Key)
+- Username is a display name, not your login username
+- Extra quotes or spaces in `.env` (don't wrap values in quotes)
+- Key was reset on the website but `.env` still has the old key
+
+Docs: https://api-docs.retroachievements.org/getting-started.html
 
 ## Deploy to GitHub Pages
 

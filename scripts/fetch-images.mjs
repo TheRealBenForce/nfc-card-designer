@@ -4,16 +4,16 @@
  * assets/js/data/games.js with local image paths.
  *
  * Usage:
- *   cp .env.example .env   # add your RA_API_KEY
+ *   cp .env.example .env
+ *   npm run test-ra-auth
  *   npm run fetch-images
- *
- * The API key stays on your machine — it is never deployed to GitHub Pages.
  */
 
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { buildAuthorization, getGame, getTopTenUsers } from "@retroachievements/api";
+import { loadRaCredentials } from "./env.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -22,47 +22,14 @@ const imagesDir = path.join(root, "assets/images/games");
 
 const RA_BASE = "https://retroachievements.org";
 
-async function loadEnv() {
-  const envPath = path.join(root, ".env");
-  if (!existsSync(envPath)) {
-    console.error("Missing .env file. Copy .env.example to .env and set RA_USERNAME and RA_API_KEY.");
-    process.exit(1);
+async function verifyAuth(authorization) {
+  try {
+    await getTopTenUsers(authorization);
+  } catch {
+    throw new Error(
+      "RetroAchievements API authentication failed. Run: npm run test-ra-auth",
+    );
   }
-  const text = await readFile(envPath, "utf8");
-  const vars = Object.fromEntries(
-    text
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#"))
-      .map((line) => {
-        const idx = line.indexOf("=");
-        return [line.slice(0, idx), line.slice(idx + 1).trim()];
-      }),
-  );
-
-  const username = vars.RA_USERNAME;
-  const apiKey = vars.RA_API_KEY;
-
-  if (!username || !apiKey) {
-    console.error("RA_USERNAME and RA_API_KEY are both required in .env");
-    process.exit(1);
-  }
-  return { username, apiKey };
-}
-
-async function fetchGame({ username, apiKey }, gameId) {
-  const params = new URLSearchParams({
-    z: username,
-    y: apiKey,
-    i: String(gameId),
-  });
-  const url = `${RA_BASE}/API/API_GetGame.php?${params}`;
-  const res = await fetch(url);
-  if (res.status === 401) {
-    throw new Error("HTTP 401 — check RA_USERNAME and RA_API_KEY in .env");
-  }
-  if (!res.ok) throw new Error(`HTTP ${res.status} for game ${gameId}`);
-  return res.json();
 }
 
 async function downloadImage(relativePath, destPath) {
@@ -80,7 +47,12 @@ function relativeAssetPath(filename) {
 }
 
 async function main() {
-  const auth = await loadEnv();
+  const { username, apiKey } = await loadRaCredentials();
+  const authorization = buildAuthorization({ username, webApiKey: apiKey });
+
+  console.log("Verifying API credentials…");
+  await verifyAuth(authorization);
+
   const { games } = await import(pathToFileURL(gamesPath).href);
 
   await mkdir(imagesDir, { recursive: true });
@@ -92,11 +64,11 @@ async function main() {
     let images = { ...game.images };
 
     try {
-      const data = await fetchGame(auth, game.raGameId);
+      const data = await getGame(authorization, { gameId: game.raGameId });
       const mapping = [
-        ["boxArt", data.ImageBoxArt ?? data.imageBoxArt],
-        ["titleScreen", data.ImageTitle ?? data.imageTitle],
-        ["gamePicture", data.ImageIngame ?? data.imageIngame],
+        ["boxArt", data.imageBoxArt],
+        ["titleScreen", data.imageTitle],
+        ["gamePicture", data.imageIngame],
       ];
 
       for (const [type, relPath] of mapping) {
@@ -110,7 +82,7 @@ async function main() {
       }
       console.log("done");
     } catch (err) {
-      console.log(`failed (${err.message})`);
+      console.log(`failed (${err instanceof Error ? err.message : err})`);
     }
 
     updated.push({ ...game, images });
@@ -148,6 +120,6 @@ export function gameByRaId(raGameId) {
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 });

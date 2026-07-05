@@ -54,12 +54,24 @@ This downloads images into `assets/images/games/` and updates `assets/js/data/ga
 
 ## Card layout
 
-Portrait 52 × 84 mm:
+Portrait 52 × 84 mm (long edge = height). First split is **vertical** (long-edge to long-edge):
 
-- **Top 75%** — game artwork (cover-fill, full width)
-- **Bottom 25%** — platform strip split by width:
-  - **Left 25%** — platform color
-  - **Right 75%** — platform logo
+```
+┌────────────────────────────┬───────┐
+│                            │ LOGO  │
+│        ARTWORK (75%)       │ (75%  │
+│        full height         │ of    │
+│                            │ col)  │
+│                            ├───────┤
+│                            │ COLOR │
+└────────────────────────────┴───────┘
+         ~75% width            ~25%
+```
+
+- **Left ~75%** — game artwork (cover-fill, full card height)
+- **Right ~25%** — platform column, split by height:
+  - **Top ~75%** — logo
+  - **Bottom ~25%** — platform color
 
 ## Notes
 

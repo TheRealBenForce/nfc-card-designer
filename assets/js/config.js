@@ -3,13 +3,14 @@ export const CARD_WIDTH_MM = 52;
 export const CARD_HEIGHT_MM = 84;
 
 /**
- * Layout: split along the long edge (height) first, then split the bottom strip
- * along its long edge (width).
+ * Layout on a portrait card (long edge = height):
+ * 1. Split long-edge to long-edge (vertical): artwork ~75% width | platform column ~25% width
+ * 2. Split the platform column along its long edge (height): logo ~75% | color ~25%
  */
-export const ART_HEIGHT_RATIO = 0.75;
-export const STRIP_HEIGHT_RATIO = 0.25;
-export const COLOR_WIDTH_RATIO = 0.25;
-export const LOGO_WIDTH_RATIO = 0.75;
+export const ART_WIDTH_RATIO = 0.75;
+export const PLATFORM_COLUMN_RATIO = 0.25;
+export const LOGO_HEIGHT_RATIO = 0.75;
+export const COLOR_HEIGHT_RATIO = 0.25;
 
 export const LETTER_WIDTH_MM = 215.9;
 export const LETTER_HEIGHT_MM = 279.4;

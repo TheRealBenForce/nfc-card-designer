@@ -25,26 +25,42 @@ const RA_BASE = "https://retroachievements.org";
 async function loadEnv() {
   const envPath = path.join(root, ".env");
   if (!existsSync(envPath)) {
-    console.error("Missing .env file. Copy .env.example to .env and set RA_API_KEY.");
+    console.error("Missing .env file. Copy .env.example to .env and set RA_USERNAME and RA_API_KEY.");
     process.exit(1);
   }
   const text = await readFile(envPath, "utf8");
-  const key = text
-    .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.startsWith("RA_API_KEY="))
-    ?.split("=")[1]
-    ?.trim();
-  if (!key) {
-    console.error("RA_API_KEY not found in .env");
+  const vars = Object.fromEntries(
+    text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#"))
+      .map((line) => {
+        const idx = line.indexOf("=");
+        return [line.slice(0, idx), line.slice(idx + 1).trim()];
+      }),
+  );
+
+  const username = vars.RA_USERNAME;
+  const apiKey = vars.RA_API_KEY;
+
+  if (!username || !apiKey) {
+    console.error("RA_USERNAME and RA_API_KEY are both required in .env");
     process.exit(1);
   }
-  return key;
+  return { username, apiKey };
 }
 
-async function fetchGame(apiKey, gameId) {
-  const url = `${RA_BASE}/API/API_GetGame.php?y=${encodeURIComponent(apiKey)}&i=${gameId}`;
+async function fetchGame({ username, apiKey }, gameId) {
+  const params = new URLSearchParams({
+    z: username,
+    y: apiKey,
+    i: String(gameId),
+  });
+  const url = `${RA_BASE}/API/API_GetGame.php?${params}`;
   const res = await fetch(url);
+  if (res.status === 401) {
+    throw new Error("HTTP 401 — check RA_USERNAME and RA_API_KEY in .env");
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status} for game ${gameId}`);
   return res.json();
 }
@@ -64,7 +80,7 @@ function relativeAssetPath(filename) {
 }
 
 async function main() {
-  const apiKey = await loadEnv();
+  const auth = await loadEnv();
   const { games } = await import(pathToFileURL(gamesPath).href);
 
   await mkdir(imagesDir, { recursive: true });
@@ -76,7 +92,7 @@ async function main() {
     let images = { ...game.images };
 
     try {
-      const data = await fetchGame(apiKey, game.raGameId);
+      const data = await fetchGame(auth, game.raGameId);
       const mapping = [
         ["boxArt", data.ImageBoxArt ?? data.imageBoxArt],
         ["titleScreen", data.ImageTitle ?? data.imageTitle],

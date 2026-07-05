@@ -40,7 +40,7 @@ The live site **does not** call the RetroAchievements API (your API key must nev
 
 ```bash
 cp .env.example .env
-# Edit .env and set RA_API_KEY from https://retroachievements.org/controlpanel.php
+# Edit .env: set RA_USERNAME and RA_API_KEY from https://retroachievements.org/controlpanel.php
 npm run fetch-images
 ```
 

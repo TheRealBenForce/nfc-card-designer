@@ -6,6 +6,19 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
+ * @param {Buffer} buffer
+ */
+export function decodeEnvBuffer(buffer) {
+  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return { text: buffer.toString("utf16le"), encoding: "utf-16le" };
+  }
+  if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
+    return { text: buffer.toString("utf8").slice(1), encoding: "utf-8-bom" };
+  }
+  return { text: buffer.toString("utf8"), encoding: "utf-8" };
+}
+
+/**
  * @param {string} text
  */
 export function parseEnvText(text) {
@@ -40,22 +53,54 @@ export function parseEnvText(text) {
   return vars;
 }
 
+/**
+ * @param {string} value
+ */
+export function sanitizeApiKey(value) {
+  return value.replace(/\s+/g, "");
+}
+
+/**
+ * @param {string} value
+ */
+export function inspectSecret(value, label) {
+  const lines = [`${label}:`];
+  lines.push(`  length: ${value.length}`);
+  lines.push(`  first code: ${value.charCodeAt(0)} (${JSON.stringify(value[0])})`);
+  lines.push(`  last code: ${value.charCodeAt(value.length - 1)} (${JSON.stringify(value.at(-1))})`);
+  if (/\s/.test(value)) {
+    lines.push("  warning: contains whitespace — will be stripped for API calls");
+  }
+  if (!/^[A-Za-z0-9]+$/.test(value)) {
+    lines.push("  warning: contains non-alphanumeric characters");
+  }
+  return lines.join("\n");
+}
+
 export async function loadRaCredentials() {
-  const envPath = path.join(root, ".env");
-  if (!existsSync(envPath)) {
-    throw new Error(
-      "Missing .env file. Copy .env.example to .env and set RA_USERNAME and RA_API_KEY.",
-    );
+  let username = process.env.RA_USERNAME?.trim();
+  let apiKey = process.env.RA_API_KEY?.trim();
+  let encoding = "environment";
+
+  if (!username || !apiKey) {
+    const envPath = path.join(root, ".env");
+    if (!existsSync(envPath)) {
+      throw new Error(
+        "Missing .env file. Copy .env.example to .env and set RA_USERNAME and RA_API_KEY.",
+      );
+    }
+
+    const buffer = await readFile(envPath);
+    const decoded = decodeEnvBuffer(buffer);
+    encoding = decoded.encoding;
+    const vars = parseEnvText(decoded.text);
+
+    username = username || vars.RA_USERNAME?.trim();
+    apiKey = apiKey || vars.RA_API_KEY?.trim();
   }
 
-  const text = await readFile(envPath, "utf8");
-  const vars = parseEnvText(text);
-
-  const username = vars.RA_USERNAME?.trim();
-  const apiKey = vars.RA_API_KEY?.trim();
-
   if (!apiKey) {
-    throw new Error("RA_API_KEY is required in .env");
+    throw new Error("RA_API_KEY is required in .env or environment");
   }
 
   if (!username) {
@@ -64,7 +109,10 @@ export async function loadRaCredentials() {
     );
   }
 
-  return { username, apiKey };
+  const rawKey = apiKey;
+  apiKey = sanitizeApiKey(apiKey);
+
+  return { username, apiKey, rawKey, encoding };
 }
 
 /**

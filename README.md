@@ -62,6 +62,16 @@ Common causes of HTTP 401:
 - Extra quotes or spaces in `.env` (don't wrap values in quotes)
 - Key was reset on the website but `.env` still has the old key
 
+Bypass `.env` file issues (PowerShell):
+
+```powershell
+$env:RA_USERNAME="YourLoginUsername"
+$env:RA_API_KEY="paste_web_api_key"
+npm run test-ra-auth
+```
+
+Save `.env` as **UTF-8** in your editor (not UTF-16). RA keys are typically **32 characters** — if you see 33, there may be a hidden character; the script now strips whitespace automatically.
+
 Docs: https://api-docs.retroachievements.org/getting-started.html
 
 ## Deploy to GitHub Pages

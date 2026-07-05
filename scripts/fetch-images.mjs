@@ -13,7 +13,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildAuthorization, getGame, getTopTenUsers } from "@retroachievements/api";
-import { loadRaCredentials } from "./env.js";
+import { loadRaCredentials, sanitizeApiKey } from "./env.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -48,7 +48,7 @@ function relativeAssetPath(filename) {
 
 async function main() {
   const { username, apiKey } = await loadRaCredentials();
-  const authorization = buildAuthorization({ username, webApiKey: apiKey });
+  const authorization = buildAuthorization({ username, webApiKey: sanitizeApiKey(apiKey) });
 
   console.log("Verifying API credentials…");
   await verifyAuth(authorization);

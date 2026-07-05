@@ -23,8 +23,9 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
-    const layout = await page.evaluate(async () => {
+    const portrait = await page.evaluate(async () => {
       const { renderCard } = await import("/assets/js/cardRenderer.js");
+      const { computeCardLayout } = await import("/assets/js/cardLayout.js");
       const canvas = await renderCard(
         {
           id: "test",
@@ -39,53 +40,68 @@ async function main() {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("No canvas context");
 
-      const stripH = Math.round(canvas.height * 0.25);
-      const artH = canvas.height - stripH;
-      const logoW = Math.round(canvas.width * 0.75);
+      const layout = computeCardLayout(canvas.width, canvas.height);
 
-      const logoPx = ctx.getImageData(5, 5, 1, 1).data;
-      const colorPx = ctx.getImageData(logoW + 5, 5, 1, 1).data;
-      const artPx = ctx.getImageData(Math.floor(canvas.width / 2), stripH + Math.floor(artH / 2), 1, 1).data;
+      const sample = (x, y) => {
+        const px = ctx.getImageData(x, y, 1, 1).data;
+        return [px[0], px[1], px[2]];
+      };
 
       return {
         width: canvas.width,
         height: canvas.height,
-        stripH,
-        artH,
-        logoW,
-        logo: [logoPx[0], logoPx[1], logoPx[2]],
-        color: [colorPx[0], colorPx[1], colorPx[2]],
-        art: [artPx[0], artPx[1], artPx[2]],
+        layout,
+        art: sample(layout.art.x + 10, layout.art.y + Math.floor(layout.art.h / 2)),
+        logo: sample(layout.logo.x + 5, layout.logo.y + 5),
+        color: sample(layout.color.x + layout.color.w - 5, layout.color.y + 5),
       };
     });
 
-    if (layout.width >= layout.height) {
-      throw new Error(`Card should be portrait, got ${layout.width}x${layout.height}`);
+    if (portrait.width >= portrait.height) {
+      throw new Error(`Card should be portrait, got ${portrait.width}x${portrait.height}`);
     }
-    console.log(`✓ Card canvas is portrait (${layout.width}×${layout.height})`);
+    console.log(`✓ Card canvas is portrait (${portrait.width}×${portrait.height})`);
 
-    if (layout.stripH + layout.artH !== layout.height) {
-      throw new Error("Platform strip and artwork should fill card height");
+    if (portrait.layout.platform.y !== 0 || portrait.layout.art.y !== portrait.layout.platform.h) {
+      throw new Error("Portrait card should place platform strip on top, artwork below");
     }
-    console.log("✓ Platform strip (top) and artwork (bottom) stack correctly");
+    console.log("✓ Portrait: platform strip top (25%), artwork bottom (75%)");
 
-    const logoColor = hex(...layout.logo);
-    if (logoColor !== "#1a1a2e") {
-      throw new Error(`Logo area should be #1a1a2e, got ${logoColor}`);
+    if (portrait.layout.logo.x !== portrait.layout.platform.x) {
+      throw new Error("Logo should stay within the platform strip");
     }
-    console.log("✓ Logo area renders in top strip (left)");
+    if (portrait.layout.color.x <= portrait.layout.logo.x) {
+      throw new Error("Portrait platform strip should split logo left, color right");
+    }
+    console.log("✓ Portrait platform strip: logo left, color right");
 
-    const stripColor = hex(...layout.color);
-    if (stripColor !== "#b4000c") {
-      throw new Error(`Color strip should be NES red #b4000c, got ${stripColor}`);
+    if (hex(...portrait.logo) !== "#1a1a2e") {
+      throw new Error(`Logo area should be #1a1a2e, got ${hex(...portrait.logo)}`);
     }
-    console.log("✓ Platform color renders in top strip (right)");
+    if (hex(...portrait.color) !== "#b4000c") {
+      throw new Error(`Color area should be #b4000c, got ${hex(...portrait.color)}`);
+    }
+    console.log("✓ Logo and color regions render correctly");
 
-    const artColor = hex(...layout.art);
-    if (artColor === "#1a1a2e" || artColor === "#b4000c") {
-      throw new Error(`Artwork area should be below platform strip, sampled ${artColor}`);
+    const landscape = await page.evaluate(async () => {
+      const { splitArtAndPlatform, splitLogoAndColor } = await import("/assets/js/cardLayout.js");
+      const cardW = 840;
+      const cardH = 520;
+      const { art, platform } = splitArtAndPlatform({ x: 0, y: 0, w: cardW, h: cardH });
+      const { logo, color } = splitLogoAndColor(platform);
+      return { art, platform, logo, color };
+    });
+
+    if (landscape.art.x + landscape.art.w !== landscape.platform.x) {
+      throw new Error("Landscape card should split artwork left, platform right");
     }
-    console.log("✓ Artwork area renders below platform strip");
+    if (landscape.logo.y !== landscape.platform.y) {
+      throw new Error("Landscape platform column: logo should be at top of column");
+    }
+    if (landscape.color.y !== landscape.logo.h) {
+      throw new Error("Landscape platform column should split logo top, color bottom");
+    }
+    console.log("✓ Landscape: artwork left (75%), platform right (25%), logo above color");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

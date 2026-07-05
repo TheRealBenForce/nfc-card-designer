@@ -1,10 +1,5 @@
-import {
-  CARD_RENDER_WIDTH_PX,
-  CARD_RENDER_HEIGHT_PX,
-  PLATFORM_STRIP_RATIO,
-  LOGO_STRIP_RATIO,
-  PLACEHOLDER_SVG,
-} from "./config.js";
+import { CARD_RENDER_WIDTH_PX, CARD_RENDER_HEIGHT_PX, PLACEHOLDER_SVG } from "./config.js";
+import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage } from "./imageProvider.js";
 
@@ -39,12 +34,10 @@ function drawCoverImage(ctx, img, x, y, w, h) {
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {string} emoji
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
+ * @param {import('./cardLayout.js').Rect} rect
  */
-function drawEmojiLogo(ctx, emoji, x, y, w, h) {
+function drawEmojiLogo(ctx, emoji, rect) {
+  const { x, y, w, h } = rect;
   ctx.fillStyle = "#1a1a2e";
   ctx.fillRect(x, y, w, h);
   const fontSize = Math.min(w, h) * 0.55;
@@ -68,30 +61,24 @@ export async function renderCard(card, platformColors) {
 
   const platform = platformById[card.platformId];
   const color = platformColors[card.platformId] ?? platform?.defaultColor ?? "#333";
-
-  const cardW = CARD_RENDER_WIDTH_PX;
-  const cardH = CARD_RENDER_HEIGHT_PX;
-  const stripH = Math.round(cardH * PLATFORM_STRIP_RATIO);
-  const artH = cardH - stripH;
-  const logoW = Math.round(cardW * LOGO_STRIP_RATIO);
-  const colorW = cardW - logoW;
+  const { art, logo, color: colorRect } = computeCardLayout(canvas.width, canvas.height);
 
   ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, cardW, cardH);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const { url: imageSrc } = await resolveCardImage(card);
   try {
     const img = await loadImage(imageSrc);
-    drawCoverImage(ctx, img, 0, stripH, cardW, artH);
+    drawCoverImage(ctx, img, art.x, art.y, art.w, art.h);
   } catch {
     const img = await loadImage(PLACEHOLDER_SVG);
-    drawCoverImage(ctx, img, 0, stripH, cardW, artH);
+    drawCoverImage(ctx, img, art.x, art.y, art.w, art.h);
   }
 
-  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", 0, 0, logoW, stripH);
+  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", logo);
 
   ctx.fillStyle = color;
-  ctx.fillRect(logoW, 0, colorW, stripH);
+  ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
 
   return canvas;
 }

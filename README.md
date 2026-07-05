@@ -82,22 +82,45 @@ RETROACHIEVEMENTS_API_KEY=your_key_here
 
 ## Card layout
 
-Portrait 52 × 84 mm (long edge = height). Splits stack **top to bottom**:
+Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cut connects the two long sides of whatever is being divided:
+
+- **Tall segment** (portrait) → horizontal cut → **top | bottom**
+- **Wide segment** (landscape) → vertical cut → **left | right**
+
+### Portrait card (current default)
 
 ```
 ┌──────────────────────────────┐
-│  LOGO (75%)   │ COLOR (25%)  │  ← top ~25% of card height
+│  LOGO (75%)   │ COLOR (25%)  │  ← platform strip, top ~25%
 ├──────────────────────────────┤
 │                              │
-│        ARTWORK (75%)         │  ← bottom ~75% of card height
+│        ARTWORK (75%)         │  ← bottom ~75%
 │                              │
 └──────────────────────────────┘
 ```
 
-- **Top ~25%** — platform strip, split left to right:
+- **Top ~25%** — platform strip (wide segment → split left | right):
   - **Left ~75%** — logo
   - **Right ~25%** — platform color
 - **Bottom ~75%** — game artwork (cover-fill, full card width)
+
+### Landscape card (same rules)
+
+```
+┌────────────────────────────┬───────┐
+│                            │ LOGO  │
+│        ARTWORK (75%)       │ (75%  │
+│                            │ of    │
+│                            │ col)  │
+│                            ├───────┤
+│                            │ COLOR │
+└────────────────────────────┴───────┘
+```
+
+- **Left ~75%** — artwork
+- **Right ~25%** — platform column (tall segment → split top | bottom):
+  - **Top ~75%** — logo
+  - **Bottom ~25%** — platform color
 
 ## Notes
 

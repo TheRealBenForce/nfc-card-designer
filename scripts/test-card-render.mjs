@@ -51,7 +51,7 @@ async function main() {
         width: canvas.width,
         height: canvas.height,
         layout,
-        art: sample(layout.art.x + 10, layout.art.y + Math.floor(layout.art.h / 2)),
+        art: sample(layout.art.x + 10, layout.art.y + 10),
         logo: sample(layout.logo.x + 5, layout.logo.y + 5),
         color: sample(layout.color.x + layout.color.w - 5, layout.color.y + 5),
       };

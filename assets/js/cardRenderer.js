@@ -4,6 +4,9 @@ import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage } from "./imageProvider.js";
 
 /**
+ * Scale image to fit within the box (no cropping), top-aligned.
+ * Unused space appears at the bottom; horizontal gaps are centered.
+ *
  * @param {CanvasRenderingContext2D} ctx
  * @param {HTMLImageElement} img
  * @param {number} x
@@ -11,24 +14,14 @@ import { loadImage, resolveCardImage } from "./imageProvider.js";
  * @param {number} w
  * @param {number} h
  */
-function drawCoverImage(ctx, img, x, y, w, h) {
-  const imgRatio = img.width / img.height;
-  const boxRatio = w / h;
+function drawContainImageTopAligned(ctx, img, x, y, w, h) {
+  const scale = Math.min(w / img.width, h / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const drawX = x + (w - drawW) / 2;
+  const drawY = y;
 
-  let sx = 0;
-  let sy = 0;
-  let sw = img.width;
-  let sh = img.height;
-
-  if (imgRatio > boxRatio) {
-    sw = img.height * boxRatio;
-    sx = (img.width - sw) / 2;
-  } else {
-    sh = img.width / boxRatio;
-    sy = (img.height - sh) / 2;
-  }
-
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH);
 }
 
 /**
@@ -69,10 +62,10 @@ export async function renderCard(card, platformColors) {
   const { url: imageSrc } = await resolveCardImage(card);
   try {
     const img = await loadImage(imageSrc);
-    drawCoverImage(ctx, img, art.x, art.y, art.w, art.h);
+    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h);
   } catch {
     const img = await loadImage(PLACEHOLDER_SVG);
-    drawCoverImage(ctx, img, art.x, art.y, art.w, art.h);
+    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h);
   }
 
   drawEmojiLogo(ctx, platform?.emoji ?? "🎮", logo);

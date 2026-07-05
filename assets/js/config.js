@@ -2,11 +2,14 @@
 export const CARD_WIDTH_MM = 52;
 export const CARD_HEIGHT_MM = 84;
 
-/** Layout ratios for the three-box template. */
-export const ART_WIDTH_RATIO = 0.75;
-export const PLATFORM_COLUMN_RATIO = 0.25;
-export const LOGO_HEIGHT_RATIO = 0.75;
-export const COLOR_HEIGHT_RATIO = 0.25;
+/**
+ * Layout: split along the long edge (height) first, then split the bottom strip
+ * along its long edge (width).
+ */
+export const ART_HEIGHT_RATIO = 0.75;
+export const STRIP_HEIGHT_RATIO = 0.25;
+export const COLOR_WIDTH_RATIO = 0.25;
+export const LOGO_WIDTH_RATIO = 0.75;
 
 export const LETTER_WIDTH_MM = 215.9;
 export const LETTER_HEIGHT_MM = 279.4;
@@ -34,6 +37,6 @@ export const PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent(`
   <rect width="400" height="400" fill="#2a2a3e"/>
   <rect x="40" y="40" width="320" height="320" rx="12" fill="#3d3d5c" stroke="#5a5a8a" stroke-width="4"/>
   <text x="200" y="185" text-anchor="middle" fill="#8888aa" font-family="system-ui,sans-serif" font-size="22">No Image</text>
-  <text x="200" y="220" text-anchor="middle" fill="#666688" font-family="system-ui,sans-serif" font-size="16">Giant Bomb unavailable</text>
+  <text x="200" y="220" text-anchor="middle" fill="#666688" font-family="system-ui,sans-serif" font-size="16">Run npm run fetch-images</text>
 </svg>
 `)}`;

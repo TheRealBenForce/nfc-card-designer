@@ -5,7 +5,7 @@ import { loadSettings, loadDeck } from "./storage.js";
  * @property {string} id
  * @property {string} platformId
  * @property {string} gameName
- * @property {string} wikiSlug
+ * @property {number} raGameId
  * @property {string} imageType
  * @property {string|null} imageUrl
  * @property {boolean} imageFailed

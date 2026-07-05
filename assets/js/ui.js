@@ -24,7 +24,7 @@ import {
   importSettingsFile,
   defaultSettings,
 } from "./storage.js";
-import { fetchGameImage } from "./wikiParser.js";
+import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
 
@@ -51,6 +51,8 @@ let imageTypeSelect = null;
 
 /** @type {number} */
 let platformHighlightIndex = 0;
+/** @type {number} */
+let gameHighlightIndex = 0;
 /** @type {import('./data/platforms.js').Platform[]} */
 let filteredPlatforms = [...platforms];
 /** @type {import('./data/games.js').Game[]} */
@@ -75,9 +77,8 @@ function filterGames(query) {
   const settings = getSettings();
   const all = gamesForPlatform(settings.selectedPlatformId);
   const q = query.trim().toLowerCase();
-  filteredGames = q
-    ? all.filter((g) => g.name.toLowerCase().includes(q))
-    : all;
+  filteredGames = q ? all.filter((g) => g.name.toLowerCase().includes(q)) : all;
+  gameHighlightIndex = 0;
   renderGameResults();
 }
 
@@ -110,10 +111,11 @@ function renderGameResults() {
     return;
   }
 
-  filteredGames.slice(0, 50).forEach((game) => {
+  filteredGames.slice(0, 50).forEach((game, index) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "list-item";
+    if (index === gameHighlightIndex) btn.classList.add("list-item--highlight");
     btn.textContent = game.name;
     btn.addEventListener("click", () => {
       if (gameSearchInput) gameSearchInput.value = game.name;
@@ -141,6 +143,30 @@ function syncPlatformControls() {
   filterGames(gameSearchInput?.value ?? "");
 }
 
+function pickGameFromSearch() {
+  const query = gameSearchInput?.value.trim() ?? "";
+  if (!query) {
+    if (filteredGames[gameHighlightIndex]) return filteredGames[gameHighlightIndex];
+    setStatus("Type a game name, then press Enter.", true);
+    return null;
+  }
+
+  const lower = query.toLowerCase();
+  const exact = filteredGames.find((g) => g.name.toLowerCase() === lower);
+  if (exact) return exact;
+
+  const startsWith = filteredGames.find((g) => g.name.toLowerCase().startsWith(lower));
+  if (startsWith) return startsWith;
+
+  const partial = filteredGames.find((g) => g.name.toLowerCase().includes(lower));
+  if (partial) return partial;
+
+  if (filteredGames[gameHighlightIndex]) return filteredGames[gameHighlightIndex];
+
+  setStatus(`No game matching "${query}".`, true);
+  return null;
+}
+
 async function addGameCard(game) {
   const settings = getSettings();
   setStatus(`Loading artwork for ${game.name}…`);
@@ -149,23 +175,17 @@ async function addGameCard(game) {
     id: createCardId(),
     platformId: settings.selectedPlatformId,
     gameName: game.name,
-    wikiSlug: game.wikiSlug,
+    raGameId: game.raGameId,
     imageType: settings.imageType,
     imageUrl: null,
     imageFailed: false,
   };
 
   addCard(card);
-  saveDeck(getDeck());
 
-  const { url, failed } = await fetchGameImage(
-    game.wikiSlug,
-    settings.selectedPlatformId,
-    settings.imageType,
-  );
+  const { url, failed } = await resolveGameImage(game, settings.imageType);
 
   updateCard(card.id, { imageUrl: url, imageFailed: failed });
-  saveDeck(getDeck());
 
   if (gameSearchInput) {
     gameSearchInput.value = "";
@@ -176,7 +196,10 @@ async function addGameCard(game) {
   await refreshPreview();
 
   if (failed) {
-    setStatus(`Added ${game.name} (placeholder — Giant Bomb image unavailable)`, true);
+    setStatus(
+      `Added ${game.name} (placeholder — run npm run fetch-images to download artwork)`,
+      true,
+    );
   } else {
     setStatus(`Added ${game.name}`);
   }
@@ -213,11 +236,11 @@ function renderDeck() {
 
     item.querySelector(".deck-item__select")?.addEventListener("click", async () => {
       selectDeckIndex(index);
+      renderDeck();
       await refreshPreview();
     });
     item.querySelector(".deck-item__remove")?.addEventListener("click", () => {
       removeCard(card.id);
-      saveDeck(getDeck());
       renderDeck();
       refreshPreview();
     });
@@ -272,12 +295,21 @@ function bindEvents() {
   });
 
   gameSearchInput?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      gameHighlightIndex = Math.min(gameHighlightIndex + 1, Math.min(filteredGames.length, 50) - 1);
+      renderGameResults();
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      gameHighlightIndex = Math.max(gameHighlightIndex - 1, 0);
+      renderGameResults();
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
-      const query = gameSearchInput.value.trim().toLowerCase();
-      const exact = filteredGames.find((g) => g.name.toLowerCase() === query);
-      const partial = filteredGames.find((g) => g.name.toLowerCase().includes(query));
-      const game = exact ?? partial ?? filteredGames[0];
+      const game = pickGameFromSearch();
       if (game) addGameCard(game);
     }
   });
@@ -337,7 +369,6 @@ function bindEvents() {
     if (getDeck().length === 0) return;
     if (confirm("Clear all cards from the deck?")) {
       clearDeck();
-      saveDeck(getDeck());
       renderDeck();
       refreshPreview();
       setStatus("Deck cleared.");
@@ -389,7 +420,10 @@ export function initUI() {
 
   subscribe((event) => {
     if (event === "settings") saveSettings(getSettings());
-    if (event === "deck") saveDeck(getDeck());
+    if (event === "deck") {
+      saveDeck(getDeck());
+      renderDeck();
+    }
     if (event === "selection") refreshPreview();
   });
 }

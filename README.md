@@ -1,77 +1,68 @@
 # NFC Card Designer
 
-A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card labels**, optimized for **US letter sticker paper**. Built with vanilla HTML, CSS, and JavaScript — no build step required.
+A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card labels**, optimized for **US letter sticker paper**. Built with vanilla HTML, CSS, and JavaScript — no build step required for the site itself.
 
 ## Features
 
 - **12 retro platforms** — Atari 2600 through PlayStation, plus Neo Geo and Arcade
 - **Game search** — bundled game lists per platform; press **Enter** to add to deck
-- **Giant Bomb wiki artwork** — fetches box art, title screens, or game pictures (placeholder on failure)
+- **RetroAchievements artwork** — box art, title screens, and in-game images (bundled locally)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Deck workflow** — sticky settings, scrollable card list, arrow keys to browse
 - **Persistence** — `localStorage` for settings and deck; import/export settings JSON
 - **PDF export** — letter-size sheet with cut marks (3×3 cards per page)
 
+## Project structure
+
+```
+index.html                 # GitHub Pages entry (must stay at repo root)
+assets/
+  css/styles.css
+  js/                      # Application modules
+  images/games/            # Downloaded artwork (same-origin for canvas/PDF)
+scripts/
+  fetch-images.mjs         # Dev-only: download RA images with your API key
+```
+
 ## Local development
 
 ES modules require a local server — opening `index.html` directly from disk will not work.
-
-**With Node (recommended):**
 
 ```bash
 npm start
 ```
 
-Or without adding anything to the project:
-
-```bash
-npx serve -l 8000
-```
-
-**With Python (if installed):**
-
-```bash
-python3 -m http.server 8000
-```
-
 Open [http://localhost:8000](http://localhost:8000).
+
+## Artwork setup (RetroAchievements)
+
+The live site **does not** call the RetroAchievements API (your API key must never ship to GitHub Pages). Instead, download images once on your machine and commit them to the repo:
+
+```bash
+cp .env.example .env
+# Edit .env and set RA_API_KEY from https://retroachievements.org/controlpanel.php
+npm run fetch-images
+```
+
+This downloads images into `assets/images/games/` and updates `assets/js/data/games.js` with local paths. Commit the images when you're happy with them.
 
 ## Deploy to GitHub Pages
 
-1. Push to GitHub.
+1. Push to GitHub (including `assets/images/games/` if you fetched artwork).
 2. **Settings → Pages** → Source: `main` branch, `/ (root)` folder.
 3. Site publishes at `https://<username>.github.io/<repository>/`.
 
-## Project structure
-
-```
-index.html
-styles.css
-js/
-  main.js           # Entry point
-  config.js         # Dimensions and constants
-  state.js          # App state
-  storage.js        # localStorage + settings import/export
-  cardRenderer.js   # Canvas card rendering
-  wikiParser.js     # Giant Bomb wiki image parser
-  pdfExport.js      # Letter PDF with cut marks
-  ui.js             # UI bindings
-  data/
-    platforms.js    # Platform definitions
-    games.js        # Bundled game lists
-```
-
 ## Card layout
 
-Portrait 52 × 84 mm, split vertically:
+Portrait 52 × 84 mm:
 
-- **75% width** — game artwork (cover-fill)
-- **25% width** — platform column
-  - **75% height** — logo
-  - **25% height** — platform color
+- **Top 75%** — game artwork (cover-fill, full width)
+- **Bottom 25%** — platform strip split by width:
+  - **Left 25%** — platform color
+  - **Right 75%** — platform logo
 
 ## Notes
 
-- Giant Bomb has no public API; artwork is parsed from wiki `/Images` pages when CORS allows.
-- Neo Geo and Arcade use best-effort parsing; failures show a placeholder image.
-- Expand game lists in `js/data/games.js` and platforms in `js/data/platforms.js`.
+- Expand game lists in `assets/js/data/games.js` (each game needs a `raGameId` from RetroAchievements).
+- Verify `raGameId` values at `https://retroachievements.org/game/<id>`.
+- Neo Geo and Arcade titles may need manual `raGameId` curation.

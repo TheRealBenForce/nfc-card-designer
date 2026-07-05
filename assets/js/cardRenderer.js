@@ -1,14 +1,12 @@
 import {
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
-  ART_WIDTH_RATIO,
-  PLATFORM_COLUMN_RATIO,
-  LOGO_HEIGHT_RATIO,
-  COLOR_HEIGHT_RATIO,
+  ART_HEIGHT_RATIO,
+  COLOR_WIDTH_RATIO,
   PLACEHOLDER_SVG,
 } from "./config.js";
 import { platformById } from "./data/platforms.js";
-import { loadImage } from "./wikiParser.js";
+import { loadImage } from "./imageProvider.js";
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -71,10 +69,11 @@ export async function renderCard(card, platformColors) {
   const platform = platformById[card.platformId];
   const color = platformColors[card.platformId] ?? platform?.defaultColor ?? "#333";
 
-  const artW = Math.round(CARD_RENDER_WIDTH_PX * ART_WIDTH_RATIO);
-  const colW = CARD_RENDER_WIDTH_PX - artW;
-  const logoH = Math.round(CARD_RENDER_HEIGHT_PX * LOGO_HEIGHT_RATIO);
-  const colorH = CARD_RENDER_HEIGHT_PX - logoH;
+  const artH = Math.round(CARD_RENDER_HEIGHT_PX * ART_HEIGHT_RATIO);
+  const stripH = CARD_RENDER_HEIGHT_PX - artH;
+  const stripW = CARD_RENDER_WIDTH_PX;
+  const colorW = Math.round(stripW * COLOR_WIDTH_RATIO);
+  const logoW = stripW - colorW;
 
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -82,16 +81,16 @@ export async function renderCard(card, platformColors) {
   const imageSrc = card.imageUrl ?? PLACEHOLDER_SVG;
   try {
     const img = await loadImage(imageSrc);
-    drawCoverImage(ctx, img, 0, 0, artW, CARD_RENDER_HEIGHT_PX);
+    drawCoverImage(ctx, img, 0, 0, stripW, artH);
   } catch {
     const img = await loadImage(PLACEHOLDER_SVG);
-    drawCoverImage(ctx, img, 0, 0, artW, CARD_RENDER_HEIGHT_PX);
+    drawCoverImage(ctx, img, 0, 0, stripW, artH);
   }
 
-  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", artW, 0, colW, logoH);
+  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", colorW, artH, logoW, stripH);
 
   ctx.fillStyle = color;
-  ctx.fillRect(artW, logoH, colW, colorH);
+  ctx.fillRect(0, artH, colorW, stripH);
 
   return canvas;
 }

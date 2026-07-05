@@ -14,13 +14,27 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 
 ## Local development
 
+ES modules require a local server — opening `index.html` directly from disk will not work.
+
+**With Node (recommended):**
+
+```bash
+npm start
+```
+
+Or without adding anything to the project:
+
+```bash
+npx serve -l 8000
+```
+
+**With Python (if installed):**
+
 ```bash
 python3 -m http.server 8000
 ```
 
 Open [http://localhost:8000](http://localhost:8000).
-
-> ES modules require a local server — opening `index.html` directly from disk will not work.
 
 ## Deploy to GitHub Pages
 

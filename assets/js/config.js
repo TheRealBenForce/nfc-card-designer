@@ -18,7 +18,11 @@ export const CARDS_PER_ROW = 3;
 export const CARDS_PER_COL = 3;
 
 /** Gap between adjacent cards on the letter PDF sheet (mm). */
-export const PDF_CARD_GAP_MM = 3;
+export const PDF_CARD_GAP_MM = 5;
+
+/** Crop mark length and inset from card edges (mm). Marks sit outside the card. */
+export const PDF_CUT_MARK_LENGTH_MM = 3;
+export const PDF_CUT_MARK_OFFSET_MM = 3;
 
 /** Render resolution for canvas (approx. 300 dpi). */
 export const CARD_RENDER_WIDTH_PX = Math.round((CARD_WIDTH_MM / 25.4) * 300);

@@ -1,20 +1,26 @@
 import { renderCard } from "./cardRenderer.js";
-import { CARD_WIDTH_MM, CARD_HEIGHT_MM, CARDS_PER_ROW, CARDS_PER_COL } from "./config.js";
+import {
+  CARD_WIDTH_MM,
+  CARD_HEIGHT_MM,
+  CARDS_PER_ROW,
+  CARDS_PER_COL,
+  PDF_CUT_MARK_LENGTH_MM,
+  PDF_CUT_MARK_OFFSET_MM,
+} from "./config.js";
 import { cardPositionMm } from "./pdfLayout.js";
 
-const CUT_MARK_MM = 3;
-const CUT_OFFSET_MM = 1.5;
-
 /**
+ * Crop marks outside the card — inner tick ends PDF_CUT_MARK_OFFSET_MM from the edge.
+ *
  * @param {import("jspdf").jsPDF} pdf
  * @param {number} x
  * @param {number} y
  * @param {number} w
  * @param {number} h
  */
-function drawCutMarks(pdf, x, y, w, h) {
-  const m = CUT_MARK_MM;
-  const o = CUT_OFFSET_MM;
+export function drawCutMarks(pdf, x, y, w, h) {
+  const m = PDF_CUT_MARK_LENGTH_MM;
+  const o = PDF_CUT_MARK_OFFSET_MM;
   pdf.setDrawColor(120);
   pdf.setLineWidth(0.15);
 

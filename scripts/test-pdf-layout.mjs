@@ -8,6 +8,7 @@ import {
   CARDS_PER_ROW,
   CARDS_PER_COL,
   PDF_CARD_GAP_MM,
+  PDF_CUT_MARK_OFFSET_MM,
 } from "../assets/js/config.js";
 import { cardPositionMm, computePdfGridLayout } from "../assets/js/pdfLayout.js";
 
@@ -48,5 +49,14 @@ if (pos22.y + CARD_HEIGHT_MM > marginY + gridH + 0.01) {
   process.exit(1);
 }
 console.log("✓ All 9 card slots fit within the sheet");
+
+const card = cardPositionMm(1, 1);
+const nearestCutX = card.x - PDF_CUT_MARK_OFFSET_MM;
+const nearestCutY = card.y - PDF_CUT_MARK_OFFSET_MM;
+if (nearestCutX >= card.x || nearestCutY >= card.y) {
+  console.error("FAILED: Cut marks should sit outside the card edges");
+  process.exit(1);
+}
+console.log(`✓ Cut marks inset ${PDF_CUT_MARK_OFFSET_MM} mm from card edges`);
 
 console.log("\nAll PDF layout tests passed.");

@@ -49,7 +49,7 @@ npm run fetch-images
 
 Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
 
-Add to `.env`:
+Add to `.env` in the project root (save as **UTF-8** if you use Notepad on Windows):
 
 ```env
 RETROACHIEVEMENTS_API_KEY=your_key_here

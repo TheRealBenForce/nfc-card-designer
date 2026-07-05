@@ -13,7 +13,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -65,7 +65,7 @@ function relativeAssetPath(filename) {
 
 async function main() {
   const apiKey = await loadEnv();
-  const { games } = await import(gamesPath);
+  const { games } = await import(pathToFileURL(gamesPath).href);
 
   await mkdir(imagesDir, { recursive: true });
 

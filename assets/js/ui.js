@@ -132,7 +132,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No artwork downloaded for this platform yet — run npm run fetch-images.";
+          : "No indexed artwork for this platform — run npm run scan-images.";
     } else {
       gameSearchHintEl.textContent = `${searchableSize} game${searchableSize === 1 ? "" : "s"} with artwork — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
     }

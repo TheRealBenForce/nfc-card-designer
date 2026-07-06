@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "generatedAt": "2026-07-06T18:06:14.037Z",
+  "version": 2,
+  "generatedAt": "2026-07-06T18:22:22.731Z",
   "platforms": {
     "atari-2600": {
       "14403": [
@@ -103,6 +103,9 @@
         "boxArt",
         "titleScreen",
         "gamePicture"
+      ],
+      "511": [
+        "boxArt"
       ]
     },
     "game-boy-color": {

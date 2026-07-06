@@ -1,9 +1,17 @@
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isRetailRelease } from "../assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const platformsImageRoot = path.join(root, "assets/images/platforms");
+
+/** @type {Record<string, string>} */
+const IMAGE_FILE_TYPES = {
+  "boxArt.png": "boxArt",
+  "titleScreen.png": "titleScreen",
+  "gamePicture.png": "gamePicture",
+};
 
 export const gamesPath = path.join(root, "assets/js/data/games.js");
 export const gamesByPlatformPath = path.join(root, "assets/data/games-by-platform.json");
@@ -94,8 +102,73 @@ ${GAMES_FOOTER}`,
   await writeGamesByPlatformJson(games, { retailOnly: true });
 }
 
+/** @returns {Promise<Record<string, Record<string, string[]>>>} */
+export async function scanImageAvailabilityFromDisk() {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const platforms = {};
+
+  let platformEntries = [];
+  try {
+    platformEntries = await readdir(platformsImageRoot, { withFileTypes: true });
+  } catch {
+    return platforms;
+  }
+
+  for (const platformEntry of platformEntries) {
+    if (!platformEntry.isDirectory()) continue;
+
+    const platformId = platformEntry.name;
+    const gamesDir = path.join(platformsImageRoot, platformId, "games");
+
+    let gameEntries = [];
+    try {
+      gameEntries = await readdir(gamesDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const gameEntry of gameEntries) {
+      if (!gameEntry.isDirectory()) continue;
+
+      const raGameId = gameEntry.name;
+      if (!/^\d+$/.test(raGameId)) continue;
+
+      const imageDir = path.join(gamesDir, raGameId);
+      const files = await readdir(imageDir);
+      const types = files
+        .map((file) => IMAGE_FILE_TYPES[file])
+        .filter((type) => Boolean(type));
+
+      if (types.length === 0) continue;
+
+      if (!platforms[platformId]) platforms[platformId] = {};
+      platforms[platformId][raGameId] = [...new Set(types)].sort();
+    }
+  }
+
+  return platforms;
+}
+
+/**
+ * @param {Record<string, Record<string, string[]>>} base
+ * @param {Record<string, Record<string, string[]>>} extra
+ */
+export function mergeImageAvailability(base, extra) {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const merged = structuredClone(base);
+
+  for (const [platformId, games] of Object.entries(extra)) {
+    if (!merged[platformId]) merged[platformId] = {};
+    for (const [raGameId, types] of Object.entries(games)) {
+      merged[platformId][raGameId] = [...new Set([...(merged[platformId][raGameId] ?? []), ...types])].sort();
+    }
+  }
+
+  return merged;
+}
+
 /** @param {import("../assets/js/data/games.js").Game[]} games */
-export async function writeImageAvailabilityJson(games) {
+export function imageAvailabilityFromGames(games) {
   /** @type {Record<string, Record<string, string[]>>} */
   const platforms = {};
 
@@ -109,8 +182,22 @@ export async function writeImageAvailabilityJson(games) {
     platforms[game.platformId][String(game.raGameId)] = types;
   }
 
+  return platforms;
+}
+
+/** @param {import("../assets/js/data/games.js").Game[]} [games] */
+export async function buildImageAvailability(games = []) {
+  const fromGames = imageAvailabilityFromGames(games);
+  const fromDisk = await scanImageAvailabilityFromDisk();
+  return mergeImageAvailability(fromGames, fromDisk);
+}
+
+/** @param {import("../assets/js/data/games.js").Game[]} games */
+export async function writeImageAvailabilityJson(games) {
+  const platforms = await buildImageAvailability(games);
+
   const payload = {
-    version: 1,
+    version: 2,
     generatedAt: new Date().toISOString(),
     platforms,
   };

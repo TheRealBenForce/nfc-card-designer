@@ -102,14 +102,14 @@ ${GAMES_FOOTER}`,
   await writeGamesByPlatformJson(games, { retailOnly: true });
 }
 
-/** @returns {Promise<Record<string, Record<string, string[]>>>} */
-export async function scanImageAvailabilityFromDisk() {
+/** @param {string} [rootDir] */
+export async function scanImageAvailabilityFromDisk(rootDir = platformsImageRoot) {
   /** @type {Record<string, Record<string, string[]>>} */
   const platforms = {};
 
   let platformEntries = [];
   try {
-    platformEntries = await readdir(platformsImageRoot, { withFileTypes: true });
+    platformEntries = await readdir(rootDir, { withFileTypes: true });
   } catch {
     return platforms;
   }
@@ -118,7 +118,7 @@ export async function scanImageAvailabilityFromDisk() {
     if (!platformEntry.isDirectory()) continue;
 
     const platformId = platformEntry.name;
-    const gamesDir = path.join(platformsImageRoot, platformId, "games");
+    const gamesDir = path.join(rootDir, platformId, "games");
 
     let gameEntries = [];
     try {

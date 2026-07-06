@@ -48,11 +48,11 @@ cp .env.example .env
 npm run test-ra-auth
 npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
 npm run export-games-json  # rebuild retail-only JSON from existing games.js
-npm run fetch-images       # download artwork (can take a while)
-npm run scan-images        # index downloaded files → image-availability.json
+npm run fetch-images       # download artwork + scan-images
+npm start                  # runs scan-images automatically, then serves the app
 ```
 
-After downloading or copying images into `assets/images/platforms/`, run **`npm run scan-images`** so search can find those games.
+`npm start` and `npm run fetch-images` both refresh `assets/data/image-availability.json` from files on disk. You can also run `npm run scan-images` on its own after copying images manually.
 
 ```bash
 npm run scan-images

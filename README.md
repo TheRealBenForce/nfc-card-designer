@@ -5,7 +5,7 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 ## Features
 
 - **12 retro platforms** — Atari 2600 through PlayStation, plus Neo Geo and Arcade
-- **Game search** — catalog loaded from `assets/data/games-by-platform.json`; type **3+ letters** for a filtered dropdown, then click or press **Enter** to add
+- **Game search** — type **3+ letters**, pick a game, **browse artwork types** in preview, then add to collection
 - **RetroAchievements artwork** — box art, title screens, and in-game images (bundled locally)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
@@ -20,12 +20,17 @@ assets/
   css/styles.css
   js/                      # Application modules
   data/
-    games-by-platform.json   # Game catalogs grouped by platform (search)
-  images/platforms/        # Downloaded artwork (platform/game folders)
+    games-by-platform.json      # Game names for search (grouped by platform)
+    image-availability.json     # Which games have PNGs (search visibility)
+  images/platforms/             # Downloaded artwork (platform/game folders)
 scripts/
-  fetch-game-list.mjs      # Dev-only: pull full RA catalogs → games.js + JSON
-  export-games-json.mjs    # Regenerate games-by-platform.json from games.js
-  fetch-images.mjs         # Dev-only: download RA images with your API key
+  fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
+  fetch-images.mjs              # Download PNGs + update games.js + availability
+  export-games-json.mjs         # Rebuild games-by-platform.json from games.js
+  export-image-availability.mjs  # scan-images: index PNGs on disk
+  verify.mjs                    # Run before merging changes
+docs/
+  MAINTAINER.md                 # Architecture & data-pipeline notes for developers
 ```
 
 ## Local development
@@ -37,6 +42,12 @@ npm start
 ```
 
 Open [http://localhost:8000](http://localhost:8000).
+
+```bash
+npm run verify   # run before merging changes (tests + smoke checks)
+```
+
+Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
 ## Artwork setup (RetroAchievements)
 
@@ -138,7 +149,8 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 ## Notes
 
-- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of retail games) and writes both `games.js` and `assets/data/games-by-platform.json`.
+- See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships, deploy checklist, and gotchas.
+- `fetch-game-list` replaces the starter list with full RetroAchievements retail catalogs and writes both `games.js` and `games-by-platform.json`.
 - After fetching locally, **commit both files** so GitHub Pages serves the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
 - Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
 - Only games with downloaded artwork appear in search (`assets/data/image-availability.json`, built by `npm run scan-images` or `fetch-images`)

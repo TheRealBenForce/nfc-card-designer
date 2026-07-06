@@ -17,6 +17,7 @@
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
+    "test:fetch-images-skip": "node scripts/test-fetch-images-skip.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",

@@ -82,7 +82,7 @@ Preview still lets users switch artwork types; the platform priority picks which
 
 Game catalogs still come from the RetroAchievements API (`fetch-game-list`). Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images`.
 
-Each platform maps to a libretro playlist folder via `libretroPlaylist` in `platforms.js`. `fetch-images` resolves thumbnail filenames by probing common region suffixes, then falls back to directory listing prefix matching. The resolved basename is stored as `libretroName` on each game in `games.js`.
+Each platform maps to a libretro playlist folder via `libretroPlaylist` in `platforms.js`. `fetch-images` resolves thumbnail filenames by probing common region suffixes, then falls back to directory listing prefix matching. The resolved basename is stored as `libretroName` on each game in `games.js`. **Re-runs skip images that already exist on disk** (non-empty PNGs); pass `--force` to re-download.
 
 Image types map to libretro folders:
 

@@ -90,7 +90,7 @@ npm run fetch-game-list -- --platform=nes
 npm run fetch-game-list -- --with-achievements   # smaller lists (games with achievements only)
 npm run fetch-game-list -- --include-non-retail  # include hacks, homebrew, demos, etc.
 npm run fetch-images -- --platform=genesis
-npm run fetch-images -- --force                  # re-download existing files
+npm run fetch-images -- --force                  # re-download existing files (default skips them)
 ```
 
 By default, `fetch-game-list` keeps **retail releases only** and excludes RetroAchievements entries tagged as `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, deprecated `~Z~` pages, and `[Subset - …]` entries.

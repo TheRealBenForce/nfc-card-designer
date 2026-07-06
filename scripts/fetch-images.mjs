@@ -2,13 +2,22 @@
 /**
  * Downloads libretro thumbnails into
  * assets/images/platforms/<platformId>/games/<raGameId>/ and updates games.js.
+ *
+ * Skips images that already exist on disk unless --force is passed.
  */
 
-import { writeFile, mkdir, access } from "node:fs/promises";
+import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { libretroImageUrl, resolveLibretroFilename } from "./libretro-thumbnails.mjs";
-import { gamesPath, writeGamesJs, gameImagePath, gameImageDir, writeImageAvailabilityJson } from "./games-data.mjs";
+import {
+  gamesPath,
+  writeGamesJs,
+  gameImagePath,
+  gameImageDir,
+  existingImageTypes,
+  writeImageAvailabilityJson,
+} from "./games-data.mjs";
 
 const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
 const REQUEST_DELAY_MS = 150;
@@ -25,12 +34,9 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fileExists(filePath) {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
+function applyImagePaths(game, platformId, raGameId, types = IMAGE_TYPES) {
+  for (const type of types) {
+    game.images[type] = gameImagePath(platformId, raGameId, type);
   }
 }
 
@@ -63,7 +69,19 @@ async function main() {
     );
   }
 
-  const stats = { downloaded: 0, skipped: 0, failed: 0, gamesDone: 0 };
+  if (force) {
+    console.log("Force mode: re-downloading even when images already exist.\n");
+  } else {
+    console.log("Existing images are skipped. Pass --force to re-download.\n");
+  }
+
+  const stats = {
+    downloaded: 0,
+    skipped: 0,
+    failed: 0,
+    gamesDone: 0,
+    gamesFullySkipped: 0,
+  };
   const gameKey = (g) => `${g.platformId}:${g.raGameId}`;
   const updatedById = new Map(games.map((g) => [gameKey(g), { ...g, images: { ...g.images } }]));
 
@@ -80,33 +98,34 @@ async function main() {
     const dir = gameImageDir(game.platformId, game.raGameId);
     await mkdir(dir, { recursive: true });
 
-    const allExist = !force && (await Promise.all(
-      IMAGE_TYPES.map((type) => fileExists(path.join(dir, `${type}.png`))),
-    )).every(Boolean);
+    const alreadyPresent = await existingImageTypes(dir, IMAGE_TYPES, force);
+    const missingTypes = IMAGE_TYPES.filter((type) => !alreadyPresent.includes(type));
 
-    if (allExist) {
-      for (const type of IMAGE_TYPES) {
-        current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
-      }
-      stats.skipped += IMAGE_TYPES.length;
+    if (alreadyPresent.length > 0) {
+      applyImagePaths(current, game.platformId, game.raGameId, alreadyPresent);
+      stats.skipped += alreadyPresent.length;
+    }
+
+    if (missingTypes.length === 0) {
+      stats.gamesFullySkipped += 1;
       stats.gamesDone += 1;
+      console.log(
+        `[${stats.gamesDone}/${targets.length}] ${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} on disk)`,
+      );
       continue;
     }
 
-    process.stdout.write(`[${stats.gamesDone + 1}/${targets.length}] ${game.name} (${game.raGameId})… `);
+    process.stdout.write(
+      `[${stats.gamesDone + 1}/${targets.length}] ${game.name} (${game.raGameId}) — ` +
+        `${alreadyPresent.length} skipped, fetching ${missingTypes.length}… `,
+    );
 
     let gameDownloaded = 0;
     let gameFailed = 0;
     let resolvedLibretroName = current.libretroName ?? null;
 
-    for (const type of IMAGE_TYPES) {
+    for (const type of missingTypes) {
       const destPath = path.join(dir, `${type}.png`);
-
-      if (!force && (await fileExists(destPath))) {
-        current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
-        stats.skipped += 1;
-        continue;
-      }
 
       const libretroName = await resolveLibretroFilename(
         platform.libretroPlaylist,
@@ -153,7 +172,10 @@ async function main() {
   await writeGamesJs(finalGames);
   await writeImageAvailabilityJson(finalGames);
 
-  console.log(`\nDone. ${stats.downloaded} downloaded, ${stats.skipped} skipped, ${stats.failed} failed/missing`);
+  console.log(
+    `\nDone. ${stats.downloaded} downloaded, ${stats.skipped} skipped, ${stats.failed} failed/missing` +
+      ` (${stats.gamesFullySkipped} games already complete)`,
+  );
   console.log(`Updated ${gamesPath}`);
   console.log("Updated assets/data/image-availability.json");
 }

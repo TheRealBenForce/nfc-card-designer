@@ -10,7 +10,13 @@ import {
   PDF_CARD_GAP_MM,
   PDF_CUT_MARK_OFFSET_MM,
 } from "../assets/js/config.js";
-import { cardPositionMm, computePdfGridLayout } from "../assets/js/pdfLayout.js";
+import {
+  cardPositionMm,
+  cardRectMm,
+  computePdfGridLayout,
+  gutterCutMarkSegments,
+  pointInsideCard,
+} from "../assets/js/pdfLayout.js";
 
 const { gridW, gridH, marginX, marginY } = computePdfGridLayout();
 
@@ -50,13 +56,34 @@ if (pos22.y + CARD_HEIGHT_MM > marginY + gridH + 0.01) {
 }
 console.log("✓ All 9 card slots fit within the sheet");
 
-const card = cardPositionMm(1, 1);
-const nearestCutX = card.x - PDF_CUT_MARK_OFFSET_MM;
-const nearestCutY = card.y - PDF_CUT_MARK_OFFSET_MM;
-if (nearestCutX >= card.x || nearestCutY >= card.y) {
-  console.error("FAILED: Cut marks should sit outside the card edges");
+const perimeterNearestX = marginX - PDF_CUT_MARK_OFFSET_MM;
+if (perimeterNearestX >= marginX) {
+  console.error("FAILED: Perimeter cut marks should sit outside the grid");
   process.exit(1);
 }
-console.log(`✓ Cut marks inset ${PDF_CUT_MARK_OFFSET_MM} mm from card edges`);
+console.log(`✓ Perimeter cut marks inset ${PDF_CUT_MARK_OFFSET_MM} mm from grid edges`);
+
+const cards = [];
+for (let row = 0; row < CARDS_PER_COL; row++) {
+  for (let col = 0; col < CARDS_PER_ROW; col++) {
+    cards.push(cardRectMm(col, row));
+  }
+}
+
+for (const segment of gutterCutMarkSegments()) {
+  for (const px of [segment.x1, segment.x2]) {
+    for (const py of [segment.y1, segment.y2]) {
+      for (const card of cards) {
+        if (pointInsideCard(px, py, card)) {
+          console.error(
+            `FAILED: Gutter cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a card interior`,
+          );
+          process.exit(1);
+        }
+      }
+    }
+  }
+}
+console.log("✓ Gutter cut marks stay outside card artwork");
 
 console.log("\nAll PDF layout tests passed.");

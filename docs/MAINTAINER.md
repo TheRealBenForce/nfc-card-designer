@@ -70,9 +70,11 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 ## Settings & export format
 
 - **localStorage keys:** `nfc-card-designer-settings`, `nfc-card-designer-collection`
-- **Export file:** `nfc-card-designer.json` (project version `2`)
-- **Global settings:** `platformColors`, `imageTypePriority` (default: boxArt → titleScreen → gamePicture), `selectedPlatformId`
+- **Export file:** `nfc-card-designer.json` (project version `3`)
+- **Global settings:** `imageTypePriority` (default: boxArt → titleScreen → gamePicture), `selectedPlatformId`
+- **Per-platform defaults** (`platformDefaults`): `color` (default `#000000`), `imageRotation` per image type (`boxArt`, `titleScreen`, `gamePicture`; default `0°`)
 - **Per-card:** `platformId`, `gameName`, `raGameId`, `imageType` (chosen in preview before add)
+- **Import migration:** v2 `platformColors` maps into `platformDefaults.color`
 
 **Planned:** per-platform `imageTypePriority` overrides (not implemented yet).
 

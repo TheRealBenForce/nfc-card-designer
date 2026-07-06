@@ -34,7 +34,12 @@ async function main() {
           raGameId: 2286,
           imageType: "boxArt",
         },
-        { nes: "#b4000c" },
+        {
+          nes: {
+            color: "#b4000c",
+            imageRotation: { boxArt: 0, titleScreen: 0, gamePicture: 0 },
+          },
+        },
       );
 
       const ctx = canvas.getContext("2d");

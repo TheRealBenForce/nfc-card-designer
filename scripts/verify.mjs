@@ -72,6 +72,9 @@ async function main() {
   console.log("→ Image settings…");
   await run("node", ["scripts/test-image-settings.mjs"]);
 
+  console.log("→ Platform defaults…");
+  await run("node", ["scripts/test-platform-defaults.mjs"]);
+
   console.log("→ Image disk scan…");
   await run("node", ["scripts/test-image-scan.mjs"]);
 

@@ -2,6 +2,11 @@ import { CARD_RENDER_WIDTH_PX, CARD_RENDER_HEIGHT_PX, PLACEHOLDER_SVG } from "./
 import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage } from "./imageProvider.js";
+import {
+  DEFAULT_PLATFORM_COLOR,
+  getImageRotation,
+  getPlatformColor,
+} from "./platformDefaults.js";
 
 /**
  * Scale image to fit within the box (no cropping), top-aligned.
@@ -13,15 +18,31 @@ import { loadImage, resolveCardImage } from "./imageProvider.js";
  * @param {number} y
  * @param {number} w
  * @param {number} h
+ * @param {number} [rotationDeg]
  */
-function drawContainImageTopAligned(ctx, img, x, y, w, h) {
-  const scale = Math.min(w / img.width, h / img.height);
+function drawContainImageTopAligned(ctx, img, x, y, w, h, rotationDeg = 0) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  ctx.translate(cx, cy);
+  ctx.rotate((rotationDeg * Math.PI) / 180);
+
+  const isSideways = rotationDeg % 180 !== 0;
+  const boxW = isSideways ? h : w;
+  const boxH = isSideways ? w : h;
+
+  const scale = Math.min(boxW / img.width, boxH / img.height);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
-  const drawX = x + (w - drawW) / 2;
-  const drawY = y;
+  const drawX = -drawW / 2;
+  const drawY = -boxH / 2;
 
-  ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, drawW, drawH);
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  ctx.restore();
 }
 
 /**
@@ -42,10 +63,10 @@ function drawEmojiLogo(ctx, emoji, rect) {
 
 /**
  * @param {import('./state.js').Card} card
- * @param {Record<string, string>} platformColors
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
  * @returns {Promise<HTMLCanvasElement>}
  */
-export async function renderCard(card, platformColors) {
+export async function renderCard(card, platformDefaults) {
   const canvas = document.createElement("canvas");
   canvas.width = CARD_RENDER_WIDTH_PX;
   canvas.height = CARD_RENDER_HEIGHT_PX;
@@ -53,7 +74,8 @@ export async function renderCard(card, platformColors) {
   if (!ctx) throw new Error("Canvas not supported");
 
   const platform = platformById[card.platformId];
-  const color = platformColors[card.platformId] ?? platform?.defaultColor ?? "#333";
+  const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
+  const rotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
   const { art, logo, color: colorRect } = computeCardLayout(canvas.width, canvas.height);
 
   ctx.fillStyle = "#111";
@@ -62,10 +84,10 @@ export async function renderCard(card, platformColors) {
   const { url: imageSrc } = await resolveCardImage(card);
   try {
     const img = await loadImage(imageSrc);
-    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h);
+    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h, rotation);
   } catch {
     const img = await loadImage(PLACEHOLDER_SVG);
-    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h);
+    drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h, rotation);
   }
 
   drawEmojiLogo(ctx, platform?.emoji ?? "🎮", logo);

@@ -5,17 +5,16 @@ import {
   DEFAULT_IMAGE_TYPE_PRIORITY,
 } from "./config.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
+import {
+  defaultPlatformDefaults,
+  normalizePlatformDefaults,
+} from "./platformDefaults.js";
 import { platforms } from "./data/platforms.js";
-
-/** @returns {Record<string, string>} */
-export function defaultPlatformColors() {
-  return Object.fromEntries(platforms.map((p) => [p.id, p.defaultColor]));
-}
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
   return {
-    platformColors: defaultPlatformColors(),
+    platformDefaults: defaultPlatformDefaults(),
     imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     selectedPlatformId: platforms[0].id,
   };
@@ -38,7 +37,7 @@ function serializeCard(card) {
  */
 export function saveSettings(settings) {
   const exportable = {
-    platformColors: settings.platformColors,
+    platformDefaults: settings.platformDefaults,
     imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
   };
@@ -59,7 +58,7 @@ export function loadSettings() {
         : defaults.imageTypePriority;
 
     return {
-      platformColors: { ...defaults.platformColors, ...parsed.platformColors },
+      platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
       imageTypePriority,
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
     };
@@ -108,8 +107,8 @@ export function loadDeck() {
  */
 export function buildProjectData(settings, collection) {
   return {
-    version: 2,
-    platformColors: settings.platformColors,
+    version: 3,
+    platformDefaults: settings.platformDefaults,
     imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
     cards: collection.map(serializeCard),
@@ -160,7 +159,7 @@ export function importProjectFile() {
             : [];
         resolve({
           settings: {
-            platformColors: parsed.platformColors,
+            platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
             imageTypePriority: parsed.imageTypePriority
               ? normalizeImageTypePriority(parsed.imageTypePriority)
               : parsed.imageType

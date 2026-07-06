@@ -11,8 +11,12 @@ import { loadSettings, loadCollection } from "./storage.js";
  */
 
 /**
+ * @typedef {import('./platformDefaults.js').PlatformDefaults} PlatformDefaults
+ */
+
+/**
  * @typedef {Object} AppSettings
- * @property {Record<string, string>} platformColors
+ * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string[]} imageTypePriority
  * @property {string} selectedPlatformId
  */
@@ -85,9 +89,40 @@ export function updateSettings(patch) {
  * @param {string} color
  */
 export function setPlatformColor(platformId, color) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
   settings = {
     ...settings,
-    platformColors: { ...settings.platformColors, [platformId]: color },
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: { ...current, color },
+    },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ * @param {string} imageType
+ * @param {number} degrees
+ */
+export function setPlatformImageRotation(platformId, imageType, degrees) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
+  settings = {
+    ...settings,
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: {
+        ...current,
+        imageRotation: {
+          ...current.imageRotation,
+          [imageType]: degrees,
+        },
+      },
+    },
   };
   emit("settings");
 }

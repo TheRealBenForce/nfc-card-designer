@@ -11,6 +11,7 @@ import {
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
+import { ROTATION_OPTIONS } from "./platformDefaults.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
 import {
@@ -22,11 +23,13 @@ import {
   getPreviewCard,
   updateSettings,
   setPlatformColor,
+  setPlatformImageRotation,
   addCard,
   updateCard,
   removeCards,
   setSelectedCardIds,
   replaceCollection,
+  clearCollection,
   createCardId,
   toggleCardSelection,
   setPreviewCardId,
@@ -58,8 +61,6 @@ let printSelectedBtn = null;
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewMetaEl = null;
-/** @type {HTMLElement|null} */
-let statusEl = null;
 /** @type {HTMLInputElement|null} */
 let platformSearchInput = null;
 /** @type {HTMLInputElement|null} */
@@ -68,6 +69,8 @@ let gameSearchInput = null;
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let platformColorInput = null;
+/** @type {HTMLElement|null} */
+let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
 let imagePriorityListEl = null;
 /** @type {HTMLElement|null} */
@@ -89,10 +92,9 @@ let filteredGames = [];
 /** @type {number} */
 let filteredGamesTotal = 0;
 
-function setStatus(message, isError = false) {
-  if (!statusEl) return;
-  statusEl.textContent = message;
-  statusEl.classList.toggle("status--error", isError);
+function logStatus(message, isError = false) {
+  if (isError) console.error(message);
+  else console.log(message);
 }
 
 /** @param {import('./data/platforms.js').Platform} platform @param {string} query */
@@ -257,15 +259,20 @@ function selectPlatform(platformId) {
   updateSettings({ selectedPlatformId: platformId });
   saveSettings(getSettings());
   syncPlatformControls();
-  setStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
+  logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
 function syncPlatformControls() {
   const settings = getSettings();
   const platform = platformById[settings.selectedPlatformId];
-  if (platformColorInput && platform) {
-    platformColorInput.value = settings.platformColors[platform.id] ?? platform.defaultColor;
+  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+
+  if (platformColorInput && platform && platformDefaults) {
+    platformColorInput.value = platformDefaults.color;
   }
+
+  renderPlatformRotationFields();
+
   if (!platformSearchInput?.value) {
     filterPlatforms("");
   } else {
@@ -274,17 +281,63 @@ function syncPlatformControls() {
   filterGames(gameSearchInput?.value ?? "");
 }
 
+function renderPlatformRotationFields() {
+  if (!platformRotationFieldsEl) return;
+
+  const settings = getSettings();
+  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  platformRotationFieldsEl.innerHTML = "";
+
+  for (const [type, meta] of Object.entries(IMAGE_TYPES)) {
+    const field = document.createElement("label");
+    field.className = "rotation-field";
+
+    const label = document.createElement("span");
+    label.className = "rotation-field__label";
+    label.textContent = `${meta.label} rotation`;
+
+    const select = document.createElement("select");
+    select.className = "rotation-field__select";
+    select.dataset.imageType = type;
+
+    for (const degrees of ROTATION_OPTIONS) {
+      const option = document.createElement("option");
+      option.value = String(degrees);
+      option.textContent = `${degrees}°`;
+      select.appendChild(option);
+    }
+
+    select.value = String(platformDefaults?.imageRotation?.[type] ?? 0);
+    select.addEventListener("change", (e) => {
+      const target = /** @type {HTMLSelectElement} */ (e.target);
+      const imageType = target.dataset.imageType;
+      if (!imageType) return;
+      setPlatformImageRotation(
+        settings.selectedPlatformId,
+        imageType,
+        Number(target.value),
+      );
+      saveSettings(getSettings());
+      refreshPreview();
+    });
+
+    field.appendChild(label);
+    field.appendChild(select);
+    platformRotationFieldsEl.appendChild(field);
+  }
+}
+
 function pickGameFromSearch() {
   const query = gameSearchInput?.value.trim() ?? "";
   if (query.length < MIN_GAME_SEARCH_CHARS) {
-    setStatus(`Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`, true);
+    logStatus(`Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`, true);
     return null;
   }
 
   const settings = getSettings();
   const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
   if (!game) {
-    setStatus(`No game with artwork matching "${query}".`, true);
+    logStatus(`No game with artwork matching "${query}".`, true);
     return null;
   }
 
@@ -293,11 +346,11 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const priority = getSettings().imageTypePriority;
-  setStatus(`Loading preview for ${game.name}…`);
+  logStatus(`Loading preview for ${game.name}…`);
 
   const availableTypes = await getAvailableImageTypes(game, priority);
   if (availableTypes.length === 0) {
-    setStatus(`No artwork available for ${game.name}.`, true);
+    logStatus(`No artwork available for ${game.name}.`, true);
     return;
   }
 
@@ -309,7 +362,7 @@ async function browseGameFromSearch(game) {
 
   renderPreviewTypeTabs();
   await refreshPreview();
-  setStatus(`Previewing ${game.name}.`);
+  logStatus(`Previewing ${game.name}.`);
 }
 
 function clearBrowse() {
@@ -341,7 +394,7 @@ async function addBrowsedGame() {
   filterGames("");
   updateCollectionActions();
   await refreshPreview();
-  setStatus(`Added ${game.name} to collection.`);
+  logStatus(`Added ${game.name} to collection.`);
 }
 
 function renderImagePriorityList() {
@@ -551,7 +604,7 @@ async function refreshPreview() {
         raGameId: game.raGameId,
         imageType,
       },
-      getSettings().platformColors,
+      getSettings().platformDefaults,
     );
     previewImageEl.src = canvasToDataUrl(canvas, 400);
     previewImageEl.alt = `Preview: ${game.name}`;
@@ -572,7 +625,7 @@ async function refreshPreview() {
   const platform = platformById[card.platformId];
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-  const canvas = await renderCard(card, getSettings().platformColors);
+  const canvas = await renderCard(card, getSettings().platformDefaults);
   previewImageEl.src = canvasToDataUrl(canvas, 400);
   previewImageEl.alt = `Preview: ${card.gameName}`;
 }
@@ -644,7 +697,7 @@ function bindEvents() {
 
   document.getElementById("export-project")?.addEventListener("click", () => {
     exportProjectFile(getSettings(), getCollection());
-    setStatus("Project exported.");
+    logStatus("Project exported.");
   });
 
   document.getElementById("import-project")?.addEventListener("click", async () => {
@@ -652,7 +705,9 @@ function bindEvents() {
       const imported = await importProjectFile();
       const defaults = defaultSettings();
       updateSettings({
-        platformColors: { ...defaults.platformColors, ...imported.settings.platformColors },
+        platformDefaults:
+          imported.settings.platformDefaults ??
+          defaultSettings().platformDefaults,
         imageTypePriority:
           imported.settings.imageTypePriority ?? defaults.imageTypePriority,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
@@ -667,12 +722,35 @@ function bindEvents() {
       clearBrowse();
       syncPlatformControls();
       renderImagePriorityList();
+      renderPlatformRotationFields();
       renderCollection();
       await refreshPreview();
-      setStatus(`Imported project with ${imported.cards.length} card(s).`);
+      logStatus(`Imported project with ${imported.cards.length} card(s).`);
     } catch {
-      setStatus("Could not import project.", true);
+      logStatus("Could not import project.", true);
     }
+  });
+
+  document.getElementById("clear-project")?.addEventListener("click", () => {
+    if (
+      !confirm(
+        "Clear your collection and reset all settings to defaults? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    const defaults = defaultSettings();
+    updateSettings(defaults);
+    saveSettings(getSettings());
+    clearCollection();
+    saveCollection(getCollection());
+    clearBrowse();
+    syncPlatformControls();
+    renderImagePriorityList();
+    renderCollection();
+    refreshPreview();
+    logStatus("Project cleared.");
   });
 
   deleteSelectedBtn?.addEventListener("click", () => {
@@ -683,21 +761,21 @@ function bindEvents() {
     removeCards(selected.map((card) => card.id));
     renderCollection();
     refreshPreview();
-    setStatus(`Deleted ${noun}.`);
+    logStatus(`Deleted ${noun}.`);
   });
 
   printSelectedBtn?.addEventListener("click", async () => {
     const selected = getSelectedCards();
     if (selected.length === 0) {
-      setStatus("Select at least one card to print.", true);
+      logStatus("Select at least one card to print.", true);
       return;
     }
-    setStatus("Generating PDF…");
+    logStatus("Generating PDF…");
     try {
-      await exportLetterPdf(selected, getSettings().platformColors);
-      setStatus(`Printed ${selected.length} card(s) to PDF.`);
+      await exportLetterPdf(selected, getSettings().platformDefaults);
+      logStatus(`Printed ${selected.length} card(s) to PDF.`);
     } catch (err) {
-      setStatus("PDF export failed.", true);
+      logStatus("PDF export failed.", true);
       console.error(err);
     }
   });
@@ -714,11 +792,11 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
-  statusEl = document.getElementById("status");
   platformSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-search"));
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
+  platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
   imagePriorityListEl = /** @type {HTMLOListElement|null} */ (
     document.getElementById("image-priority-list")
   );

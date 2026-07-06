@@ -14,6 +14,15 @@
 
     <div class="app">
       <aside class="panel panel--controls">
+        <details class="collapsible">
+          <summary class="collapsible__summary">Defaults</summary>
+          <div class="collapsible__body">
+            <p class="field__label">Artwork priority</p>
+            <ol id="image-priority-list" class="priority-list" aria-label="Artwork type priority"></ol>
+            <p class="field-hint">Games need at least one artwork file to appear in search. Browse types in preview before adding.</p>
+          </div>
+        </details>
+
         <section class="section">
           <h2 class="section__title">Platform</h2>
           <input
@@ -24,18 +33,18 @@
             autocomplete="off"
           />
           <div id="platform-results" class="list" role="listbox" aria-label="Platforms"></div>
-          <label class="field">
-            <span class="field__label">Platform color</span>
-            <input id="platform-color" class="input input--color" type="color" />
-          </label>
         </section>
 
-        <section class="section">
-          <h2 class="section__title">Defaults</h2>
-          <p class="field__label">Artwork priority</p>
-          <ol id="image-priority-list" class="priority-list" aria-label="Artwork type priority"></ol>
-          <p class="field-hint">Games need at least one artwork file to appear in search. Browse types in preview before adding.</p>
-        </section>
+        <details class="collapsible">
+          <summary class="collapsible__summary">Platform Defaults</summary>
+          <div class="collapsible__body">
+            <label class="field">
+              <span class="field__label">Platform color</span>
+              <input id="platform-color" class="input input--color" type="color" />
+            </label>
+            <div id="platform-rotation-fields" class="rotation-fields" aria-label="Artwork rotation defaults"></div>
+          </div>
+        </details>
 
         <section class="section">
           <h2 class="section__title">Game</h2>
@@ -56,6 +65,7 @@
           <div class="button-row">
             <button id="export-project" type="button" class="btn btn--secondary">Export</button>
             <button id="import-project" type="button" class="btn btn--secondary">Import</button>
+            <button id="clear-project" type="button" class="btn btn--secondary">Clear</button>
           </div>
         </section>
       </aside>
@@ -79,14 +89,12 @@
           <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
         </div>
         <div class="collection-actions">
-          <button id="delete-selected" type="button" class="btn btn--ghost" disabled>Delete selected</button>
           <button id="print-selected" type="button" class="btn btn--primary" disabled>Print PDF</button>
+          <button id="delete-selected" type="button" class="btn btn--primary" disabled>Delete selected</button>
         </div>
         <div id="collection-list" class="collection-list"></div>
       </aside>
     </div>
-
-    <footer id="status" class="status" role="status"></footer>
 
     <script type="module" src="assets/js/main.js"></script>
   </body>

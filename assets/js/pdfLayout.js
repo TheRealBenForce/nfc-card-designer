@@ -73,12 +73,58 @@ export function drawPerimeterCutMarks(pdf, x, y, w, h) {
 }
 
 /**
- * Crop marks centered in gutters between cards (not on card edges).
+ * X coordinate at the center of the vertical gutter between two columns.
+ * @param {number} col Left column index (0 or 1 for a 3-column grid).
+ */
+export function verticalGutterCenterX(col) {
+  const { marginX, gap } = computePdfGridLayout();
+  return marginX + (col + 1) * CARD_WIDTH_MM + col * gap + gap / 2;
+}
+
+/**
+ * Y coordinate at the center of the horizontal gutter between two rows.
+ * @param {number} row Top row index (0 or 1 for a 3-row grid).
+ */
+export function horizontalGutterCenterY(row) {
+  const { marginY, gap } = computePdfGridLayout();
+  return marginY + (row + 1) * CARD_HEIGHT_MM + row * gap + gap / 2;
+}
+
+/**
+ * @param {import("jspdf").jsPDF} pdf
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} m
+ */
+function drawHorizontalTick(pdf, cx, cy, m) {
+  pdf.line(cx - m / 2, cy, cx + m / 2, cy);
+}
+
+/**
+ * @param {import("jspdf").jsPDF} pdf
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} m
+ */
+function drawVerticalTick(pdf, cx, cy, m) {
+  pdf.line(cx, cy - m / 2, cx, cy + m / 2);
+}
+
+/**
+ * Internal crop marks on cut-line intersections only (centered in gutters).
+ *
+ * Vertical cuts between columns get a horizontal tick at:
+ * - top and bottom of the sheet grid
+ * - the center of each horizontal gutter between rows
+ *
+ * Horizontal cuts between rows get a vertical tick at:
+ * - left and right of the sheet grid
+ * - the center of each vertical gutter between columns
  *
  * @param {import("jspdf").jsPDF} pdf
  */
-export function drawGutterCutMarks(pdf) {
-  const { marginX, marginY, gap } = computePdfGridLayout();
+export function drawInternalCutMarks(pdf) {
+  const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
 
@@ -86,20 +132,20 @@ export function drawGutterCutMarks(pdf) {
   pdf.setLineWidth(0.15);
 
   for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const gutterX = marginX + (col + 1) * CARD_WIDTH_MM + col * gap + gap / 2;
-    for (let row = 0; row < CARDS_PER_COL; row++) {
-      const y = marginY + row * (CARD_HEIGHT_MM + gap);
-      pdf.line(gutterX - m / 2, y - o, gutterX + m / 2, y - o);
-      pdf.line(gutterX - m / 2, y + CARD_HEIGHT_MM + o, gutterX + m / 2, y + CARD_HEIGHT_MM + o);
+    const cutX = verticalGutterCenterX(col);
+    drawHorizontalTick(pdf, cutX, marginY - o, m);
+    drawHorizontalTick(pdf, cutX, marginY + gridH + o, m);
+    for (let row = 0; row < CARDS_PER_COL - 1; row++) {
+      drawHorizontalTick(pdf, cutX, horizontalGutterCenterY(row), m);
     }
   }
 
   for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const gutterY = marginY + (row + 1) * CARD_HEIGHT_MM + row * gap + gap / 2;
-    for (let col = 0; col < CARDS_PER_ROW; col++) {
-      const x = marginX + col * (CARD_WIDTH_MM + gap);
-      pdf.line(x - o, gutterY - m / 2, x - o, gutterY + m / 2);
-      pdf.line(x + CARD_WIDTH_MM + o, gutterY - m / 2, x + CARD_WIDTH_MM + o, gutterY + m / 2);
+    const cutY = horizontalGutterCenterY(row);
+    drawVerticalTick(pdf, marginX - o, cutY, m);
+    drawVerticalTick(pdf, marginX + gridW + o, cutY, m);
+    for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
+      drawVerticalTick(pdf, verticalGutterCenterX(col), cutY, m);
     }
   }
 }
@@ -108,49 +154,39 @@ export function drawGutterCutMarks(pdf) {
 export function drawSheetCutMarks(pdf) {
   const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
   drawPerimeterCutMarks(pdf, marginX, marginY, gridW, gridH);
-  drawGutterCutMarks(pdf);
+  drawInternalCutMarks(pdf);
 }
 
 /**
- * Internal gutter mark endpoints for tests.
+ * Internal cut mark endpoints for tests.
  * @returns {{ x1: number, y1: number, x2: number, y2: number }[]}
  */
-export function gutterCutMarkSegments() {
-  const { marginX, marginY, gap } = computePdfGridLayout();
+export function internalCutMarkSegments() {
+  const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
   /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */
   const segments = [];
 
   for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const gutterX = marginX + (col + 1) * CARD_WIDTH_MM + col * gap + gap / 2;
-    for (let row = 0; row < CARDS_PER_COL; row++) {
-      const y = marginY + row * (CARD_HEIGHT_MM + gap);
-      segments.push(
-        { x1: gutterX - m / 2, y1: y - o, x2: gutterX + m / 2, y2: y - o },
-        {
-          x1: gutterX - m / 2,
-          y1: y + CARD_HEIGHT_MM + o,
-          x2: gutterX + m / 2,
-          y2: y + CARD_HEIGHT_MM + o,
-        },
-      );
+    const cutX = verticalGutterCenterX(col);
+    for (const cy of [marginY - o, marginY + gridH + o]) {
+      segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
+    }
+    for (let row = 0; row < CARDS_PER_COL - 1; row++) {
+      const cy = horizontalGutterCenterY(row);
+      segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
     }
   }
 
   for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const gutterY = marginY + (row + 1) * CARD_HEIGHT_MM + row * gap + gap / 2;
-    for (let col = 0; col < CARDS_PER_ROW; col++) {
-      const x = marginX + col * (CARD_WIDTH_MM + gap);
-      segments.push(
-        { x1: x - o, y1: gutterY - m / 2, x2: x - o, y2: gutterY + m / 2 },
-        {
-          x1: x + CARD_WIDTH_MM + o,
-          y1: gutterY - m / 2,
-          x2: x + CARD_WIDTH_MM + o,
-          y2: gutterY + m / 2,
-        },
-      );
+    const cutY = horizontalGutterCenterY(row);
+    for (const cx of [marginX - o, marginX + gridW + o]) {
+      segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
+    }
+    for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
+      const cx = verticalGutterCenterX(col);
+      segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
     }
   }
 

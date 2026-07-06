@@ -14,8 +14,10 @@ import {
   cardPositionMm,
   cardRectMm,
   computePdfGridLayout,
-  gutterCutMarkSegments,
+  internalCutMarkSegments,
   pointInsideCard,
+  horizontalGutterCenterY,
+  verticalGutterCenterX,
 } from "../assets/js/pdfLayout.js";
 
 const { gridW, gridH, marginX, marginY } = computePdfGridLayout();
@@ -70,13 +72,13 @@ for (let row = 0; row < CARDS_PER_COL; row++) {
   }
 }
 
-for (const segment of gutterCutMarkSegments()) {
+for (const segment of internalCutMarkSegments()) {
   for (const px of [segment.x1, segment.x2]) {
     for (const py of [segment.y1, segment.y2]) {
       for (const card of cards) {
         if (pointInsideCard(px, py, card)) {
           console.error(
-            `FAILED: Gutter cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a card interior`,
+            `FAILED: Internal cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a card interior`,
           );
           process.exit(1);
         }
@@ -84,6 +86,20 @@ for (const segment of gutterCutMarkSegments()) {
     }
   }
 }
-console.log("✓ Gutter cut marks stay outside card artwork");
+console.log("✓ Internal cut marks stay outside card artwork");
+
+const rowGapY = horizontalGutterCenterY(0);
+const expectedGapY = marginY + CARD_HEIGHT_MM + PDF_CARD_GAP_MM / 2;
+if (Math.abs(rowGapY - expectedGapY) > 0.01) {
+  console.error("FAILED: Horizontal gutter marks should be centered between rows");
+  process.exit(1);
+}
+const cutX = verticalGutterCenterX(0);
+const expectedCutX = marginX + CARD_WIDTH_MM + PDF_CARD_GAP_MM / 2;
+if (Math.abs(cutX - expectedCutX) > 0.01) {
+  console.error("FAILED: Vertical gutter marks should be centered between columns");
+  process.exit(1);
+}
+console.log("✓ Internal marks placed at gutter intersections only");
 
 console.log("\nAll PDF layout tests passed.");

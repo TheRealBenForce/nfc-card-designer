@@ -39,11 +39,14 @@
           <input
             id="game-search"
             class="input"
-            type="text"
-            placeholder="Search games… (Enter to add)"
+            type="search"
+            placeholder="Search games… (3+ letters)"
             autocomplete="off"
+            aria-autocomplete="list"
+            aria-controls="game-results"
           />
-          <div id="game-results" class="list list--games" role="listbox" aria-label="Games"></div>
+          <p id="game-search-hint" class="field-hint">Type at least 3 characters to search games.</p>
+          <div id="game-results" class="list list--games" role="listbox" aria-label="Games" hidden></div>
         </section>
 
         <section class="section section--actions">

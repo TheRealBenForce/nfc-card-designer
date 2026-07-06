@@ -232,6 +232,16 @@ body {
   color: var(--text-muted);
 }
 
+.field-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.field-hint--ready {
+  color: var(--accent);
+}
+
 .list {
   margin-top: 0.5rem;
   max-height: 180px;

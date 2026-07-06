@@ -1,5 +1,5 @@
 import { PLACEHOLDER_SVG } from "./config.js";
-import { gameForCard } from "./data/games.js";
+import { gameForCard } from "./gameCatalog.js";
 
 const IMAGE_FIELD_MAP = {
   boxArt: "boxArt",

@@ -63,6 +63,9 @@ async function main() {
   console.log("→ Image lookup…");
   await run("node", ["scripts/test-image-lookup.mjs"]);
 
+  console.log("→ Game catalog JSON…");
+  await run("node", ["scripts/test-game-catalog.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
     cwd: root,
@@ -90,6 +93,10 @@ async function main() {
     });
 
     await run("node", ["scripts/test-card-render.mjs"], {
+      env: { ...process.env, TEST_BASE_URL: BASE },
+    });
+
+    await run("node", ["scripts/test-game-search.mjs"], {
       env: { ...process.env, TEST_BASE_URL: BASE },
     });
   } finally {

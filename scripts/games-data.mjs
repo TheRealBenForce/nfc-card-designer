@@ -1,10 +1,11 @@
-import { writeFile } from "node:fs/promises";
+import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const gamesPath = path.join(root, "assets/js/data/games.js");
+export const gamesByPlatformPath = path.join(root, "assets/data/games-by-platform.json");
 
 const GAMES_HEADER = `/**
  * @typedef {Object} GameImages
@@ -44,12 +45,47 @@ export function gameByRaId(raGameId) {
 `;
 
 /** @param {import("../assets/js/data/games.js").Game[]} games */
+export function gamesToByPlatform(games) {
+  /** @type {Record<string, { name: string, raGameId: number }[]>} */
+  const platforms = {};
+
+  for (const game of games) {
+    if (!platforms[game.platformId]) platforms[game.platformId] = [];
+    platforms[game.platformId].push({ name: game.name, raGameId: game.raGameId });
+  }
+
+  for (const platformId of Object.keys(platforms)) {
+    platforms[platformId].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
+  }
+
+  return platforms;
+}
+
+/**
+ * @param {import("../assets/js/data/games.js").Game[]} games
+ * @param {{ generatedAt?: string }} [meta]
+ */
+export async function writeGamesByPlatformJson(games, meta = {}) {
+  const payload = {
+    version: 1,
+    generatedAt: meta.generatedAt ?? new Date().toISOString(),
+    platforms: gamesToByPlatform(games),
+  };
+
+  await mkdir(path.dirname(gamesByPlatformPath), { recursive: true });
+  await writeFile(gamesByPlatformPath, `${JSON.stringify(payload, null, 2)}\n`);
+}
+
+/** @param {import("../assets/js/data/games.js").Game[]} games */
 export async function writeGamesJs(games) {
   await writeFile(
     gamesPath,
     `${GAMES_HEADER}export const games = ${JSON.stringify(games, null, 2)};
 ${GAMES_FOOTER}`,
   );
+  await writeGamesByPlatformJson(games);
 }
 
 /** @param {string} platformId @param {number} raGameId @param {string} type */

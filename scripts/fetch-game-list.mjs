@@ -82,6 +82,7 @@ async function main() {
 
   await writeGamesJs(games);
   console.log(`\nWrote ${games.length} games to assets/js/data/games.js`);
+  console.log("Wrote assets/data/games-by-platform.json");
   console.log("Run npm run fetch-images to download artwork.");
 }
 

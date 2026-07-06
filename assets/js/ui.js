@@ -1,5 +1,5 @@
 import { platforms } from "./data/platforms.js";
-import { gamesForPlatform, gameForCard } from "./data/games.js";
+import { gamesForPlatform, gameForCard, searchGames, MIN_GAME_SEARCH_CHARS } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import { buildCollectionTree } from "./collectionTree.js";
@@ -54,6 +54,8 @@ let statusEl = null;
 let platformSearchInput = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
+/** @type {HTMLElement|null} */
+let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let platformColorInput = null;
 /** @type {HTMLSelectElement|null} */
@@ -65,7 +67,7 @@ let platformHighlightIndex = 0;
 let gameHighlightIndex = 0;
 /** @type {import('./data/platforms.js').Platform[]} */
 let filteredPlatforms = [...platforms];
-/** @type {import('./data/games.js').Game[]} */
+/** @type {import('./gameCatalog.js').Game[]} */
 let filteredGames = [];
 
 function setStatus(message, isError = false) {
@@ -94,13 +96,38 @@ function filterPlatforms(query) {
   renderPlatformResults();
 }
 
+function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
+  if (!gameSearchHintEl) return;
+
+  if (query.length === 0) {
+    gameSearchHintEl.textContent = `Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`;
+    gameSearchHintEl.classList.remove("field-hint--ready");
+    return;
+  }
+
+  if (query.length < MIN_GAME_SEARCH_CHARS) {
+    const remaining = MIN_GAME_SEARCH_CHARS - query.length;
+    gameSearchHintEl.textContent =
+      remaining === 1
+        ? "Type 1 more character to search games."
+        : `Type ${remaining} more characters to search games.`;
+    gameSearchHintEl.classList.remove("field-hint--ready");
+    return;
+  }
+
+  const count = filteredGames.length;
+  gameSearchHintEl.textContent =
+    count === 0 ? `No games matching "${query}".` : `${count} game${count === 1 ? "" : "s"} found`;
+  gameSearchHintEl.classList.toggle("field-hint--ready", count > 0);
+}
+
 function filterGames(query) {
   const settings = getSettings();
-  const all = gamesForPlatform(settings.selectedPlatformId);
-  const q = query.trim().toLowerCase();
-  filteredGames = q ? all.filter((g) => g.name.toLowerCase().includes(q)) : all;
+  const q = query.trim();
+  filteredGames = searchGames(settings.selectedPlatformId, q);
   gameHighlightIndex = 0;
   renderGameResults();
+  updateGameSearchHint(q);
 }
 
 function renderPlatformResults() {
@@ -136,24 +163,30 @@ function renderGameResults() {
   const catalogSize = gamesForPlatform(settings.selectedPlatformId).length;
   const query = gameSearchInput?.value.trim() ?? "";
 
+  if (query.length < MIN_GAME_SEARCH_CHARS) {
+    gameResultsEl.hidden = true;
+    return;
+  }
+
+  gameResultsEl.hidden = false;
+
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     if (catalogSize === 0) {
       empty.textContent = "No games in catalog for this platform yet.";
-    } else if (query) {
-      empty.textContent = `No games matching "${query}".`;
     } else {
-      empty.textContent = "No games found for this platform.";
+      empty.textContent = `No games matching "${query}".`;
     }
     gameResultsEl.appendChild(empty);
     return;
   }
 
-  filteredGames.slice(0, 50).forEach((game, index) => {
+  filteredGames.forEach((game, index) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "list-item";
+    btn.setAttribute("role", "option");
     if (index === gameHighlightIndex) btn.classList.add("list-item--highlight");
     btn.textContent = game.name;
     btn.addEventListener("click", () => {
@@ -185,8 +218,12 @@ function syncPlatformControls() {
 
 function pickGameFromSearch() {
   const query = gameSearchInput?.value.trim() ?? "";
+  if (query.length < MIN_GAME_SEARCH_CHARS) {
+    setStatus(`Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`, true);
+    return null;
+  }
+
   if (!query) {
-    if (filteredGames[gameHighlightIndex]) return filteredGames[gameHighlightIndex];
     setStatus("Type a game name, then press Enter.", true);
     return null;
   }
@@ -400,13 +437,16 @@ function bindEvents() {
   });
 
   gameSearchInput?.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowDown") {
+    const query = gameSearchInput?.value.trim() ?? "";
+    const dropdownOpen = query.length >= MIN_GAME_SEARCH_CHARS;
+
+    if (dropdownOpen && e.key === "ArrowDown") {
       e.preventDefault();
-      gameHighlightIndex = Math.min(gameHighlightIndex + 1, Math.min(filteredGames.length, 50) - 1);
+      gameHighlightIndex = Math.min(gameHighlightIndex + 1, filteredGames.length - 1);
       renderGameResults();
       return;
     }
-    if (e.key === "ArrowUp") {
+    if (dropdownOpen && e.key === "ArrowUp") {
       e.preventDefault();
       gameHighlightIndex = Math.max(gameHighlightIndex - 1, 0);
       renderGameResults();
@@ -490,7 +530,7 @@ function bindEvents() {
   });
 }
 
-export function initUI() {
+export async function initUI() {
   platformResultsEl = document.getElementById("platform-results");
   gameResultsEl = document.getElementById("game-results");
   collectionListEl = document.getElementById("collection-list");
@@ -504,6 +544,7 @@ export function initUI() {
   statusEl = document.getElementById("status");
   platformSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-search"));
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
+  gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
   imageTypeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById("image-type"));
 
@@ -516,6 +557,8 @@ export function initUI() {
 
   bindEvents();
   syncPlatformControls();
+  if (gameResultsEl) gameResultsEl.hidden = true;
+  updateGameSearchHint();
   renderCollection();
   refreshCollectionImageStatus().then(() => {
     renderCollection();

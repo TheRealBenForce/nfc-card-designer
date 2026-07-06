@@ -5,7 +5,7 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 ## Features
 
 - **12 retro platforms** — Atari 2600 through PlayStation, plus Neo Geo and Arcade
-- **Game search** — bundled game lists per platform; press **Enter** to add to deck
+- **Game search** — catalog loaded from `assets/data/games-by-platform.json`; type **3+ letters** for a filtered dropdown, then click or press **Enter** to add
 - **RetroAchievements artwork** — box art, title screens, and in-game images (bundled locally)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
@@ -19,9 +19,12 @@ index.html                 # GitHub Pages entry (must stay at repo root)
 assets/
   css/styles.css
   js/                      # Application modules
+  data/
+    games-by-platform.json   # Game catalogs grouped by platform (search)
   images/platforms/        # Downloaded artwork (platform/game folders)
 scripts/
-  fetch-game-list.mjs      # Dev-only: pull full RA catalogs into games.js
+  fetch-game-list.mjs      # Dev-only: pull full RA catalogs → games.js + JSON
+  export-games-json.mjs    # Regenerate games-by-platform.json from games.js
   fetch-images.mjs         # Dev-only: download RA images with your API key
 ```
 
@@ -43,7 +46,8 @@ The live site does not call the RetroAchievements API. Download images once on y
 cp .env.example .env
 # Edit .env — add your Web API Key (see below)
 npm run test-ra-auth
-npm run fetch-game-list    # full game catalogs per platform → games.js
+npm run fetch-game-list    # full game catalogs per platform → games.js + JSON
+npm run export-games-json  # rebuild JSON only from existing games.js
 npm run fetch-images       # download artwork (can take a while)
 ```
 
@@ -124,6 +128,6 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 ## Notes
 
-- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of games).
+- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of games) and writes both `games.js` and `assets/data/games-by-platform.json`.
 - Re-run `fetch-images` safely — it skips files that already exist.
 - Use `--platform=<id>` to fetch one platform at a time (e.g. `nes`, `genesis`).

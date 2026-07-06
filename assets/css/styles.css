@@ -144,9 +144,16 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
   padding: 0.4rem 0.45rem;
+  border: none;
   border-radius: 6px;
   margin-bottom: 0.2rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .collection-card:hover {
@@ -157,23 +164,17 @@ body {
   background: rgba(108, 140, 255, 0.16);
 }
 
-.collection-card--preview {
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.collection-card__check {
+.collection-card__mark {
   flex-shrink: 0;
+  width: 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  text-align: center;
 }
 
 .collection-card__label {
   flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--text);
   font-size: 0.82rem;
-  text-align: left;
-  cursor: pointer;
-  padding: 0;
 }
 
 .collection-card__badge {

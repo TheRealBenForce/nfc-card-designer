@@ -1,5 +1,5 @@
 import { platforms } from "./data/platforms.js";
-import { gamesForPlatform, gameByRaId } from "./data/games.js";
+import { gamesForPlatform, gameForCard } from "./data/games.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import { buildCollectionTree } from "./collectionTree.js";
@@ -15,7 +15,6 @@ import {
   addCard,
   updateCard,
   removeCards,
-  selectCard,
   setSelectedCardIds,
   replaceCollection,
   createCardId,
@@ -263,7 +262,6 @@ function renderCollection() {
   if (!collectionListEl) return;
   const collection = getCollection();
   const selectedIds = getSelectedCardIds();
-  const previewCard = getPreviewCard();
   collectionListEl.innerHTML = "";
 
   if (collection.length === 0) {
@@ -299,39 +297,27 @@ function renderCollection() {
       cardsEl.className = "collection-cards";
 
       for (const card of game.cards) {
-        const row = document.createElement("div");
+        const row = document.createElement("button");
+        row.type = "button";
         row.className = "collection-card";
         if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
-        if (previewCard?.id === card.id) row.classList.add("collection-card--preview");
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.className = "collection-card__check";
-        checkbox.checked = selectedIds.has(card.id);
-        checkbox.addEventListener("change", () => {
+        const mark = document.createElement("span");
+        mark.className = "collection-card__mark";
+        mark.textContent = selectedIds.has(card.id) ? "✓" : "";
+        mark.setAttribute("aria-hidden", "true");
+
+        const label = document.createElement("span");
+        label.className = "collection-card__label";
+        label.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
+
+        row.addEventListener("click", () => {
           toggleCardSelection(card.id);
           renderCollection();
           updateCollectionActions();
         });
 
-        const label = document.createElement("button");
-        label.type = "button";
-        label.className = "collection-card__label";
-        label.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
-        label.addEventListener("click", async (e) => {
-          if (e.shiftKey) {
-            selectCard(card.id, { extend: true });
-          } else if (e.metaKey || e.ctrlKey) {
-            selectCard(card.id, { toggle: true });
-          } else {
-            selectCard(card.id);
-          }
-          renderCollection();
-          updateCollectionActions();
-          await refreshPreview();
-        });
-
-        row.appendChild(checkbox);
+        row.appendChild(mark);
         row.appendChild(label);
 
         if (card.imageFailed) {
@@ -356,9 +342,11 @@ function renderCollection() {
 
 async function refreshCollectionImageStatus() {
   for (const card of getCollection()) {
-    const game = gameByRaId(card.raGameId);
-    if (!game) continue;
-    const { failed } = await resolveGameImage(game, card.imageType);
+    const game = gameForCard(card);
+    const { failed } = await resolveGameImage(
+      game ?? { platformId: card.platformId, raGameId: card.raGameId, name: card.gameName, images: {} },
+      card.imageType,
+    );
     if (Boolean(card.imageFailed) !== failed) {
       updateCard(card.id, { imageFailed: failed });
     }
@@ -543,7 +531,6 @@ export function initUI() {
     if (event === "selection") {
       renderCollection();
       updateCollectionActions();
-      refreshPreview();
     }
   });
 }

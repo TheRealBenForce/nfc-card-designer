@@ -11,6 +11,7 @@
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
+    "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "verify": "node scripts/verify.mjs"
   }
 }

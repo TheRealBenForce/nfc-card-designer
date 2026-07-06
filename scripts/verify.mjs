@@ -60,6 +60,9 @@ async function main() {
   console.log("→ Collection tree…");
   await run("node", ["scripts/test-collection-tree.mjs"]);
 
+  console.log("→ Image lookup…");
+  await run("node", ["scripts/test-image-lookup.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
     cwd: root,

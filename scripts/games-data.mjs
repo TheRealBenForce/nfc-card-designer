@@ -29,6 +29,15 @@ export function gamesForPlatform(platformId) {
   return games.filter((g) => g.platformId === platformId);
 }
 
+export function gameByPlatformAndRaId(platformId, raGameId) {
+  return games.find((g) => g.platformId === platformId && g.raGameId === raGameId);
+}
+
+/** @param {{ platformId: string, raGameId: number }} card */
+export function gameForCard(card) {
+  return gameByPlatformAndRaId(card.platformId, card.raGameId);
+}
+
 export function gameByRaId(raGameId) {
   return games.find((g) => g.raGameId === raGameId);
 }

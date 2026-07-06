@@ -61,10 +61,11 @@ async function main() {
   }
 
   const stats = { downloaded: 0, skipped: 0, failed: 0, gamesDone: 0 };
-  const updatedById = new Map(games.map((g) => [g.raGameId, { ...g, images: { ...g.images } }]));
+  const gameKey = (g) => `${g.platformId}:${g.raGameId}`;
+  const updatedById = new Map(games.map((g) => [gameKey(g), { ...g, images: { ...g.images } }]));
 
   for (const game of targets) {
-    const current = updatedById.get(game.raGameId);
+    const current = updatedById.get(gameKey(game));
     if (!current) continue;
 
     const dir = gameImageDir(game.platformId, game.raGameId);

@@ -31,11 +31,14 @@
         </section>
 
         <section class="section">
+          <h2 class="section__title">Defaults</h2>
+          <p class="field__label">Artwork priority</p>
+          <ol id="image-priority-list" class="priority-list" aria-label="Artwork type priority"></ol>
+          <p class="field-hint">Games need at least one artwork file to appear in search. Browse types in preview before adding.</p>
+        </section>
+
+        <section class="section">
           <h2 class="section__title">Game</h2>
-          <label class="field">
-            <span class="field__label">Artwork type</span>
-            <select id="image-type" class="input"></select>
-          </label>
           <input
             id="game-search"
             class="input"
@@ -59,11 +62,15 @@
 
       <section class="panel panel--preview">
         <h2 class="section__title">Preview</h2>
-        <p id="preview-meta" class="preview-meta">Select or add a card to preview.</p>
+        <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
+        <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
         <div class="preview-frame">
           <img id="preview-image" class="preview-image" alt="" />
         </div>
         <p class="preview-dimensions">52 mm × 84 mm</p>
+        <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
+          Add to collection
+        </button>
       </section>
 
       <aside class="panel panel--collection">

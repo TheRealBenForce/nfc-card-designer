@@ -49,6 +49,7 @@ npm run test-ra-auth
 npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
 npm run export-games-json  # rebuild retail-only JSON from existing games.js
 npm run fetch-images       # download artwork (can take a while)
+npm run export-image-availability  # rebuild artwork index from games.js
 ```
 
 Images are stored as:
@@ -133,6 +134,9 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 - `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of retail games) and writes both `games.js` and `assets/data/games-by-platform.json`.
 - After fetching locally, **commit both files** so GitHub Pages serves the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
-- Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to match against the full catalog.
+- Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
+- Only games with downloaded artwork appear in search (`assets/data/image-availability.json`)
+- Browse box art / title screen / in-game in preview before adding to collection
+- Global artwork priority is configurable under Defaults (saved in localStorage)
 - Re-run `fetch-images` safely — it skips files that already exist.
 - Use `--platform=<id>` to fetch one platform at a time (e.g. `nes`, `genesis`).

@@ -8,7 +8,7 @@ import { writeFile, mkdir, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { getGame, delay } from "./ra-api.mjs";
-import { gamesPath, writeGamesJs, gameImagePath, gameImageDir } from "./games-data.mjs";
+import { gamesPath, writeGamesJs, gameImagePath, gameImageDir, writeImageAvailabilityJson } from "./games-data.mjs";
 
 const RA_BASE = "https://retroachievements.org";
 const IMAGE_TYPES = [
@@ -128,13 +128,17 @@ async function main() {
     }
   }
 
-  await writeGamesJs([...updatedById.values()].sort((a, b) => {
+  const finalGames = [...updatedById.values()].sort((a, b) => {
     if (a.platformId !== b.platformId) return a.platformId.localeCompare(b.platformId);
     return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-  }));
+  });
+
+  await writeGamesJs(finalGames);
+  await writeImageAvailabilityJson(finalGames);
 
   console.log(`\nDone. ${stats.downloaded} downloaded, ${stats.skipped} skipped, ${stats.failed} failed/missing`);
   console.log(`Updated ${gamesPath}`);
+  console.log("Updated assets/data/image-availability.json");
 }
 
 main().catch((err) => {

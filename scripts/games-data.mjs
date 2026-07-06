@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const gamesPath = path.join(root, "assets/js/data/games.js");
 export const gamesByPlatformPath = path.join(root, "assets/data/games-by-platform.json");
+export const imageAvailabilityPath = path.join(root, "assets/data/image-availability.json");
 
 const GAMES_HEADER = `/**
  * @typedef {Object} GameImages
@@ -91,6 +92,31 @@ export async function writeGamesJs(games) {
 ${GAMES_FOOTER}`,
   );
   await writeGamesByPlatformJson(games, { retailOnly: true });
+}
+
+/** @param {import("../assets/js/data/games.js").Game[]} games */
+export async function writeImageAvailabilityJson(games) {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const platforms = {};
+
+  for (const game of games) {
+    const types = Object.entries(game.images ?? {})
+      .filter(([, imagePath]) => Boolean(imagePath))
+      .map(([type]) => type);
+    if (types.length === 0) continue;
+
+    if (!platforms[game.platformId]) platforms[game.platformId] = {};
+    platforms[game.platformId][String(game.raGameId)] = types;
+  }
+
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    platforms,
+  };
+
+  await mkdir(path.dirname(imageAvailabilityPath), { recursive: true });
+  await writeFile(imageAvailabilityPath, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
 /** @param {string} platformId @param {number} raGameId @param {string} type */

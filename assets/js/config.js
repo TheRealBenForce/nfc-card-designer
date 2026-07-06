@@ -31,9 +31,13 @@ export const CARD_RENDER_HEIGHT_PX = Math.round((CARD_HEIGHT_MM / 25.4) * 300);
 export const IMAGE_TYPES = {
   boxArt: { label: "Box Art", default: true },
   titleScreen: { label: "Title Screen", default: false },
-  gamePicture: { label: "Game Picture", default: false },
+  gamePicture: { label: "In-Game", default: false },
 };
 
+/** Global default artwork priority (first match wins when browsing). */
+export const DEFAULT_IMAGE_TYPE_PRIORITY = ["boxArt", "titleScreen", "gamePicture"];
+
+/** @deprecated Use imageTypePriority */
 export const DEFAULT_IMAGE_TYPE = "boxArt";
 
 export const STORAGE_KEY = "nfc-card-designer-settings";

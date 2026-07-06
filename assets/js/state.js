@@ -13,7 +13,7 @@ import { loadSettings, loadCollection } from "./storage.js";
 /**
  * @typedef {Object} AppSettings
  * @property {Record<string, string>} platformColors
- * @property {string} imageType
+ * @property {string[]} imageTypePriority
  * @property {string} selectedPlatformId
  */
 

@@ -1,5 +1,5 @@
 import { PLACEHOLDER_SVG } from "./config.js";
-import { gameForCard } from "./gameCatalog.js";
+import { gameByPlatformAndRaId } from "./data/games.js";
 
 const IMAGE_FIELD_MAP = {
   boxArt: "boxArt",
@@ -59,7 +59,7 @@ export async function resolveGameImage(game, imageType) {
  * @returns {Promise<{ url: string, failed: boolean }>}
  */
 export async function resolveCardImage(card) {
-  const game = gameForCard(card);
+  const game = gameByPlatformAndRaId(card.platformId, card.raGameId);
   for (const imagePath of candidateImagePaths(card, game, card.imageType)) {
     try {
       await loadImage(imagePath);

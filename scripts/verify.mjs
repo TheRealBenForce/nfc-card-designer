@@ -69,6 +69,9 @@ async function main() {
   console.log("→ Retail filters…");
   await run("node", ["scripts/test-game-filters.mjs"]);
 
+  console.log("→ Image settings…");
+  await run("node", ["scripts/test-image-settings.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
     cwd: root,

@@ -42,6 +42,29 @@ async function main() {
     }
     console.log("✓ 'mar' shows matching games");
 
+    await page.locator("#game-results .list-item", { hasText: "Super Mario Bros." }).click();
+    await page.waitForTimeout(300);
+
+    const addBtn = page.locator("#add-browsed-game");
+    if (!(await addBtn.isVisible())) {
+      throw new Error("Browse preview should show Add to collection button");
+    }
+
+    const tabs = await page.locator(".preview-type-tab").count();
+    if (tabs < 1) {
+      throw new Error("Browse preview should show artwork type tabs");
+    }
+    console.log("✓ Selecting a game opens browse preview with artwork tabs");
+
+    await addBtn.click();
+    await page.waitForTimeout(300);
+
+    const collectionCards = await page.locator(".collection-card").count();
+    if (collectionCards < 1) {
+      throw new Error("Add to collection should create a collection card");
+    }
+    console.log("✓ Add to collection creates a card");
+
     await page.fill("#game-search", "mario");
     await page.waitForTimeout(100);
     const filtered = await page.locator("#game-results .list-item").allTextContents();
@@ -51,10 +74,10 @@ async function main() {
     console.log("✓ Results narrow as query grows");
 
     const hint = await page.locator("#game-search-hint").textContent();
-    if (!hint?.includes("found") && !hint?.includes("matches")) {
-      throw new Error(`Expected result count hint, got: ${hint}`);
+    if (!hint?.includes("found") && !hint?.includes("with artwork")) {
+      throw new Error(`Expected search hint, got: ${hint}`);
     }
-    console.log("✓ Search hint updates with result count");
+    console.log("✓ Search hint updates after filtering");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

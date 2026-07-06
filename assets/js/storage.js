@@ -1,4 +1,10 @@
-import { STORAGE_KEY, DECK_STORAGE_KEY, COLLECTION_STORAGE_KEY, DEFAULT_IMAGE_TYPE } from "./config.js";
+import {
+  STORAGE_KEY,
+  COLLECTION_STORAGE_KEY,
+  DECK_STORAGE_KEY,
+  DEFAULT_IMAGE_TYPE_PRIORITY,
+} from "./config.js";
+import { normalizeImageTypePriority } from "./imageSettings.js";
 import { platforms } from "./data/platforms.js";
 
 /** @returns {Record<string, string>} */
@@ -10,7 +16,7 @@ export function defaultPlatformColors() {
 export function defaultSettings() {
   return {
     platformColors: defaultPlatformColors(),
-    imageType: DEFAULT_IMAGE_TYPE,
+    imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     selectedPlatformId: platforms[0].id,
   };
 }
@@ -33,7 +39,7 @@ function serializeCard(card) {
 export function saveSettings(settings) {
   const exportable = {
     platformColors: settings.platformColors,
-    imageType: settings.imageType,
+    imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
@@ -46,9 +52,15 @@ export function loadSettings() {
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
+    const imageTypePriority = parsed.imageTypePriority
+      ? normalizeImageTypePriority(parsed.imageTypePriority)
+      : parsed.imageType
+        ? normalizeImageTypePriority([parsed.imageType, ...defaults.imageTypePriority])
+        : defaults.imageTypePriority;
+
     return {
       platformColors: { ...defaults.platformColors, ...parsed.platformColors },
-      imageType: parsed.imageType ?? defaults.imageType,
+      imageTypePriority,
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
     };
   } catch {
@@ -96,9 +108,9 @@ export function loadDeck() {
  */
 export function buildProjectData(settings, collection) {
   return {
-    version: 1,
+    version: 2,
     platformColors: settings.platformColors,
-    imageType: settings.imageType,
+    imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
     cards: collection.map(serializeCard),
   };
@@ -149,7 +161,14 @@ export function importProjectFile() {
         resolve({
           settings: {
             platformColors: parsed.platformColors,
-            imageType: parsed.imageType,
+            imageTypePriority: parsed.imageTypePriority
+              ? normalizeImageTypePriority(parsed.imageTypePriority)
+              : parsed.imageType
+                ? normalizeImageTypePriority([
+                    parsed.imageType,
+                    ...defaultSettings().imageTypePriority,
+                  ])
+                : undefined,
             selectedPlatformId: parsed.selectedPlatformId,
           },
           cards,

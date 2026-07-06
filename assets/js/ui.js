@@ -5,10 +5,13 @@ import {
   searchGames,
   pickGameFromCatalog,
   gameCountForPlatform,
+  catalogCountForPlatform,
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
+import { movePriorityItem } from "./imageSettings.js";
+import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
 import {
   subscribe,
@@ -65,8 +68,15 @@ let gameSearchInput = null;
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let platformColorInput = null;
-/** @type {HTMLSelectElement|null} */
-let imageTypeSelect = null;
+/** @type {HTMLOListElement|null} */
+let imagePriorityListEl = null;
+/** @type {HTMLElement|null} */
+let previewTypeTabsEl = null;
+/** @type {HTMLButtonElement|null} */
+let addBrowsedGameBtn = null;
+
+/** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[] } | null} */
+let browseState = null;
 
 /** @type {number} */
 let platformHighlightIndex = 0;
@@ -105,17 +115,27 @@ function filterPlatforms(query) {
   renderPlatformResults();
 }
 
+function resetPlatformSearch() {
+  if (platformSearchInput) platformSearchInput.value = "";
+  filterPlatforms("");
+}
+
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
 
   const settings = getSettings();
-  const catalogSize = gameCountForPlatform(settings.selectedPlatformId);
+  const searchableSize = gameCountForPlatform(settings.selectedPlatformId);
+  const catalogSize = catalogCountForPlatform(settings.selectedPlatformId);
 
   if (query.length === 0) {
-    gameSearchHintEl.textContent =
-      catalogSize === 0
-        ? "No retail games in catalog for this platform yet."
-        : `${catalogSize} retail game${catalogSize === 1 ? "" : "s"} — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
+    if (searchableSize === 0) {
+      gameSearchHintEl.textContent =
+        catalogSize === 0
+          ? "No retail games in catalog for this platform yet."
+          : "No artwork downloaded for this platform yet — run npm run fetch-images.";
+    } else {
+      gameSearchHintEl.textContent = `${searchableSize} game${searchableSize === 1 ? "" : "s"} with artwork — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
+    }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -124,14 +144,17 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     const remaining = MIN_GAME_SEARCH_CHARS - query.length;
     gameSearchHintEl.textContent =
       remaining === 1
-        ? `Type 1 more character to search ${catalogSize} retail games.`
-        : `Type ${remaining} more characters to search ${catalogSize} retail games.`;
+        ? `Type 1 more character to search ${searchableSize} games with artwork.`
+        : `Type ${remaining} more characters to search ${searchableSize} games with artwork.`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
 
   if (filteredGamesTotal === 0) {
-    gameSearchHintEl.textContent = `No retail games matching "${query}".`;
+    gameSearchHintEl.textContent =
+      searchableSize === 0
+        ? "No games with artwork on this platform yet."
+        : `No games with artwork matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -185,7 +208,7 @@ function renderGameResults() {
   gameResultsEl.innerHTML = "";
 
   const settings = getSettings();
-  const catalogSize = gameCountForPlatform(settings.selectedPlatformId);
+  const searchableSize = gameCountForPlatform(settings.selectedPlatformId);
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -198,10 +221,10 @@ function renderGameResults() {
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
-    if (catalogSize === 0) {
-      empty.textContent = "No retail games in catalog for this platform yet.";
+    if (searchableSize === 0) {
+      empty.textContent = "No games with artwork on this platform yet.";
     } else {
-      empty.textContent = `No retail games matching "${query}".`;
+      empty.textContent = `No games with artwork matching "${query}".`;
     }
     gameResultsEl.appendChild(empty);
     return;
@@ -216,7 +239,7 @@ function renderGameResults() {
     btn.textContent = game.name;
     btn.addEventListener("click", () => {
       if (gameSearchInput) gameSearchInput.value = game.name;
-      addGameCard(game);
+      browseGameFromSearch(game);
     });
     gameResultsEl.appendChild(btn);
   });
@@ -230,11 +253,10 @@ function renderGameResults() {
 }
 
 function selectPlatform(platformId) {
-  if (platformSearchInput) platformSearchInput.value = "";
+  resetPlatformSearch();
   updateSettings({ selectedPlatformId: platformId });
   saveSettings(getSettings());
   syncPlatformControls();
-  filterGames(gameSearchInput?.value ?? "");
   setStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
@@ -244,7 +266,11 @@ function syncPlatformControls() {
   if (platformColorInput && platform) {
     platformColorInput.value = settings.platformColors[platform.id] ?? platform.defaultColor;
   }
-  filterPlatforms(platformSearchInput?.value ?? "");
+  if (!platformSearchInput?.value) {
+    filterPlatforms("");
+  } else {
+    filterPlatforms(platformSearchInput.value);
+  }
   filterGames(gameSearchInput?.value ?? "");
 }
 
@@ -258,30 +284,54 @@ function pickGameFromSearch() {
   const settings = getSettings();
   const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
   if (!game) {
-    setStatus(`No retail game matching "${query}".`, true);
+    setStatus(`No game with artwork matching "${query}".`, true);
     return null;
   }
 
   return game;
 }
 
-async function addGameCard(game) {
-  const settings = getSettings();
-  setStatus(`Loading artwork for ${game.name}…`);
+async function browseGameFromSearch(game) {
+  const priority = getSettings().imageTypePriority;
+  setStatus(`Loading preview for ${game.name}…`);
 
+  const availableTypes = await getAvailableImageTypes(game, priority);
+  if (availableTypes.length === 0) {
+    setStatus(`No artwork available for ${game.name}.`, true);
+    return;
+  }
+
+  browseState = {
+    game,
+    imageType: availableTypes[0],
+    availableTypes,
+  };
+
+  renderPreviewTypeTabs();
+  await refreshPreview();
+  setStatus(`Previewing ${game.name}.`);
+}
+
+function clearBrowse() {
+  browseState = null;
+  renderPreviewTypeTabs();
+  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
+}
+
+async function addBrowsedGame() {
+  if (!browseState) return;
+
+  const { game, imageType } = browseState;
   const card = {
     id: createCardId(),
-    platformId: settings.selectedPlatformId,
+    platformId: game.platformId,
     gameName: game.name,
     raGameId: game.raGameId,
-    imageType: settings.imageType,
+    imageType,
   };
 
   addCard(card);
-
-  const { failed } = await resolveGameImage(game, settings.imageType);
-
-  updateCard(card.id, { imageFailed: failed });
+  clearBrowse();
 
   if (gameSearchInput) {
     gameSearchInput.value = "";
@@ -291,14 +341,88 @@ async function addGameCard(game) {
   filterGames("");
   updateCollectionActions();
   await refreshPreview();
+  setStatus(`Added ${game.name} to collection.`);
+}
 
-  if (failed) {
-    setStatus(
-      `Added ${game.name} (placeholder — run npm run fetch-images to download artwork)`,
-      true,
-    );
-  } else {
-    setStatus(`Added ${game.name} to collection.`);
+function renderImagePriorityList() {
+  if (!imagePriorityListEl) return;
+
+  const priority = getSettings().imageTypePriority;
+  imagePriorityListEl.innerHTML = "";
+
+  priority.forEach((type, index) => {
+    const item = document.createElement("li");
+    item.className = "priority-item";
+
+    const rank = document.createElement("span");
+    rank.className = "priority-item__rank";
+    rank.textContent = String(index + 1);
+
+    const label = document.createElement("span");
+    label.className = "priority-item__label";
+    label.textContent = IMAGE_TYPES[type]?.label ?? type;
+
+    const actions = document.createElement("div");
+    actions.className = "priority-item__actions";
+
+    const upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.className = "priority-item__btn";
+    upBtn.textContent = "▲";
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener("click", () => {
+      updateSettings({
+        imageTypePriority: movePriorityItem(getSettings().imageTypePriority, index, -1),
+      });
+      saveSettings(getSettings());
+      renderImagePriorityList();
+    });
+
+    const downBtn = document.createElement("button");
+    downBtn.type = "button";
+    downBtn.className = "priority-item__btn";
+    downBtn.textContent = "▼";
+    downBtn.disabled = index === priority.length - 1;
+    downBtn.addEventListener("click", () => {
+      updateSettings({
+        imageTypePriority: movePriorityItem(getSettings().imageTypePriority, index, 1),
+      });
+      saveSettings(getSettings());
+      renderImagePriorityList();
+    });
+
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
+    item.appendChild(rank);
+    item.appendChild(label);
+    item.appendChild(actions);
+    imagePriorityListEl.appendChild(item);
+  });
+}
+
+function renderPreviewTypeTabs() {
+  if (!previewTypeTabsEl) return;
+
+  previewTypeTabsEl.innerHTML = "";
+  if (!browseState) {
+    previewTypeTabsEl.hidden = true;
+    return;
+  }
+
+  previewTypeTabsEl.hidden = false;
+  for (const type of browseState.availableTypes) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "preview-type-tab";
+    if (type === browseState.imageType) btn.classList.add("preview-type-tab--active");
+    btn.textContent = IMAGE_TYPES[type]?.label ?? type;
+    btn.addEventListener("click", async () => {
+      if (!browseState) return;
+      browseState = { ...browseState, imageType: type };
+      renderPreviewTypeTabs();
+      await refreshPreview();
+    });
+    previewTypeTabsEl.appendChild(btn);
   }
 }
 
@@ -412,12 +536,36 @@ async function refreshCollectionImageStatus() {
 }
 
 async function refreshPreview() {
-  const card = getPreviewCard();
   if (!previewImageEl || !previewMetaEl) return;
 
+  if (browseState) {
+    const { game, imageType } = browseState;
+    const platform = platformById[game.platformId];
+    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+
+    const canvas = await renderCard(
+      {
+        id: "browse",
+        platformId: game.platformId,
+        gameName: game.name,
+        raGameId: game.raGameId,
+        imageType,
+      },
+      getSettings().platformColors,
+    );
+    previewImageEl.src = canvasToDataUrl(canvas, 400);
+    previewImageEl.alt = `Preview: ${game.name}`;
+    if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
+    return;
+  }
+
+  renderPreviewTypeTabs();
+  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
+
+  const card = getPreviewCard();
   if (!card) {
     previewImageEl.removeAttribute("src");
-    previewMetaEl.textContent = "Select or add a card to preview.";
+    previewMetaEl.textContent = "Search for a game to preview artwork.";
     return;
   }
 
@@ -447,9 +595,12 @@ function bindEvents() {
       e.preventDefault();
       platformHighlightIndex = Math.max(platformHighlightIndex - 1, 0);
       renderPlatformResults();
-    } else if (e.key === "Enter" && filteredPlatforms[platformHighlightIndex]) {
+    } else if (e.key === "Enter") {
       e.preventDefault();
-      selectPlatform(filteredPlatforms[platformHighlightIndex].id);
+      filterPlatforms(platformSearchInput?.value ?? "");
+      if (filteredPlatforms[platformHighlightIndex]) {
+        selectPlatform(filteredPlatforms[platformHighlightIndex].id);
+      }
     }
   });
 
@@ -476,7 +627,7 @@ function bindEvents() {
     if (e.key === "Enter") {
       e.preventDefault();
       const game = pickGameFromSearch();
-      if (game) addGameCard(game);
+      if (game) browseGameFromSearch(game);
     }
   });
 
@@ -487,9 +638,8 @@ function bindEvents() {
     refreshPreview();
   });
 
-  imageTypeSelect?.addEventListener("change", (e) => {
-    updateSettings({ imageType: /** @type {HTMLSelectElement} */ (e.target).value });
-    saveSettings(getSettings());
+  addBrowsedGameBtn?.addEventListener("click", () => {
+    addBrowsedGame();
   });
 
   document.getElementById("export-project")?.addEventListener("click", () => {
@@ -503,7 +653,8 @@ function bindEvents() {
       const defaults = defaultSettings();
       updateSettings({
         platformColors: { ...defaults.platformColors, ...imported.settings.platformColors },
-        imageType: imported.settings.imageType ?? defaults.imageType,
+        imageTypePriority:
+          imported.settings.imageTypePriority ?? defaults.imageTypePriority,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
       });
       saveSettings(getSettings());
@@ -513,8 +664,9 @@ function bindEvents() {
         setSelectedCardIds(imported.cards.map((c) => c.id));
         setPreviewCardId(imported.cards[0].id);
       }
+      clearBrowse();
       syncPlatformControls();
-      if (imageTypeSelect) imageTypeSelect.value = getSettings().imageType;
+      renderImagePriorityList();
       renderCollection();
       await refreshPreview();
       setStatus(`Imported project with ${imported.cards.length} card(s).`);
@@ -567,15 +719,15 @@ export async function initUI() {
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
-  imageTypeSelect = /** @type {HTMLSelectElement|null} */ (document.getElementById("image-type"));
+  imagePriorityListEl = /** @type {HTMLOListElement|null} */ (
+    document.getElementById("image-priority-list")
+  );
+  previewTypeTabsEl = document.getElementById("preview-type-tabs");
+  addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("add-browsed-game")
+  );
 
-  if (imageTypeSelect) {
-    imageTypeSelect.innerHTML = Object.entries(IMAGE_TYPES)
-      .map(([key, val]) => `<option value="${key}">${val.label}</option>`)
-      .join("");
-    imageTypeSelect.value = getSettings().imageType;
-  }
-
+  renderImagePriorityList();
   bindEvents();
   syncPlatformControls();
   if (gameResultsEl) gameResultsEl.hidden = true;

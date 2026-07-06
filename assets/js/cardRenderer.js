@@ -83,19 +83,6 @@ function drawPlatformLogo(ctx, icon, rect) {
 }
 
 /**
- * @param {CanvasRenderingContext2D} ctx
- * @param {HTMLImageElement} icon
- * @param {string} color
- * @param {import('./cardLayout.js').Rect} rect
- */
-function drawPlatformColorMark(ctx, icon, color, rect) {
-  ctx.fillStyle = color;
-  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-  const padding = Math.round(Math.min(rect.w, rect.h) * 0.18);
-  drawContainImageCentered(ctx, icon, rect, padding);
-}
-
-/**
  * @param {import('./state.js').Card} card
  * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
  * @returns {Promise<HTMLCanvasElement>}
@@ -126,7 +113,9 @@ export async function renderCard(card, platformDefaults) {
 
   const icon = await loadImage(getPlatformIconPath(card.platformId));
   drawPlatformLogo(ctx, icon, logo);
-  drawPlatformColorMark(ctx, icon, color, colorRect);
+
+  ctx.fillStyle = color;
+  ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
 
   return canvas;
 }

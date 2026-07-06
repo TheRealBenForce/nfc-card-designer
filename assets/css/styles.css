@@ -131,13 +131,6 @@ body {
   gap: 0.45rem;
 }
 
-.collection-platform__icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 .collection-platform > summary::-webkit-details-marker,
 .collection-game > summary::-webkit-details-marker {
   display: none;
@@ -394,14 +387,6 @@ body {
 .list-item--selected {
   background: rgba(108, 140, 255, 0.22);
   font-weight: 600;
-}
-
-.list-item__icon,
-.platform-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .list-item__emoji {

@@ -23,17 +23,3 @@ export const PLATFORM_ICON_PATHS = Object.fromEntries(
 export function getPlatformIconPath(platformId) {
   return PLATFORM_ICON_PATHS[platformId] ?? PLATFORM_ICON_PATHS.nes;
 }
-
-/**
- * @param {string} platformId
- * @param {string} [className]
- * @returns {HTMLImageElement}
- */
-export function createPlatformIconImg(platformId, className = "platform-icon") {
-  const img = document.createElement("img");
-  img.src = getPlatformIconPath(platformId);
-  img.alt = "";
-  img.className = className;
-  img.draggable = false;
-  return img;
-}

@@ -89,10 +89,10 @@ async function main() {
     if (hex(...portrait.logoCenter) === "#1a1a2e") {
       throw new Error("Logo area should render the platform icon");
     }
-    if (hex(...portrait.colorCenter) === "#b4000c") {
-      throw new Error("Color mark should render the platform icon on the color fill");
+    if (hex(...portrait.colorCenter) !== "#b4000c") {
+      throw new Error(`Color area should be solid fill #b4000c, got ${hex(...portrait.colorCenter)}`);
     }
-    console.log("✓ Logo and color mark render platform icons");
+    console.log("✓ Logo renders platform icon; color area is solid fill");
 
     const landscape = await page.evaluate(async () => {
       const { splitArtAndPlatform, splitLogoAndColor } = await import("/assets/js/cardLayout.js");

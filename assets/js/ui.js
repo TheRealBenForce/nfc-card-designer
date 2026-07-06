@@ -45,7 +45,6 @@ import {
 import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
-import { createPlatformIconImg } from "./platformIcons.js";
 
 /** @type {HTMLElement|null} */
 let platformResultsEl = null;
@@ -216,12 +215,7 @@ function renderPlatformResults() {
     btn.className = "list-item";
     if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
 
-    const icon = createPlatformIconImg(platform.id, "list-item__icon");
-    const label = document.createElement("span");
-    label.textContent = platform.name;
-
-    btn.appendChild(icon);
-    btn.appendChild(label);
+    btn.textContent = platform.name;
     btn.addEventListener("click", () => selectPlatform(platform.id));
     platformResultsEl.appendChild(btn);
   });
@@ -521,11 +515,7 @@ function renderCollection() {
     platformDetails.open = true;
 
     const platformSummary = document.createElement("summary");
-    const platformIcon = createPlatformIconImg(platform.id, "collection-platform__icon");
-    const platformLabel = document.createElement("span");
-    platformLabel.textContent = platform.name;
-    platformSummary.appendChild(platformIcon);
-    platformSummary.appendChild(platformLabel);
+    platformSummary.textContent = platform.name;
     platformDetails.appendChild(platformSummary);
 
     for (const game of games) {

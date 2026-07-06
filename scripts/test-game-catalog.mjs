@@ -7,6 +7,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gamesToByPlatform } from "./games-data.mjs";
+import { isRetailRelease } from "../assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const jsonPath = path.join(root, "assets/data/games-by-platform.json");
@@ -15,6 +16,10 @@ const data = JSON.parse(raw);
 
 if (!data.platforms || typeof data.platforms !== "object") {
   throw new Error("games-by-platform.json must include a platforms object");
+}
+
+if (data.retailOnly !== true) {
+  throw new Error("games-by-platform.json should be marked retailOnly: true");
 }
 
 const platformIds = Object.keys(data.platforms);
@@ -32,11 +37,14 @@ for (const platformId of platformIds) {
     if (!game.name || typeof game.raGameId !== "number") {
       throw new Error(`Invalid game entry under "${platformId}"`);
     }
+    if (!isRetailRelease(game.name)) {
+      throw new Error(`Non-retail game in catalog JSON: ${game.name}`);
+    }
   }
 }
 
 const { games } = await import(pathToFileURL(path.join(root, "assets/js/data/games.js")).href);
-const converted = gamesToByPlatform(games);
+const converted = gamesToByPlatform(games, { retailOnly: true });
 
 for (const platformId of Object.keys(converted)) {
   const count = converted[platformId].length;

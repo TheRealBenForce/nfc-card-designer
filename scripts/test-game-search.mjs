@@ -51,7 +51,7 @@ async function main() {
     console.log("✓ Results narrow as query grows");
 
     const hint = await page.locator("#game-search-hint").textContent();
-    if (!hint?.includes("found")) {
+    if (!hint?.includes("found") && !hint?.includes("matches")) {
       throw new Error(`Expected result count hint, got: ${hint}`);
     }
     console.log("✓ Search hint updates with result count");

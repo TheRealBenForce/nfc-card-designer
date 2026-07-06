@@ -252,7 +252,15 @@ body {
 }
 
 .list--games {
-  max-height: 220px;
+  max-height: 280px;
+}
+
+.list-more-hint {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
 }
 
 .list-item {

@@ -1,6 +1,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isRetailRelease } from "../assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -45,11 +46,13 @@ export function gameByRaId(raGameId) {
 `;
 
 /** @param {import("../assets/js/data/games.js").Game[]} games */
-export function gamesToByPlatform(games) {
+export function gamesToByPlatform(games, options = {}) {
+  const retailOnly = options.retailOnly !== false;
   /** @type {Record<string, { name: string, raGameId: number }[]>} */
   const platforms = {};
 
   for (const game of games) {
+    if (retailOnly && !isRetailRelease(game.name)) continue;
     if (!platforms[game.platformId]) platforms[game.platformId] = [];
     platforms[game.platformId].push({ name: game.name, raGameId: game.raGameId });
   }
@@ -68,10 +71,12 @@ export function gamesToByPlatform(games) {
  * @param {{ generatedAt?: string }} [meta]
  */
 export async function writeGamesByPlatformJson(games, meta = {}) {
+  const retailOnly = meta.retailOnly !== false;
   const payload = {
-    version: 1,
+    version: 2,
+    retailOnly,
     generatedAt: meta.generatedAt ?? new Date().toISOString(),
-    platforms: gamesToByPlatform(games),
+    platforms: gamesToByPlatform(games, { retailOnly }),
   };
 
   await mkdir(path.dirname(gamesByPlatformPath), { recursive: true });
@@ -85,7 +90,7 @@ export async function writeGamesJs(games) {
     `${GAMES_HEADER}export const games = ${JSON.stringify(games, null, 2)};
 ${GAMES_FOOTER}`,
   );
-  await writeGamesByPlatformJson(games);
+  await writeGamesByPlatformJson(games, { retailOnly: true });
 }
 
 /** @param {string} platformId @param {number} raGameId @param {string} type */

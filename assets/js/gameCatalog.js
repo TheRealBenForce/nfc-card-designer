@@ -1,4 +1,5 @@
 import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
+import { isRetailRelease } from "./retailFilter.js";
 
 /**
  * @typedef {Object} GameImages
@@ -22,6 +23,7 @@ let byPlatform = null;
 let loadPromise = null;
 
 export const MIN_GAME_SEARCH_CHARS = 3;
+export const GAME_SEARCH_RESULT_LIMIT = 100;
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
@@ -34,7 +36,15 @@ export async function loadGameCatalog() {
     }
 
     const data = await res.json();
-    byPlatform = data.platforms ?? {};
+    /** @type {Record<string, { name: string, raGameId: number }[]>} */
+    const platforms = {};
+
+    for (const [platformId, entries] of Object.entries(data.platforms ?? {})) {
+      if (!Array.isArray(entries)) continue;
+      platforms[platformId] = entries.filter((entry) => isRetailRelease(entry.name));
+    }
+
+    byPlatform = platforms;
   })();
 
   return loadPromise;
@@ -47,6 +57,14 @@ export async function loadGameCatalog() {
 export function gamesForPlatform(platformId) {
   const entries = byPlatform?.[platformId] ?? [];
   return entries.map((entry) => withImages(platformId, entry));
+}
+
+/**
+ * @param {string} platformId
+ * @returns {number}
+ */
+export function gameCountForPlatform(platformId) {
+  return byPlatform?.[platformId]?.length ?? 0;
 }
 
 /**
@@ -67,15 +85,56 @@ export function gameForCard(card) {
  * @param {string} platformId
  * @param {string} query
  * @param {{ limit?: number }} [options]
+ * @returns {{ games: Game[], total: number }}
  */
 export function searchGames(platformId, query, options = {}) {
-  const limit = options.limit ?? 50;
+  const limit = options.limit ?? GAME_SEARCH_RESULT_LIMIT;
   const q = query.trim().toLowerCase();
-  if (q.length < MIN_GAME_SEARCH_CHARS) return [];
+  if (q.length < MIN_GAME_SEARCH_CHARS) return { games: [], total: 0 };
 
-  return gamesForPlatform(platformId)
-    .filter((game) => game.name.toLowerCase().includes(q))
-    .slice(0, limit);
+  const matches = gamesForPlatform(platformId).filter((game) =>
+    game.name.toLowerCase().includes(q),
+  );
+
+  matches.sort((a, b) => compareSearchResults(a.name, b.name, q));
+
+  const total = matches.length;
+  const games = limit > 0 ? matches.slice(0, limit) : matches;
+  return { games, total };
+}
+
+/**
+ * @param {string} platformId
+ * @param {string} query
+ * @param {number} [highlightedIndex]
+ */
+export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
+  const { games } = searchGames(platformId, query, { limit: 0 });
+  if (games.length === 0) return null;
+
+  const lower = query.trim().toLowerCase();
+  const exact = games.find((g) => g.name.toLowerCase() === lower);
+  if (exact) return exact;
+
+  const startsWith = games.find((g) => g.name.toLowerCase().startsWith(lower));
+  if (startsWith) return startsWith;
+
+  if (games[highlightedIndex]) return games[highlightedIndex];
+  return games[0];
+}
+
+/**
+ * @param {string} a
+ * @param {string} b
+ * @param {string} query
+ */
+function compareSearchResults(a, b, query) {
+  const aName = a.toLowerCase();
+  const bName = b.toLowerCase();
+  const aStarts = aName.startsWith(query) ? 0 : 1;
+  const bStarts = bName.startsWith(query) ? 0 : 1;
+  if (aStarts !== bStarts) return aStarts - bStarts;
+  return aName.localeCompare(bName, undefined, { sensitivity: "base" });
 }
 
 /**

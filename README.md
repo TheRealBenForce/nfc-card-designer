@@ -46,8 +46,8 @@ The live site does not call the RetroAchievements API. Download images once on y
 cp .env.example .env
 # Edit .env — add your Web API Key (see below)
 npm run test-ra-auth
-npm run fetch-game-list    # full game catalogs per platform → games.js + JSON
-npm run export-games-json  # rebuild JSON only from existing games.js
+npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
+npm run export-games-json  # rebuild retail-only JSON from existing games.js
 npm run fetch-images       # download artwork (can take a while)
 ```
 
@@ -63,10 +63,13 @@ Optional flags:
 
 ```bash
 npm run fetch-game-list -- --platform=nes
-npm run fetch-game-list -- --with-achievements   # smaller lists
+npm run fetch-game-list -- --with-achievements   # smaller lists (games with achievements only)
+npm run fetch-game-list -- --include-non-retail  # include hacks, homebrew, demos, etc.
 npm run fetch-images -- --platform=genesis
 npm run fetch-images -- --force                  # re-download existing files
 ```
+
+By default, `fetch-game-list` keeps **retail releases only** and excludes RetroAchievements entries tagged as `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, deprecated `~Z~` pages, and `[Subset - …]` entries.
 
 ### API key
 
@@ -128,6 +131,8 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 ## Notes
 
-- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of games) and writes both `games.js` and `assets/data/games-by-platform.json`.
+- `fetch-game-list` replaces the curated starter list with full RetroAchievements catalogs (thousands of retail games) and writes both `games.js` and `assets/data/games-by-platform.json`.
+- After fetching locally, **commit both files** so GitHub Pages serves the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
+- Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to match against the full catalog.
 - Re-run `fetch-images` safely — it skips files that already exist.
 - Use `--platform=<id>` to fetch one platform at a time (e.g. `nes`, `genesis`).

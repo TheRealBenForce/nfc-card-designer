@@ -14,6 +14,7 @@
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
+    "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
     "verify": "node scripts/verify.mjs"
   }

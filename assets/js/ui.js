@@ -1,5 +1,12 @@
 import { platforms } from "./data/platforms.js";
-import { gamesForPlatform, gameForCard, searchGames, MIN_GAME_SEARCH_CHARS } from "./gameCatalog.js";
+import {
+  gamesForPlatform,
+  gameForCard,
+  searchGames,
+  pickGameFromCatalog,
+  gameCountForPlatform,
+  MIN_GAME_SEARCH_CHARS,
+} from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import { buildCollectionTree } from "./collectionTree.js";
@@ -69,6 +76,8 @@ let gameHighlightIndex = 0;
 let filteredPlatforms = [...platforms];
 /** @type {import('./gameCatalog.js').Game[]} */
 let filteredGames = [];
+/** @type {number} */
+let filteredGamesTotal = 0;
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -99,8 +108,14 @@ function filterPlatforms(query) {
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
 
+  const settings = getSettings();
+  const catalogSize = gameCountForPlatform(settings.selectedPlatformId);
+
   if (query.length === 0) {
-    gameSearchHintEl.textContent = `Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`;
+    gameSearchHintEl.textContent =
+      catalogSize === 0
+        ? "No retail games in catalog for this platform yet."
+        : `${catalogSize} retail game${catalogSize === 1 ? "" : "s"} — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -109,22 +124,32 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     const remaining = MIN_GAME_SEARCH_CHARS - query.length;
     gameSearchHintEl.textContent =
       remaining === 1
-        ? "Type 1 more character to search games."
-        : `Type ${remaining} more characters to search games.`;
+        ? `Type 1 more character to search ${catalogSize} retail games.`
+        : `Type ${remaining} more characters to search ${catalogSize} retail games.`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
 
-  const count = filteredGames.length;
-  gameSearchHintEl.textContent =
-    count === 0 ? `No games matching "${query}".` : `${count} game${count === 1 ? "" : "s"} found`;
-  gameSearchHintEl.classList.toggle("field-hint--ready", count > 0);
+  if (filteredGamesTotal === 0) {
+    gameSearchHintEl.textContent = `No retail games matching "${query}".`;
+    gameSearchHintEl.classList.remove("field-hint--ready");
+    return;
+  }
+
+  if (filteredGamesTotal > filteredGames.length) {
+    gameSearchHintEl.textContent = `Showing ${filteredGames.length} of ${filteredGamesTotal} matches — refine your search`;
+  } else {
+    gameSearchHintEl.textContent = `${filteredGamesTotal} game${filteredGamesTotal === 1 ? "" : "s"} found`;
+  }
+  gameSearchHintEl.classList.add("field-hint--ready");
 }
 
 function filterGames(query) {
   const settings = getSettings();
   const q = query.trim();
-  filteredGames = searchGames(settings.selectedPlatformId, q);
+  const result = searchGames(settings.selectedPlatformId, q);
+  filteredGames = result.games;
+  filteredGamesTotal = result.total;
   gameHighlightIndex = 0;
   renderGameResults();
   updateGameSearchHint(q);
@@ -160,7 +185,7 @@ function renderGameResults() {
   gameResultsEl.innerHTML = "";
 
   const settings = getSettings();
-  const catalogSize = gamesForPlatform(settings.selectedPlatformId).length;
+  const catalogSize = gameCountForPlatform(settings.selectedPlatformId);
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -174,9 +199,9 @@ function renderGameResults() {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     if (catalogSize === 0) {
-      empty.textContent = "No games in catalog for this platform yet.";
+      empty.textContent = "No retail games in catalog for this platform yet.";
     } else {
-      empty.textContent = `No games matching "${query}".`;
+      empty.textContent = `No retail games matching "${query}".`;
     }
     gameResultsEl.appendChild(empty);
     return;
@@ -195,6 +220,13 @@ function renderGameResults() {
     });
     gameResultsEl.appendChild(btn);
   });
+
+  if (filteredGamesTotal > filteredGames.length) {
+    const more = document.createElement("p");
+    more.className = "list-more-hint";
+    more.textContent = `${filteredGamesTotal - filteredGames.length} more matches — keep typing to narrow down`;
+    gameResultsEl.appendChild(more);
+  }
 }
 
 function selectPlatform(platformId) {
@@ -223,25 +255,14 @@ function pickGameFromSearch() {
     return null;
   }
 
-  if (!query) {
-    setStatus("Type a game name, then press Enter.", true);
+  const settings = getSettings();
+  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
+  if (!game) {
+    setStatus(`No retail game matching "${query}".`, true);
     return null;
   }
 
-  const lower = query.toLowerCase();
-  const exact = filteredGames.find((g) => g.name.toLowerCase() === lower);
-  if (exact) return exact;
-
-  const startsWith = filteredGames.find((g) => g.name.toLowerCase().startsWith(lower));
-  if (startsWith) return startsWith;
-
-  const partial = filteredGames.find((g) => g.name.toLowerCase().includes(lower));
-  if (partial) return partial;
-
-  if (filteredGames[gameHighlightIndex]) return filteredGames[gameHighlightIndex];
-
-  setStatus(`No game matching "${query}".`, true);
-  return null;
+  return game;
 }
 
 async function addGameCard(game) {

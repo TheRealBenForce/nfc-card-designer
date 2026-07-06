@@ -6,9 +6,17 @@
 
 import { pathToFileURL } from "node:url";
 import { gamesPath, writeGamesByPlatformJson } from "./games-data.mjs";
+import { isRetailRelease } from "./game-filters.mjs";
 
 const { games } = await import(pathToFileURL(gamesPath).href);
-await writeGamesByPlatformJson(games);
+const retailGames = games.filter((game) => isRetailRelease(game.name));
+const excluded = games.length - retailGames.length;
 
-const platformCount = new Set(games.map((g) => g.platformId)).size;
-console.log(`Wrote ${games.length} games across ${platformCount} platforms to assets/data/games-by-platform.json`);
+await writeGamesByPlatformJson(retailGames, { retailOnly: true });
+
+const platformCount = new Set(retailGames.map((g) => g.platformId)).size;
+console.log(`Wrote ${retailGames.length} retail games across ${platformCount} platforms`);
+if (excluded > 0) {
+  console.log(`Excluded ${excluded} non-retail entries from JSON`);
+}
+console.log("Updated assets/data/games-by-platform.json");

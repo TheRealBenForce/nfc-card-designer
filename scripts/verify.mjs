@@ -66,6 +66,9 @@ async function main() {
   console.log("→ Game catalog JSON…");
   await run("node", ["scripts/test-game-catalog.mjs"]);
 
+  console.log("→ Retail filters…");
+  await run("node", ["scripts/test-game-filters.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
     cwd: root,

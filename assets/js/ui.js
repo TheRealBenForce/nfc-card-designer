@@ -71,8 +71,6 @@ let platformColorInput = null;
 /** @type {HTMLElement|null} */
 let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
-let imagePriorityListEl = null;
-/** @type {HTMLOListElement|null} */
 let platformPriorityListEl = null;
 /** @type {HTMLElement|null} */
 let previewTypeTabsEl = null;
@@ -95,12 +93,7 @@ function logStatus(message, isError = false) {
 }
 
 function getArtworkPriorityForPlatform(platformId) {
-  const settings = getSettings();
-  return getEffectiveImageTypePriority(
-    settings.platformDefaults,
-    platformId,
-    settings.imageTypePriority,
-  );
+  return getEffectiveImageTypePriority(getSettings().platformDefaults, platformId);
 }
 
 /**
@@ -458,16 +451,6 @@ async function addBrowsedGame() {
   logStatus(`Added ${game.name} to collection.`);
 }
 
-function renderImagePriorityList() {
-  if (!imagePriorityListEl) return;
-
-  mountPriorityList(imagePriorityListEl, getSettings().imageTypePriority, (next) => {
-    updateSettings({ imageTypePriority: next });
-    saveSettings(getSettings());
-    renderImagePriorityList();
-  });
-}
-
 function renderPreviewTypeTabs() {
   if (!previewTypeTabsEl) return;
 
@@ -697,8 +680,6 @@ function bindEvents() {
         platformDefaults:
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
-        imageTypePriority:
-          imported.settings.imageTypePriority ?? defaults.imageTypePriority,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
       });
       saveSettings(getSettings());
@@ -710,7 +691,6 @@ function bindEvents() {
       }
       clearBrowse();
       syncPlatformControls();
-      renderImagePriorityList();
       renderCollection();
       await refreshPreview();
       logStatus(`Imported project with ${imported.cards.length} card(s).`);
@@ -735,7 +715,6 @@ function bindEvents() {
     saveCollection(getCollection());
     clearBrowse();
     syncPlatformControls();
-    renderImagePriorityList();
     renderCollection();
     refreshPreview();
     logStatus("Project cleared.");
@@ -784,9 +763,6 @@ export async function initUI() {
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
   platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
-  imagePriorityListEl = /** @type {HTMLOListElement|null} */ (
-    document.getElementById("image-priority-list")
-  );
   platformPriorityListEl = /** @type {HTMLOListElement|null} */ (
     document.getElementById("platform-priority-list")
   );
@@ -795,7 +771,6 @@ export async function initUI() {
     document.getElementById("add-browsed-game")
   );
 
-  renderImagePriorityList();
   bindEvents();
   syncPlatformControls();
   if (gameResultsEl) gameResultsEl.hidden = true;

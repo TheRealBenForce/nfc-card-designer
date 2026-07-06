@@ -114,16 +114,15 @@ export function getImageRotation(platformDefaults, platformId, imageType) {
 }
 
 /**
- * Per-platform artwork priority overrides the global default when browsing or adding cards.
+ * Per-platform artwork priority used when browsing or adding cards.
  *
  * @param {Record<string, PlatformDefaults>} platformDefaults
  * @param {string} platformId
- * @param {string[]} [globalPriority]
  */
-export function getEffectiveImageTypePriority(platformDefaults, platformId, globalPriority) {
+export function getEffectiveImageTypePriority(platformDefaults, platformId) {
   const platformPriority = platformDefaults[platformId]?.imageTypePriority;
   if (platformPriority?.length) {
     return normalizeImageTypePriority(platformPriority);
   }
-  return normalizeImageTypePriority(globalPriority ?? DEFAULT_IMAGE_TYPE_PRIORITY);
+  return normalizeImageTypePriority(DEFAULT_IMAGE_TYPE_PRIORITY);
 }

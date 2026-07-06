@@ -15,16 +15,20 @@ if (defaults.nes.imageRotation.boxArt !== 0) {
   throw new Error("Default boxArt rotation should be 0");
 }
 if (defaults.nes.imageTypePriority.join(",") !== "boxArt,titleScreen,gamePicture") {
-  throw new Error("Default platform imageTypePriority should match global default order");
+  throw new Error("Default platform imageTypePriority should match built-in default order");
 }
 
 const effective = getEffectiveImageTypePriority(
   { nes: { imageTypePriority: ["gamePicture", "boxArt", "titleScreen"] } },
   "nes",
-  ["boxArt", "titleScreen", "gamePicture"],
 );
 if (effective[0] !== "gamePicture") {
-  throw new Error("Platform priority should override global priority");
+  throw new Error("Platform priority should be used when set");
+}
+
+const fallback = getEffectiveImageTypePriority({}, "nes");
+if (fallback.join(",") !== "boxArt,titleScreen,gamePicture") {
+  throw new Error("Missing platform priority should fall back to default order");
 }
 
 const migrated = normalizePlatformDefaults(undefined, { nes: "#b4000c" });
@@ -65,5 +69,5 @@ if (invalidRotation.nes.imageRotation.boxArt !== 0) {
 }
 
 console.log("✓ Platform defaults normalization works");
-console.log("✓ Platform image priority overrides global settings");
+console.log("✓ Platform image priority resolution works");
 console.log("✓ Legacy platformColors migration works");

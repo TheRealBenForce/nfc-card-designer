@@ -2,9 +2,7 @@ import {
   STORAGE_KEY,
   COLLECTION_STORAGE_KEY,
   DECK_STORAGE_KEY,
-  DEFAULT_IMAGE_TYPE_PRIORITY,
 } from "./config.js";
-import { normalizeImageTypePriority } from "./imageSettings.js";
 import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
@@ -15,7 +13,6 @@ import { platforms } from "./data/platforms.js";
 export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
-    imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     selectedPlatformId: platforms[0].id,
   };
 }
@@ -38,7 +35,6 @@ function serializeCard(card) {
 export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
-    imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
@@ -51,15 +47,9 @@ export function loadSettings() {
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
-    const imageTypePriority = parsed.imageTypePriority
-      ? normalizeImageTypePriority(parsed.imageTypePriority)
-      : parsed.imageType
-        ? normalizeImageTypePriority([parsed.imageType, ...defaults.imageTypePriority])
-        : defaults.imageTypePriority;
 
     return {
       platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
-      imageTypePriority,
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
     };
   } catch {
@@ -109,7 +99,6 @@ export function buildProjectData(settings, collection) {
   return {
     version: 3,
     platformDefaults: settings.platformDefaults,
-    imageTypePriority: settings.imageTypePriority,
     selectedPlatformId: settings.selectedPlatformId,
     cards: collection.map(serializeCard),
   };
@@ -160,14 +149,6 @@ export function importProjectFile() {
         resolve({
           settings: {
             platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
-            imageTypePriority: parsed.imageTypePriority
-              ? normalizeImageTypePriority(parsed.imageTypePriority)
-              : parsed.imageType
-                ? normalizeImageTypePriority([
-                    parsed.imageType,
-                    ...defaultSettings().imageTypePriority,
-                  ])
-                : undefined,
             selectedPlatformId: parsed.selectedPlatformId,
           },
           cards,

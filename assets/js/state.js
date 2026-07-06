@@ -18,7 +18,6 @@ import { normalizeImageTypePriority } from "./imageSettings.js";
 /**
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
- * @property {string[]} imageTypePriority
  * @property {string} selectedPlatformId
  */
 

@@ -214,7 +214,8 @@ function renderPlatformResults() {
     btn.type = "button";
     btn.className = "list-item";
     if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
-    btn.innerHTML = `<span class="list-item__emoji">${platform.emoji}</span><span>${platform.name}</span>`;
+
+    btn.textContent = platform.name;
     btn.addEventListener("click", () => selectPlatform(platform.id));
     platformResultsEl.appendChild(btn);
   });
@@ -514,7 +515,7 @@ function renderCollection() {
     platformDetails.open = true;
 
     const platformSummary = document.createElement("summary");
-    platformSummary.textContent = `${platform.emoji} ${platform.name}`;
+    platformSummary.textContent = platform.name;
     platformDetails.appendChild(platformSummary);
 
     for (const game of games) {

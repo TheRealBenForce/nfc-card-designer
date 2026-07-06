@@ -35,14 +35,14 @@ async function main() {
     }
     console.log("✓ Shows all 12 platforms to browse");
 
-    await page.getByRole("button", { name: "🎮 NES" }).click();
+    await page.getByRole("button", { name: "NES", exact: true }).click();
     const nesSelected = await page.locator("#platform-results .list-item--selected").textContent();
     if (!nesSelected?.includes("NES") || nesSelected.includes("SNES")) {
       throw new Error(`NES should be selected after click, got: ${nesSelected}`);
     }
     console.log("✓ Clicking a platform selects it");
 
-    await page.getByRole("button", { name: "64 Nintendo 64" }).click();
+    await page.getByRole("button", { name: "Nintendo 64" }).click();
     const n64Selected = await page.locator("#platform-results .list-item--selected").textContent();
     if (!n64Selected?.includes("Nintendo 64")) {
       throw new Error(`N64 should be selected after click, got: ${n64Selected}`);

@@ -111,6 +111,11 @@ async function main() {
     await run("node", ["scripts/test-game-search.mjs"], {
       env: { ...process.env, TEST_BASE_URL: BASE },
     });
+
+    console.log("→ Supplies page smoke test…");
+    await run("node", ["scripts/test-supplies-page.mjs"], {
+      env: { ...process.env, TEST_BASE_URL: BASE },
+    });
   } finally {
     stopServer(server);
   }

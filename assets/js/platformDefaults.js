@@ -1,4 +1,5 @@
 import { DEFAULT_IMAGE_TYPE_PRIORITY } from "./config.js";
+import { normalizeImageTypePriority } from "./imageSettings.js";
 import { platformById, platforms } from "./data/platforms.js";
 
 export const DEFAULT_PLATFORM_COLOR = "#000000";
@@ -9,6 +10,7 @@ export const ROTATION_OPTIONS = [0, 90, 180, 270];
 /**
  * @typedef {Object} PlatformDefaults
  * @property {string} color
+ * @property {string[]} imageTypePriority
  * @property {Record<string, number>} imageRotation
  */
 
@@ -24,6 +26,7 @@ export function defaultImageRotation() {
 export function createPlatformDefaultEntry(color = DEFAULT_PLATFORM_COLOR) {
   return {
     color,
+    imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     imageRotation: defaultImageRotation(),
   };
 }
@@ -59,6 +62,10 @@ export function normalizePlatformDefaults(parsed, legacyColors) {
 
       const normalized = { ...defaults[platformId] };
       if (typeof entry.color === "string") normalized.color = entry.color;
+
+      if (entry.imageTypePriority) {
+        normalized.imageTypePriority = normalizeImageTypePriority(entry.imageTypePriority);
+      }
 
       if (entry.imageRotation && typeof entry.imageRotation === "object") {
         const imageRotation = { ...normalized.imageRotation };
@@ -104,4 +111,19 @@ export function getPlatformColor(platformDefaults, platformId) {
  */
 export function getImageRotation(platformDefaults, platformId, imageType) {
   return normalizeRotationDegrees(platformDefaults[platformId]?.imageRotation?.[imageType]);
+}
+
+/**
+ * Per-platform artwork priority overrides the global default when browsing or adding cards.
+ *
+ * @param {Record<string, PlatformDefaults>} platformDefaults
+ * @param {string} platformId
+ * @param {string[]} [globalPriority]
+ */
+export function getEffectiveImageTypePriority(platformDefaults, platformId, globalPriority) {
+  const platformPriority = platformDefaults[platformId]?.imageTypePriority;
+  if (platformPriority?.length) {
+    return normalizeImageTypePriority(platformPriority);
+  }
+  return normalizeImageTypePriority(globalPriority ?? DEFAULT_IMAGE_TYPE_PRIORITY);
 }

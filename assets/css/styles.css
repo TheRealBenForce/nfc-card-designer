@@ -234,6 +234,10 @@ body {
 .rotation-fields {
   display: grid;
   gap: 0.65rem;
+  margin-top: 0;
+}
+
+.platform-artwork-heading {
   margin-top: 0.75rem;
 }
 

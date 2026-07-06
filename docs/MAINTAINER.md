@@ -72,11 +72,11 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 - **localStorage keys:** `nfc-card-designer-settings`, `nfc-card-designer-collection`
 - **Export file:** `nfc-card-designer.json` (project version `3`)
 - **Global settings:** `imageTypePriority` (default: boxArt → titleScreen → gamePicture), `selectedPlatformId`
-- **Per-platform defaults** (`platformDefaults`): `color` (from `platforms.js` palette), `imageRotation` per image type (`boxArt`, `titleScreen`, `gamePicture`; default `0°`)
+- **Per-platform defaults** (`platformDefaults`): `color` (from `platforms.js` palette), `imageTypePriority` (overrides global when browsing/adding), `imageRotation` per image type (default `0°`)
 - **Per-card:** `platformId`, `gameName`, `raGameId`, `imageType` (chosen in preview before add)
 - **Import migration:** v2 `platformColors` maps into `platformDefaults.color`
 
-**Planned:** per-platform `imageTypePriority` overrides (not implemented yet).
+Preview still lets users switch artwork types; the platform priority picks which type is selected first.
 
 ## Retail-only catalog filter
 

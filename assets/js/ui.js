@@ -11,7 +11,7 @@ import {
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
-import { ROTATION_OPTIONS } from "./platformDefaults.js";
+import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
 import {
@@ -24,6 +24,7 @@ import {
   updateSettings,
   setPlatformColor,
   setPlatformImageRotation,
+  setPlatformImageTypePriority,
   addCard,
   updateCard,
   removeCards,
@@ -71,6 +72,8 @@ let platformColorInput = null;
 let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
 let imagePriorityListEl = null;
+/** @type {HTMLOListElement|null} */
+let platformPriorityListEl = null;
 /** @type {HTMLElement|null} */
 let previewTypeTabsEl = null;
 /** @type {HTMLButtonElement|null} */
@@ -89,6 +92,65 @@ let filteredGamesTotal = 0;
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
+}
+
+function getArtworkPriorityForPlatform(platformId) {
+  const settings = getSettings();
+  return getEffectiveImageTypePriority(
+    settings.platformDefaults,
+    platformId,
+    settings.imageTypePriority,
+  );
+}
+
+/**
+ * @param {HTMLOListElement} listEl
+ * @param {string[]} priority
+ * @param {(next: string[]) => void} onChange
+ */
+function mountPriorityList(listEl, priority, onChange) {
+  listEl.innerHTML = "";
+
+  priority.forEach((type, index) => {
+    const item = document.createElement("li");
+    item.className = "priority-item";
+
+    const rank = document.createElement("span");
+    rank.className = "priority-item__rank";
+    rank.textContent = String(index + 1);
+
+    const label = document.createElement("span");
+    label.className = "priority-item__label";
+    label.textContent = IMAGE_TYPES[type]?.label ?? type;
+
+    const actions = document.createElement("div");
+    actions.className = "priority-item__actions";
+
+    const upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.className = "priority-item__btn";
+    upBtn.textContent = "▲";
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener("click", () => {
+      onChange(movePriorityItem(priority, index, -1));
+    });
+
+    const downBtn = document.createElement("button");
+    downBtn.type = "button";
+    downBtn.className = "priority-item__btn";
+    downBtn.textContent = "▼";
+    downBtn.disabled = index === priority.length - 1;
+    downBtn.addEventListener("click", () => {
+      onChange(movePriorityItem(priority, index, 1));
+    });
+
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
+    item.appendChild(rank);
+    item.appendChild(label);
+    item.appendChild(actions);
+    listEl.appendChild(item);
+  });
 }
 
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
@@ -231,8 +293,25 @@ function syncPlatformControls() {
   }
 
   renderPlatformResults();
+  renderPlatformImagePriorityList();
   renderPlatformRotationFields();
   filterGames(gameSearchInput?.value ?? "");
+}
+
+function renderPlatformImagePriorityList() {
+  if (!platformPriorityListEl) return;
+
+  const settings = getSettings();
+  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  if (!platformDefaults) return;
+
+  mountPriorityList(platformPriorityListEl, platformDefaults.imageTypePriority, (next) => {
+    setPlatformImageTypePriority(settings.selectedPlatformId, next);
+    saveSettings(getSettings());
+    renderPlatformImagePriorityList();
+    renderPlatformRotationFields();
+    applyPlatformPriorityToBrowse();
+  });
 }
 
 function renderPlatformRotationFields() {
@@ -242,7 +321,12 @@ function renderPlatformRotationFields() {
   const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
   platformRotationFieldsEl.innerHTML = "";
 
-  for (const [type, meta] of Object.entries(IMAGE_TYPES)) {
+  if (!platformDefaults) return;
+
+  for (const type of platformDefaults.imageTypePriority) {
+    const meta = IMAGE_TYPES[type];
+    if (!meta) continue;
+
     const field = document.createElement("label");
     field.className = "rotation-field";
 
@@ -261,7 +345,7 @@ function renderPlatformRotationFields() {
       select.appendChild(option);
     }
 
-    select.value = String(platformDefaults?.imageRotation?.[type] ?? 0);
+    select.value = String(platformDefaults.imageRotation?.[type] ?? 0);
     select.addEventListener("change", (e) => {
       const target = /** @type {HTMLSelectElement} */ (e.target);
       const imageType = target.dataset.imageType;
@@ -279,6 +363,29 @@ function renderPlatformRotationFields() {
     field.appendChild(select);
     platformRotationFieldsEl.appendChild(field);
   }
+}
+
+async function applyPlatformPriorityToBrowse() {
+  if (!browseState) return;
+
+  const settings = getSettings();
+  if (browseState.game.platformId !== settings.selectedPlatformId) return;
+
+  const priority = getArtworkPriorityForPlatform(browseState.game.platformId);
+  const availableTypes = await getAvailableImageTypes(browseState.game, priority);
+  if (availableTypes.length === 0) {
+    clearBrowse();
+    await refreshPreview();
+    return;
+  }
+
+  const imageType = availableTypes.includes(browseState.imageType)
+    ? browseState.imageType
+    : availableTypes[0];
+
+  browseState = { ...browseState, availableTypes, imageType };
+  renderPreviewTypeTabs();
+  await refreshPreview();
 }
 
 function pickGameFromSearch() {
@@ -299,7 +406,7 @@ function pickGameFromSearch() {
 }
 
 async function browseGameFromSearch(game) {
-  const priority = getSettings().imageTypePriority;
+  const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
   const availableTypes = await getAvailableImageTypes(game, priority);
@@ -354,56 +461,10 @@ async function addBrowsedGame() {
 function renderImagePriorityList() {
   if (!imagePriorityListEl) return;
 
-  const priority = getSettings().imageTypePriority;
-  imagePriorityListEl.innerHTML = "";
-
-  priority.forEach((type, index) => {
-    const item = document.createElement("li");
-    item.className = "priority-item";
-
-    const rank = document.createElement("span");
-    rank.className = "priority-item__rank";
-    rank.textContent = String(index + 1);
-
-    const label = document.createElement("span");
-    label.className = "priority-item__label";
-    label.textContent = IMAGE_TYPES[type]?.label ?? type;
-
-    const actions = document.createElement("div");
-    actions.className = "priority-item__actions";
-
-    const upBtn = document.createElement("button");
-    upBtn.type = "button";
-    upBtn.className = "priority-item__btn";
-    upBtn.textContent = "▲";
-    upBtn.disabled = index === 0;
-    upBtn.addEventListener("click", () => {
-      updateSettings({
-        imageTypePriority: movePriorityItem(getSettings().imageTypePriority, index, -1),
-      });
-      saveSettings(getSettings());
-      renderImagePriorityList();
-    });
-
-    const downBtn = document.createElement("button");
-    downBtn.type = "button";
-    downBtn.className = "priority-item__btn";
-    downBtn.textContent = "▼";
-    downBtn.disabled = index === priority.length - 1;
-    downBtn.addEventListener("click", () => {
-      updateSettings({
-        imageTypePriority: movePriorityItem(getSettings().imageTypePriority, index, 1),
-      });
-      saveSettings(getSettings());
-      renderImagePriorityList();
-    });
-
-    actions.appendChild(upBtn);
-    actions.appendChild(downBtn);
-    item.appendChild(rank);
-    item.appendChild(label);
-    item.appendChild(actions);
-    imagePriorityListEl.appendChild(item);
+  mountPriorityList(imagePriorityListEl, getSettings().imageTypePriority, (next) => {
+    updateSettings({ imageTypePriority: next });
+    saveSettings(getSettings());
+    renderImagePriorityList();
   });
 }
 
@@ -650,7 +711,6 @@ function bindEvents() {
       clearBrowse();
       syncPlatformControls();
       renderImagePriorityList();
-      renderPlatformRotationFields();
       renderCollection();
       await refreshPreview();
       logStatus(`Imported project with ${imported.cards.length} card(s).`);
@@ -726,6 +786,9 @@ export async function initUI() {
   platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
   imagePriorityListEl = /** @type {HTMLOListElement|null} */ (
     document.getElementById("image-priority-list")
+  );
+  platformPriorityListEl = /** @type {HTMLOListElement|null} */ (
+    document.getElementById("platform-priority-list")
   );
   previewTypeTabsEl = document.getElementById("preview-type-tabs");
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (

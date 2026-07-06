@@ -1,4 +1,5 @@
 import { loadSettings, loadCollection } from "./storage.js";
+import { normalizeImageTypePriority } from "./imageSettings.js";
 
 /**
  * @typedef {Object} Card
@@ -97,6 +98,27 @@ export function setPlatformColor(platformId, color) {
     platformDefaults: {
       ...settings.platformDefaults,
       [platformId]: { ...current, color },
+    },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ * @param {string[]} priority
+ */
+export function setPlatformImageTypePriority(platformId, priority) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
+  settings = {
+    ...settings,
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: {
+        ...current,
+        imageTypePriority: normalizeImageTypePriority(priority),
+      },
     },
   };
   emit("settings");

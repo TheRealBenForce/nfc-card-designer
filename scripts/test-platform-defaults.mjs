@@ -3,6 +3,7 @@
 import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
+  getEffectiveImageTypePriority,
 } from "../assets/js/platformDefaults.js";
 import { platformById } from "../assets/js/data/platforms.js";
 
@@ -12,6 +13,18 @@ if (defaults.nes.color !== platformById.nes.defaultColor) {
 }
 if (defaults.nes.imageRotation.boxArt !== 0) {
   throw new Error("Default boxArt rotation should be 0");
+}
+if (defaults.nes.imageTypePriority.join(",") !== "boxArt,titleScreen,gamePicture") {
+  throw new Error("Default platform imageTypePriority should match global default order");
+}
+
+const effective = getEffectiveImageTypePriority(
+  { nes: { imageTypePriority: ["gamePicture", "boxArt", "titleScreen"] } },
+  "nes",
+  ["boxArt", "titleScreen", "gamePicture"],
+);
+if (effective[0] !== "gamePicture") {
+  throw new Error("Platform priority should override global priority");
 }
 
 const migrated = normalizePlatformDefaults(undefined, { nes: "#b4000c" });
@@ -52,4 +65,5 @@ if (invalidRotation.nes.imageRotation.boxArt !== 0) {
 }
 
 console.log("✓ Platform defaults normalization works");
+console.log("✓ Platform image priority overrides global settings");
 console.log("✓ Legacy platformColors migration works");

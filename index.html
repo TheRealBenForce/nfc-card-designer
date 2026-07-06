@@ -19,7 +19,7 @@
           <div class="collapsible__body">
             <p class="field__label">Artwork priority</p>
             <ol id="image-priority-list" class="priority-list" aria-label="Artwork type priority"></ol>
-            <p class="field-hint">Games need at least one artwork file to appear in search. Browse types in preview before adding.</p>
+            <p class="field-hint">Default artwork priority for all platforms. Each platform can override this in Platform Settings.</p>
           </div>
         </details>
 
@@ -31,6 +31,10 @@
               <span class="field__label">Platform color</span>
               <input id="platform-color" class="input input--color" type="color" />
             </label>
+            <p class="field__label">Artwork priority</p>
+            <ol id="platform-priority-list" class="priority-list" aria-label="Platform artwork type priority"></ol>
+            <p class="field-hint">Overrides Global Settings for the selected platform. Preview defaults to the top priority.</p>
+            <p class="field__label platform-artwork-heading">Artwork rotation</p>
             <div id="platform-rotation-fields" class="rotation-fields" aria-label="Artwork rotation defaults"></div>
           </div>
         </details>

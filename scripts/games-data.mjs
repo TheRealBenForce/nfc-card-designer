@@ -29,6 +29,7 @@ const GAMES_HEADER = `/**
  * @property {string} platformId
  * @property {string} name
  * @property {number} raGameId
+ * @property {string} [libretroName] - Resolved libretro thumbnail basename (no .png)
  * @property {GameImages} images
  */
 

@@ -62,7 +62,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 
 ## Adding a platform
 
-1. Add entry to `assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `raConsoleId`, optional `searchAliases`).
+1. Add entry to `assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `raConsoleId`, `libretroPlaylist`, optional `searchAliases`).
 2. `npm run fetch-game-list -- --platform=<id>`
 3. `npm run fetch-images -- --platform=<id>`
 4. Commit `games.js`, `games-by-platform.json`, `image-availability.json`, and downloaded images.
@@ -77,6 +77,20 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 - **Import migration:** v2 `platformColors` maps into `platformDefaults.color`
 
 Preview still lets users switch artwork types; the platform priority picks which type is selected first.
+
+## Artwork source
+
+Game catalogs still come from the RetroAchievements API (`fetch-game-list`). Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images`.
+
+Each platform maps to a libretro playlist folder via `libretroPlaylist` in `platforms.js`. `fetch-images` resolves thumbnail filenames by probing common region suffixes, then falls back to directory listing prefix matching. The resolved basename is stored as `libretroName` on each game in `games.js`.
+
+Image types map to libretro folders:
+
+| App type | Libretro folder |
+|----------|-----------------|
+| `boxArt` | `Named_Boxarts` |
+| `titleScreen` | `Named_Titles` |
+| `gamePicture` | `Named_Snaps` |
 
 ## Retail-only catalog filter
 
@@ -110,6 +124,6 @@ Commit to `main`:
 | `npm start` | `scan-images` then static server :8000 |
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
-| `npm run fetch-images` | Download PNGs + update `games.js` + `image-availability.json` |
+| `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
 | `npm run scan-images` | Rescan disk → `image-availability.json` only |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

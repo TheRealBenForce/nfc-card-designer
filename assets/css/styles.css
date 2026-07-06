@@ -33,14 +33,27 @@ body {
   background: var(--surface);
 }
 
-.header h1 {
+.header h1,
+.header__title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
 }
 
 .header__nav {
-  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.header__brand {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.header__brand:hover {
+  color: var(--accent);
 }
 
 .header__link {
@@ -48,7 +61,7 @@ body {
   align-items: center;
   gap: 0.25rem;
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -56,6 +69,11 @@ body {
 .header__link:hover {
   color: var(--accent-hover);
   text-decoration: underline;
+}
+
+.header__link--current {
+  color: var(--text-muted);
+  cursor: default;
 }
 
 .header__subtitle {

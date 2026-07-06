@@ -41,11 +41,11 @@ async function main() {
     }
     console.log(`✓ ${amazonCount} Amazon search links present`);
 
-    await page.locator(".header__link", { hasText: "Back to Designer" }).click();
+    await page.locator(".header__brand").click();
     await page.waitForURL((url) => url.pathname.endsWith("/") || url.pathname.endsWith("/index.html"), {
       timeout: 5000,
     });
-    console.log("✓ Navigation back to designer works");
+    console.log("✓ NFC Card Designer link navigates home");
 
     await page.locator(".header__link", { hasText: "Supplies" }).click();
     await page.waitForURL(/\/supplies\/?$/, { timeout: 5000 });

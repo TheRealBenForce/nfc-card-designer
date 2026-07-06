@@ -1,0 +1,24 @@
+{
+  "name": "nfc-card-designer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prestart": "npm run scan-images",
+    "start": "npx --yes serve -l 8000",
+    "test-ra-auth": "node scripts/test-ra-auth.mjs",
+    "fetch-game-list": "node scripts/fetch-game-list.mjs",
+    "export-games-json": "node scripts/export-games-json.mjs",
+    "scan-images": "node scripts/export-image-availability.mjs",
+    "fetch-images": "node scripts/fetch-images.mjs",
+    "test:platform-search": "node scripts/test-platform-search.mjs",
+    "test:card-render": "node scripts/test-card-render.mjs",
+    "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
+    "test:collection-tree": "node scripts/test-collection-tree.mjs",
+    "test:image-lookup": "node scripts/test-image-lookup.mjs",
+    "test:game-catalog": "node scripts/test-game-catalog.mjs",
+    "test:game-filters": "node scripts/test-game-filters.mjs",
+    "test:image-settings": "node scripts/test-image-settings.mjs",
+    "test:game-search": "node scripts/test-game-search.mjs",
+    "verify": "node scripts/verify.mjs"
+  }
+}

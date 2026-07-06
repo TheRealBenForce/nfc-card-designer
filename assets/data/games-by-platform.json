@@ -1,0 +1,239 @@
+{
+  "version": 2,
+  "retailOnly": true,
+  "generatedAt": "2026-07-06T16:08:08.220Z",
+  "platforms": {
+    "atari-2600": [
+      {
+        "name": "Adventure",
+        "raGameId": 14407
+      },
+      {
+        "name": "Asteroids",
+        "raGameId": 14405
+      },
+      {
+        "name": "Pac-Man",
+        "raGameId": 14403
+      },
+      {
+        "name": "Pitfall!",
+        "raGameId": 14404
+      },
+      {
+        "name": "Space Invaders",
+        "raGameId": 14406
+      }
+    ],
+    "nes": [
+      {
+        "name": "Castlevania",
+        "raGameId": 1461
+      },
+      {
+        "name": "Contra",
+        "raGameId": 1464
+      },
+      {
+        "name": "Kirby's Adventure",
+        "raGameId": 1512
+      },
+      {
+        "name": "Mega Man 2",
+        "raGameId": 1448
+      },
+      {
+        "name": "Metroid",
+        "raGameId": 1468
+      },
+      {
+        "name": "Super Mario Bros.",
+        "raGameId": 2286
+      },
+      {
+        "name": "The Legend of Zelda",
+        "raGameId": 1462
+      }
+    ],
+    "master-system": [
+      {
+        "name": "Alex Kidd in Miracle World",
+        "raGameId": 1020
+      },
+      {
+        "name": "Phantasy Star",
+        "raGameId": 1030
+      },
+      {
+        "name": "Wonder Boy",
+        "raGameId": 1044
+      }
+    ],
+    "game-boy": [
+      {
+        "name": "Pokémon Red",
+        "raGameId": 487
+      },
+      {
+        "name": "Super Mario Land",
+        "raGameId": 492
+      },
+      {
+        "name": "Tetris",
+        "raGameId": 486
+      },
+      {
+        "name": "The Legend of Zelda: Link's Awakening",
+        "raGameId": 494
+      }
+    ],
+    "game-boy-color": [
+      {
+        "name": "Pokémon Crystal",
+        "raGameId": 469
+      },
+      {
+        "name": "The Legend of Zelda: Oracle of Ages",
+        "raGameId": 472
+      },
+      {
+        "name": "Wario Land 3",
+        "raGameId": 476
+      }
+    ],
+    "snes": [
+      {
+        "name": "Chrono Trigger",
+        "raGameId": 614
+      },
+      {
+        "name": "Donkey Kong Country",
+        "raGameId": 608
+      },
+      {
+        "name": "Final Fantasy VI",
+        "raGameId": 610
+      },
+      {
+        "name": "Super Mario World",
+        "raGameId": 594
+      },
+      {
+        "name": "Super Metroid",
+        "raGameId": 597
+      },
+      {
+        "name": "The Legend of Zelda: A Link to the Past",
+        "raGameId": 596
+      }
+    ],
+    "genesis": [
+      {
+        "name": "Gunstar Heroes",
+        "raGameId": 7
+      },
+      {
+        "name": "Phantasy Star IV",
+        "raGameId": 16
+      },
+      {
+        "name": "Sonic the Hedgehog",
+        "raGameId": 1
+      },
+      {
+        "name": "Streets of Rage 2",
+        "raGameId": 3
+      }
+    ],
+    "saturn": [
+      {
+        "name": "Nights into Dreams",
+        "raGameId": 10351
+      },
+      {
+        "name": "Panzer Dragoon Saga",
+        "raGameId": 10352
+      },
+      {
+        "name": "Radiant Silvergun",
+        "raGameId": 10353
+      }
+    ],
+    "n64": [
+      {
+        "name": "Banjo-Kazooie",
+        "raGameId": 1156
+      },
+      {
+        "name": "GoldenEye 007",
+        "raGameId": 1158
+      },
+      {
+        "name": "Super Mario 64",
+        "raGameId": 1159
+      },
+      {
+        "name": "The Legend of Zelda: Ocarina of Time",
+        "raGameId": 1157
+      }
+    ],
+    "neo-geo": [
+      {
+        "name": "Metal Slug",
+        "raGameId": 1486
+      },
+      {
+        "name": "Samurai Shodown II",
+        "raGameId": 1488
+      },
+      {
+        "name": "The King of Fighters '98",
+        "raGameId": 1487
+      }
+    ],
+    "playstation": [
+      {
+        "name": "Castlevania: Symphony of the Night",
+        "raGameId": 11281
+      },
+      {
+        "name": "Final Fantasy VII",
+        "raGameId": 11279
+      },
+      {
+        "name": "Metal Gear Solid",
+        "raGameId": 11280
+      },
+      {
+        "name": "Resident Evil 2",
+        "raGameId": 11283
+      },
+      {
+        "name": "Tekken 3",
+        "raGameId": 11282
+      }
+    ],
+    "arcade": [
+      {
+        "name": "Donkey Kong",
+        "raGameId": 13337
+      },
+      {
+        "name": "Galaga",
+        "raGameId": 13338
+      },
+      {
+        "name": "Mortal Kombat II",
+        "raGameId": 13339
+      },
+      {
+        "name": "Pac-Man",
+        "raGameId": 13336
+      },
+      {
+        "name": "Street Fighter II",
+        "raGameId": 13335
+      }
+    ]
+  }
+}

@@ -3,15 +3,88 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>NFC Card Designer</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
-    <main class="container">
-      <h1 id="greeting">Hello, World!</h1>
-      <p class="subtitle">A simple vanilla JavaScript app for GitHub Pages.</p>
-      <button id="change-greeting" type="button">Say hello again</button>
-    </main>
-    <script src="app.js"></script>
+    <header class="header">
+      <h1>NFC Card Designer</h1>
+      <p class="header__subtitle">52 × 84 mm Zaparoo labels · Letter sticker sheets</p>
+    </header>
+
+    <div class="app">
+      <aside class="panel panel--controls">
+        <details class="collapsible">
+          <summary class="collapsible__summary">Global Settings</summary>
+          <div class="collapsible__body"></div>
+        </details>
+
+        <details class="collapsible">
+          <summary class="collapsible__summary">Platform Settings</summary>
+          <div class="collapsible__body">
+            <div id="platform-results" class="list list--platforms" role="listbox" aria-label="Platforms"></div>
+            <label class="field">
+              <span class="field__label">Platform color</span>
+              <input id="platform-color" class="input input--color" type="color" />
+            </label>
+            <p class="field__label">Artwork priority</p>
+            <ol id="platform-priority-list" class="priority-list" aria-label="Platform artwork type priority"></ol>
+            <p class="field-hint">Preview defaults to the top artwork type in this list.</p>
+            <p class="field__label platform-artwork-heading">Artwork rotation</p>
+            <div id="platform-rotation-fields" class="rotation-fields" aria-label="Artwork rotation defaults"></div>
+          </div>
+        </details>
+
+        <section class="section">
+          <h2 class="section__title">Game</h2>
+          <input
+            id="game-search"
+            class="input"
+            type="search"
+            placeholder="Search games… (3+ letters)"
+            autocomplete="off"
+            aria-autocomplete="list"
+            aria-controls="game-results"
+          />
+          <p id="game-search-hint" class="field-hint">Select a platform to search retail releases.</p>
+          <div id="game-results" class="list list--games" role="listbox" aria-label="Games" hidden></div>
+        </section>
+
+        <section class="section section--actions">
+          <div class="button-row">
+            <button id="export-project" type="button" class="btn btn--secondary">Export</button>
+            <button id="import-project" type="button" class="btn btn--secondary">Import</button>
+            <button id="clear-project" type="button" class="btn btn--secondary">Clear</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="panel panel--preview">
+        <h2 class="section__title">Preview</h2>
+        <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
+        <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
+        <div class="preview-frame">
+          <img id="preview-image" class="preview-image" alt="" />
+        </div>
+        <p class="preview-dimensions">52 mm × 84 mm</p>
+        <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
+          Add to collection
+        </button>
+      </section>
+
+      <aside class="panel panel--collection">
+        <div class="collection-header">
+          <h2 class="section__title">Collection</h2>
+          <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
+        </div>
+        <div class="collection-actions">
+          <button id="print-selected" type="button" class="btn btn--primary" disabled>Print PDF</button>
+          <button id="delete-selected" type="button" class="btn btn--danger" disabled>Delete Selected</button>
+        </div>
+        <div id="collection-list" class="collection-list"></div>
+      </aside>
+    </div>
+
+    <script type="module" src="assets/js/main.js"></script>
   </body>
 </html>

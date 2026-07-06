@@ -1,0 +1,290 @@
+{
+  "version": 2,
+  "generatedAt": "2026-07-06T18:33:06.504Z",
+  "platforms": {
+    "atari-2600": {
+      "14403": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14404": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14405": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14406": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14407": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "nes": {
+      "1448": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1461": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1462": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1464": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1468": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1512": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "2286": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "master-system": {
+      "1020": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1030": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1044": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "game-boy": {
+      "486": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "487": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "492": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "494": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "game-boy-color": {
+      "469": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "472": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "476": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "snes": {
+      "594": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "596": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "597": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "608": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "610": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "614": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "genesis": {
+      "1": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "3": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "7": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "saturn": {
+      "10351": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "10352": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "10353": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "n64": {
+      "1156": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1157": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1158": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1159": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "neo-geo": {
+      "1486": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1487": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "1488": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "playstation": {
+      "11279": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11280": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11281": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11282": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11283": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
+    "arcade": {
+      "13335": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13336": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13337": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13338": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13339": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    }
+  }
+}

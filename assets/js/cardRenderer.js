@@ -2,6 +2,7 @@ import { CARD_RENDER_WIDTH_PX, CARD_RENDER_HEIGHT_PX, PLACEHOLDER_SVG } from "./
 import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage } from "./imageProvider.js";
+import { getPlatformIconPath } from "./platformIcons.js";
 import {
   DEFAULT_PLATFORM_COLOR,
   getImageRotation,
@@ -47,18 +48,51 @@ function drawContainImageTopAligned(ctx, img, x, y, w, h, rotationDeg = 0) {
 
 /**
  * @param {CanvasRenderingContext2D} ctx
- * @param {string} emoji
+ * @param {HTMLImageElement} img
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {number} [padding]
+ */
+function drawContainImageCentered(ctx, img, rect, padding = 0) {
+  const { x, y, w, h } = rect;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  const innerW = Math.max(0, w - padding * 2);
+  const innerH = Math.max(0, h - padding * 2);
+  const scale = Math.min(innerW / img.width, innerH / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const drawX = x + (w - drawW) / 2;
+  const drawY = y + (h - drawH) / 2;
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  ctx.restore();
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {HTMLImageElement} icon
  * @param {import('./cardLayout.js').Rect} rect
  */
-function drawEmojiLogo(ctx, emoji, rect) {
-  const { x, y, w, h } = rect;
+function drawPlatformLogo(ctx, icon, rect) {
   ctx.fillStyle = "#1a1a2e";
-  ctx.fillRect(x, y, w, h);
-  const fontSize = Math.min(w, h) * 0.55;
-  ctx.font = `${fontSize}px system-ui, sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(emoji, x + w / 2, y + h / 2);
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  const padding = Math.round(Math.min(rect.w, rect.h) * 0.12);
+  drawContainImageCentered(ctx, icon, rect, padding);
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {HTMLImageElement} icon
+ * @param {string} color
+ * @param {import('./cardLayout.js').Rect} rect
+ */
+function drawPlatformColorMark(ctx, icon, color, rect) {
+  ctx.fillStyle = color;
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  const padding = Math.round(Math.min(rect.w, rect.h) * 0.18);
+  drawContainImageCentered(ctx, icon, rect, padding);
 }
 
 /**
@@ -90,10 +124,9 @@ export async function renderCard(card, platformDefaults) {
     drawContainImageTopAligned(ctx, img, art.x, art.y, art.w, art.h, rotation);
   }
 
-  drawEmojiLogo(ctx, platform?.emoji ?? "🎮", logo);
-
-  ctx.fillStyle = color;
-  ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
+  const icon = await loadImage(getPlatformIconPath(card.platformId));
+  drawPlatformLogo(ctx, icon, logo);
+  drawPlatformColorMark(ctx, icon, color, colorRect);
 
   return canvas;
 }

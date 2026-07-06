@@ -45,6 +45,7 @@ import {
 import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
+import { createPlatformIconImg } from "./platformIcons.js";
 
 /** @type {HTMLElement|null} */
 let platformResultsEl = null;
@@ -214,7 +215,13 @@ function renderPlatformResults() {
     btn.type = "button";
     btn.className = "list-item";
     if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
-    btn.innerHTML = `<span class="list-item__emoji">${platform.emoji}</span><span>${platform.name}</span>`;
+
+    const icon = createPlatformIconImg(platform.id, "list-item__icon");
+    const label = document.createElement("span");
+    label.textContent = platform.name;
+
+    btn.appendChild(icon);
+    btn.appendChild(label);
     btn.addEventListener("click", () => selectPlatform(platform.id));
     platformResultsEl.appendChild(btn);
   });
@@ -514,7 +521,11 @@ function renderCollection() {
     platformDetails.open = true;
 
     const platformSummary = document.createElement("summary");
-    platformSummary.textContent = `${platform.emoji} ${platform.name}`;
+    const platformIcon = createPlatformIconImg(platform.id, "collection-platform__icon");
+    const platformLabel = document.createElement("span");
+    platformLabel.textContent = platform.name;
+    platformSummary.appendChild(platformIcon);
+    platformSummary.appendChild(platformLabel);
     platformDetails.appendChild(platformSummary);
 
     for (const game of games) {

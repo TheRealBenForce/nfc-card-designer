@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanks &amp; credits — NFC Card Designer</title>
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <style>
+      .thanks {
+        max-width: 42rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
+      }
+
+      .thanks h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.75rem;
+      }
+
+      .thanks__lead {
+        margin: 0 0 2rem;
+        color: var(--text-muted);
+      }
+
+      .thanks section {
+        margin-bottom: 2rem;
+      }
+
+      .thanks h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .thanks p,
+      .thanks li {
+        color: var(--text-muted);
+      }
+
+      .thanks ul {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+
+      .thanks a {
+        color: var(--accent);
+      }
+
+      .thanks a:hover {
+        color: var(--accent-hover);
+      }
+
+      .thanks__back {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header__title-row">
+        <h1>NFC Card Designer</h1>
+        <a class="header__link" href="../">Back to designer</a>
+      </div>
+    </header>
+
+    <main class="thanks">
+      <h1>Thanks &amp; credits</h1>
+      <p class="thanks__lead">
+        This app bundles artwork and icons from the projects below. We are grateful to their authors and
+        maintainers.
+      </p>
+
+      <section>
+        <h2>Platform icons</h2>
+        <p>
+          Default platform logos shown in the designer, on NFC card labels, and in the platform color
+          square are adapted from the <strong>Carbon</strong> EmulationStation theme by RetroPie.
+        </p>
+        <ul>
+          <li>
+            <a href="https://github.com/RetroPie/es-theme-carbon" rel="noopener noreferrer"
+              >RetroPie/es-theme-carbon</a
+            >
+            — system artwork (<code>*/art/system.svg</code>) for each supported console
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Game artwork</h2>
+        <p>
+          Box art, title screens, and in-game images are sourced from
+          <a href="https://retroachievements.org/" rel="noopener noreferrer">RetroAchievements</a> and
+          bundled locally for offline use. Game metadata is also drawn from their public API during
+          maintainer setup.
+        </p>
+      </section>
+
+      <section>
+        <h2>Fonts &amp; UI</h2>
+        <p>
+          The Carbon theme also ships Cabin Bold and other UI assets we do not currently bundle; only the
+          platform system SVGs listed above are used here.
+        </p>
+      </section>
+
+      <a class="thanks__back header__link" href="../">← Back to NFC Card Designer</a>
+    </main>
+  </body>
+</html>

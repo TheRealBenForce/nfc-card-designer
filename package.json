@@ -10,6 +10,7 @@
     "export-games-json": "node scripts/export-games-json.mjs",
     "scan-images": "node scripts/export-image-availability.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
+    "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
@@ -20,5 +21,8 @@
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
     "verify": "node scripts/verify.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
   }
 }

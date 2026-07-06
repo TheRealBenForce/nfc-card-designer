@@ -19,7 +19,7 @@ async function main() {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
     await page.locator("summary", { hasText: "Platform Settings" }).click();
-    await page.getByRole("button", { name: "🎮 NES" }).click();
+    await page.getByRole("button", { name: "NES", exact: true }).click();
     await page.waitForTimeout(150);
 
     const dropdown = page.locator("#game-results");

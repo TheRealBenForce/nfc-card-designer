@@ -39,6 +39,24 @@ body {
   font-weight: 700;
 }
 
+.header__title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.header__link {
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.header__link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
 .header__subtitle {
   margin: 0.25rem 0 0;
   color: var(--text-muted);
@@ -111,6 +129,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.collection-platform__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .collection-platform > summary::-webkit-details-marker,
@@ -369,6 +394,14 @@ body {
 .list-item--selected {
   background: rgba(108, 140, 255, 0.22);
   font-weight: 600;
+}
+
+.list-item__icon,
+.platform-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .list-item__emoji {

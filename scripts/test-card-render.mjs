@@ -57,8 +57,14 @@ async function main() {
         height: canvas.height,
         layout,
         art: sample(layout.art.x + 10, layout.art.y + 10),
-        logo: sample(layout.logo.x + 5, layout.logo.y + 5),
-        color: sample(layout.color.x + layout.color.w - 5, layout.color.y + 5),
+        logoCenter: sample(
+          Math.floor(layout.logo.x + layout.logo.w / 2),
+          Math.floor(layout.logo.y + layout.logo.h / 2),
+        ),
+        colorCenter: sample(
+          Math.floor(layout.color.x + layout.color.w / 2),
+          Math.floor(layout.color.y + layout.color.h / 2),
+        ),
       };
     });
 
@@ -80,13 +86,13 @@ async function main() {
     }
     console.log("✓ Portrait platform strip: logo left, color right");
 
-    if (hex(...portrait.logo) !== "#1a1a2e") {
-      throw new Error(`Logo area should be #1a1a2e, got ${hex(...portrait.logo)}`);
+    if (hex(...portrait.logoCenter) === "#1a1a2e") {
+      throw new Error("Logo area should render the platform icon");
     }
-    if (hex(...portrait.color) !== "#b4000c") {
-      throw new Error(`Color area should be #b4000c, got ${hex(...portrait.color)}`);
+    if (hex(...portrait.colorCenter) === "#b4000c") {
+      throw new Error("Color mark should render the platform icon on the color fill");
     }
-    console.log("✓ Logo and color regions render correctly");
+    console.log("✓ Logo and color mark render platform icons");
 
     const landscape = await page.evaluate(async () => {
       const { splitArtAndPlatform, splitLogoAndColor } = await import("/assets/js/cardLayout.js");

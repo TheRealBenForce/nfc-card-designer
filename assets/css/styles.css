@@ -324,6 +324,12 @@ body {
   max-height: 280px;
 }
 
+.list--platforms {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  max-height: 220px;
+}
+
 .list-more-hint {
   margin: 0;
   padding: 0.5rem 0.75rem;
@@ -426,6 +432,20 @@ body {
 .btn--ghost:hover {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #ff8585;
+}
+
+.btn--danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .panel--preview {

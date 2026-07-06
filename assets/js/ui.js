@@ -62,8 +62,6 @@ let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewMetaEl = null;
 /** @type {HTMLInputElement|null} */
-let platformSearchInput = null;
-/** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
@@ -82,11 +80,7 @@ let addBrowsedGameBtn = null;
 let browseState = null;
 
 /** @type {number} */
-let platformHighlightIndex = 0;
-/** @type {number} */
 let gameHighlightIndex = 0;
-/** @type {import('./data/platforms.js').Platform[]} */
-let filteredPlatforms = [...platforms];
 /** @type {import('./gameCatalog.js').Game[]} */
 let filteredGames = [];
 /** @type {number} */
@@ -95,31 +89,6 @@ let filteredGamesTotal = 0;
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
-}
-
-/** @param {import('./data/platforms.js').Platform} platform @param {string} query */
-function platformMatches(platform, query) {
-  const terms = [
-    platform.name,
-    platform.id,
-    platform.id.replace(/-/g, " "),
-    platform.id.replace(/-/g, ""),
-    ...(platform.searchAliases ?? []),
-  ].map((s) => s.toLowerCase());
-
-  return terms.some((term) => term.includes(query));
-}
-
-function filterPlatforms(query) {
-  const q = query.trim().toLowerCase();
-  filteredPlatforms = q ? platforms.filter((p) => platformMatches(p, q)) : [...platforms];
-  platformHighlightIndex = 0;
-  renderPlatformResults();
-}
-
-function resetPlatformSearch() {
-  if (platformSearchInput) platformSearchInput.value = "";
-  filterPlatforms("");
 }
 
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
@@ -185,20 +154,11 @@ function renderPlatformResults() {
   const settings = getSettings();
   platformResultsEl.innerHTML = "";
 
-  if (filteredPlatforms.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "empty-hint";
-    empty.textContent = "No platforms match your search.";
-    platformResultsEl.appendChild(empty);
-    return;
-  }
-
-  filteredPlatforms.forEach((platform, index) => {
+  platforms.forEach((platform) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "list-item";
     if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
-    if (index === platformHighlightIndex) btn.classList.add("list-item--highlight");
     btn.innerHTML = `<span class="list-item__emoji">${platform.emoji}</span><span>${platform.name}</span>`;
     btn.addEventListener("click", () => selectPlatform(platform.id));
     platformResultsEl.appendChild(btn);
@@ -255,7 +215,6 @@ function renderGameResults() {
 }
 
 function selectPlatform(platformId) {
-  resetPlatformSearch();
   updateSettings({ selectedPlatformId: platformId });
   saveSettings(getSettings());
   syncPlatformControls();
@@ -271,13 +230,8 @@ function syncPlatformControls() {
     platformColorInput.value = platformDefaults.color;
   }
 
+  renderPlatformResults();
   renderPlatformRotationFields();
-
-  if (!platformSearchInput?.value) {
-    filterPlatforms("");
-  } else {
-    filterPlatforms(platformSearchInput.value);
-  }
   filterGames(gameSearchInput?.value ?? "");
 }
 
@@ -631,32 +585,6 @@ async function refreshPreview() {
 }
 
 function bindEvents() {
-  platformSearchInput?.addEventListener("input", (e) => {
-    filterPlatforms(/** @type {HTMLInputElement} */ (e.target).value);
-  });
-
-  platformSearchInput?.addEventListener("search", (e) => {
-    filterPlatforms(/** @type {HTMLInputElement} */ (e.target).value);
-  });
-
-  platformSearchInput?.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      platformHighlightIndex = Math.min(platformHighlightIndex + 1, filteredPlatforms.length - 1);
-      renderPlatformResults();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      platformHighlightIndex = Math.max(platformHighlightIndex - 1, 0);
-      renderPlatformResults();
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      filterPlatforms(platformSearchInput?.value ?? "");
-      if (filteredPlatforms[platformHighlightIndex]) {
-        selectPlatform(filteredPlatforms[platformHighlightIndex].id);
-      }
-    }
-  });
-
   gameSearchInput?.addEventListener("input", (e) => {
     filterGames(/** @type {HTMLInputElement} */ (e.target).value);
   });
@@ -792,7 +720,6 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
-  platformSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-search"));
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));

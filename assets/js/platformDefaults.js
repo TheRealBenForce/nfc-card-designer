@@ -1,5 +1,5 @@
 import { DEFAULT_IMAGE_TYPE_PRIORITY } from "./config.js";
-import { platforms } from "./data/platforms.js";
+import { platformById, platforms } from "./data/platforms.js";
 
 export const DEFAULT_PLATFORM_COLOR = "#000000";
 
@@ -31,7 +31,7 @@ export function createPlatformDefaultEntry(color = DEFAULT_PLATFORM_COLOR) {
 /** @returns {Record<string, PlatformDefaults>} */
 export function defaultPlatformDefaults() {
   return Object.fromEntries(
-    platforms.map((platform) => [platform.id, createPlatformDefaultEntry()]),
+    platforms.map((platform) => [platform.id, createPlatformDefaultEntry(platform.defaultColor)]),
   );
 }
 
@@ -90,7 +90,11 @@ export function normalizePlatformDefaults(parsed, legacyColors) {
  * @param {string} platformId
  */
 export function getPlatformColor(platformDefaults, platformId) {
-  return platformDefaults[platformId]?.color ?? DEFAULT_PLATFORM_COLOR;
+  return (
+    platformDefaults[platformId]?.color ??
+    platformById[platformId]?.defaultColor ??
+    DEFAULT_PLATFORM_COLOR
+  );
 }
 
 /**

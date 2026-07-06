@@ -3,12 +3,12 @@
 import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
-  DEFAULT_PLATFORM_COLOR,
 } from "../assets/js/platformDefaults.js";
+import { platformById } from "../assets/js/data/platforms.js";
 
 const defaults = defaultPlatformDefaults();
-if (defaults.nes.color !== DEFAULT_PLATFORM_COLOR) {
-  throw new Error("Default platform color should be black");
+if (defaults.nes.color !== platformById.nes.defaultColor) {
+  throw new Error("Default platform color should come from platforms.js");
 }
 if (defaults.nes.imageRotation.boxArt !== 0) {
   throw new Error("Default boxArt rotation should be 0");
@@ -18,8 +18,8 @@ const migrated = normalizePlatformDefaults(undefined, { nes: "#b4000c" });
 if (migrated.nes.color !== "#b4000c") {
   throw new Error("Should migrate legacy platformColors");
 }
-if (migrated.snes.color !== DEFAULT_PLATFORM_COLOR) {
-  throw new Error("Unspecified platforms should keep black default");
+if (migrated.snes.color !== platformById.snes.defaultColor) {
+  throw new Error("Unspecified platforms should keep palette default");
 }
 
 const merged = normalizePlatformDefaults(

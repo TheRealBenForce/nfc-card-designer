@@ -37,6 +37,8 @@ export const IMAGE_TYPES = {
 export const DEFAULT_IMAGE_TYPE = "boxArt";
 
 export const STORAGE_KEY = "nfc-card-designer-settings";
+export const COLLECTION_STORAGE_KEY = "nfc-card-designer-collection";
+/** @deprecated Legacy key — migrated on read */
 export const DECK_STORAGE_KEY = "nfc-card-designer-deck";
 
 export const PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent(`

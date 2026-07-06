@@ -8,8 +8,8 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 - **Game search** — bundled game lists per platform; press **Enter** to add to deck
 - **RetroAchievements artwork** — box art, title screens, and in-game images (bundled locally)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
-- **Deck workflow** — sticky settings, scrollable card list, arrow keys to browse
-- **Persistence** — `localStorage` for settings and deck; import/export settings JSON
+- **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
+- **Persistence** — `localStorage` plus export/import JSON (settings and all cards)
 - **PDF export** — letter-size sheet with cut marks (3×3 cards per page)
 
 ## Project structure

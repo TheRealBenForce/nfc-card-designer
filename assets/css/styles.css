@@ -60,9 +60,129 @@ body {
   flex-direction: column;
 }
 
-.panel--deck {
+.panel--collection {
   border-right: none;
   border-left: 1px solid var(--border);
+}
+
+.collection-header {
+  margin-bottom: 0.5rem;
+}
+
+.collection-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.collection-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.collection-actions .btn {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.collection-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+}
+
+.collection-platform,
+.collection-game {
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.collection-platform > summary,
+.collection-game > summary {
+  cursor: pointer;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.collection-platform > summary::-webkit-details-marker,
+.collection-game > summary::-webkit-details-marker {
+  display: none;
+}
+
+.collection-platform > summary::before,
+.collection-game > summary::before {
+  content: "▸";
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.collection-platform[open] > summary::before,
+.collection-game[open] > summary::before {
+  content: "▾";
+}
+
+.collection-game > summary {
+  font-weight: 500;
+  padding-left: 1.25rem;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.collection-cards {
+  padding: 0.35rem 0.5rem 0.5rem;
+}
+
+.collection-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.45rem;
+  border-radius: 6px;
+  margin-bottom: 0.2rem;
+}
+
+.collection-card:hover {
+  background: rgba(108, 140, 255, 0.08);
+}
+
+.collection-card--selected {
+  background: rgba(108, 140, 255, 0.16);
+}
+
+.collection-card--preview {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.collection-card__check {
+  flex-shrink: 0;
+}
+
+.collection-card__label {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.collection-card__badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(255, 107, 107, 0.2);
+  color: var(--danger);
+  text-transform: uppercase;
 }
 
 .section {
@@ -76,14 +196,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-}
-
-.deck-hint {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: normal;
-  font-size: 0.75rem;
-  opacity: 0.7;
 }
 
 .input {
@@ -267,7 +379,8 @@ body {
   color: var(--text-muted);
 }
 
-.deck-list {
+.deck-list,
+.collection-list {
   flex: 1;
   overflow-y: auto;
   margin-top: 0.25rem;
@@ -363,7 +476,7 @@ body {
     border-bottom: 1px solid var(--border);
   }
 
-  .panel--deck {
+  .panel--collection {
     border-left: none;
   }
 
@@ -371,7 +484,7 @@ body {
     max-height: 140px;
   }
 
-  .deck-list {
-    max-height: 240px;
+  .collection-list {
+    max-height: 280px;
   }
 }

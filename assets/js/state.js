@@ -1,4 +1,4 @@
-import { loadSettings, loadDeck } from "./storage.js";
+import { loadSettings, loadCollection } from "./storage.js";
 
 /**
  * @typedef {Object} Card
@@ -21,10 +21,13 @@ import { loadSettings, loadDeck } from "./storage.js";
 export let settings = loadSettings();
 
 /** @type {Card[]} */
-export let deck = loadDeck();
+export let collection = loadCollection();
 
-/** @type {number} */
-export let selectedDeckIndex = deck.length > 0 ? deck.length - 1 : -1;
+/** @type {Set<string>} */
+export let selectedCardIds = new Set();
+
+/** @type {string|null} */
+export let previewCardId = collection.length > 0 ? collection[collection.length - 1].id : null;
 
 /** @type {Set<(event: string) => void>} */
 const listeners = new Set();
@@ -42,17 +45,31 @@ export function getSettings() {
   return settings;
 }
 
+/** @deprecated Use getCollection */
 export function getDeck() {
-  return deck;
+  return collection;
 }
 
-export function getSelectedDeckIndex() {
-  return selectedDeckIndex;
+export function getCollection() {
+  return collection;
 }
 
+export function getSelectedCardIds() {
+  return selectedCardIds;
+}
+
+export function getSelectedCards() {
+  return collection.filter((card) => selectedCardIds.has(card.id));
+}
+
+export function getPreviewCard() {
+  if (!previewCardId) return null;
+  return collection.find((card) => card.id === previewCardId) ?? null;
+}
+
+/** @deprecated Use getPreviewCard */
 export function getSelectedCard() {
-  if (selectedDeckIndex < 0 || selectedDeckIndex >= deck.length) return null;
-  return deck[selectedDeckIndex];
+  return getPreviewCard();
 }
 
 /**
@@ -79,9 +96,10 @@ export function setPlatformColor(platformId, color) {
  * @param {Card} card
  */
 export function addCard(card) {
-  deck = [...deck, card];
-  selectedDeckIndex = deck.length - 1;
-  emit("deck");
+  collection = [...collection, card];
+  selectedCardIds = new Set([card.id]);
+  previewCardId = card.id;
+  emit("collection");
 }
 
 /**
@@ -89,34 +107,101 @@ export function addCard(card) {
  * @param {Partial<Card>} patch
  */
 export function updateCard(cardId, patch) {
-  deck = deck.map((c) => (c.id === cardId ? { ...c, ...patch } : c));
-  emit("deck");
+  collection = collection.map((c) => (c.id === cardId ? { ...c, ...patch } : c));
+  emit("collection");
 }
 
 export function removeCard(cardId) {
-  const index = deck.findIndex((c) => c.id === cardId);
-  if (index === -1) return;
-  deck = deck.filter((c) => c.id !== cardId);
-  if (deck.length === 0) {
-    selectedDeckIndex = -1;
-  } else if (selectedDeckIndex >= deck.length) {
-    selectedDeckIndex = deck.length - 1;
-  } else if (selectedDeckIndex === index) {
-    selectedDeckIndex = Math.min(index, deck.length - 1);
+  collection = collection.filter((c) => c.id !== cardId);
+  selectedCardIds = new Set([...selectedCardIds].filter((id) => id !== cardId));
+  if (previewCardId === cardId) {
+    previewCardId = collection.length > 0 ? collection[collection.length - 1].id : null;
+    emit("selection");
   }
-  emit("deck");
+  emit("collection");
 }
 
-export function selectDeckIndex(index) {
-  if (index < -1 || index >= deck.length) return;
-  selectedDeckIndex = index;
+export function removeCards(cardIds) {
+  const removeSet = new Set(cardIds);
+  collection = collection.filter((c) => !removeSet.has(c.id));
+  selectedCardIds = new Set([...selectedCardIds].filter((id) => !removeSet.has(id)));
+  if (previewCardId && removeSet.has(previewCardId)) {
+    previewCardId = collection.length > 0 ? collection[collection.length - 1].id : null;
+    emit("selection");
+  }
+  emit("collection");
+}
+
+export function toggleCardSelection(cardId) {
+  if (!collection.some((card) => card.id === cardId)) return;
+  const next = new Set(selectedCardIds);
+  if (next.has(cardId)) next.delete(cardId);
+  else next.add(cardId);
+  selectedCardIds = next;
   emit("selection");
 }
 
+/**
+ * @param {string} cardId
+ * @param {{ toggle?: boolean, extend?: boolean }} [options]
+ */
+export function selectCard(cardId, options = {}) {
+  if (!collection.some((card) => card.id === cardId)) return;
+
+  if (options.toggle) {
+    const next = new Set(selectedCardIds);
+    if (next.has(cardId)) next.delete(cardId);
+    else next.add(cardId);
+    selectedCardIds = next;
+  } else if (options.extend) {
+    selectedCardIds = new Set([...selectedCardIds, cardId]);
+  } else {
+    selectedCardIds = new Set([cardId]);
+  }
+
+  previewCardId = cardId;
+  emit("selection");
+}
+
+export function setSelectedCardIds(cardIds) {
+  selectedCardIds = new Set(cardIds);
+  emit("selection");
+}
+
+export function clearSelection() {
+  selectedCardIds = new Set();
+  emit("selection");
+}
+
+export function setPreviewCardId(cardId) {
+  if (!collection.some((card) => card.id === cardId)) return;
+  previewCardId = cardId;
+  emit("selection");
+}
+
+/**
+ * @param {Card[]} cards
+ */
+export function replaceCollection(cards) {
+  collection = cards;
+  const validIds = new Set(cards.map((c) => c.id));
+  selectedCardIds = new Set([...selectedCardIds].filter((id) => validIds.has(id)));
+  if (previewCardId && !validIds.has(previewCardId)) {
+    previewCardId = cards.length > 0 ? cards[cards.length - 1].id : null;
+  }
+  emit("collection");
+}
+
+export function clearCollection() {
+  collection = [];
+  selectedCardIds = new Set();
+  previewCardId = null;
+  emit("collection");
+}
+
+/** @deprecated */
 export function clearDeck() {
-  deck = [];
-  selectedDeckIndex = -1;
-  emit("deck");
+  clearCollection();
 }
 
 export function createCardId() {

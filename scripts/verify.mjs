@@ -57,6 +57,9 @@ async function main() {
   console.log("→ PDF layout…");
   await run("node", ["scripts/test-pdf-layout.mjs"]);
 
+  console.log("→ Collection tree…");
+  await run("node", ["scripts/test-collection-tree.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
     cwd: root,

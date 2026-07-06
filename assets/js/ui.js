@@ -2,26 +2,31 @@ import { platforms } from "./data/platforms.js";
 import { gamesForPlatform, gameByRaId } from "./data/games.js";
 import { platformById } from "./data/platforms.js";
 import { IMAGE_TYPES } from "./config.js";
+import { buildCollectionTree } from "./collectionTree.js";
 import {
   subscribe,
   getSettings,
-  getDeck,
-  getSelectedDeckIndex,
-  getSelectedCard,
+  getCollection,
+  getSelectedCardIds,
+  getSelectedCards,
+  getPreviewCard,
   updateSettings,
   setPlatformColor,
   addCard,
   updateCard,
-  removeCard,
-  selectDeckIndex,
-  clearDeck,
+  removeCards,
+  selectCard,
+  setSelectedCardIds,
+  replaceCollection,
   createCardId,
+  toggleCardSelection,
+  setPreviewCardId,
 } from "./state.js";
 import {
   saveSettings,
-  saveDeck,
-  exportSettingsFile,
-  importSettingsFile,
+  saveCollection,
+  exportProjectFile,
+  importProjectFile,
   defaultSettings,
 } from "./storage.js";
 import { resolveGameImage } from "./imageProvider.js";
@@ -33,7 +38,13 @@ let platformResultsEl = null;
 /** @type {HTMLElement|null} */
 let gameResultsEl = null;
 /** @type {HTMLElement|null} */
-let deckListEl = null;
+let collectionListEl = null;
+/** @type {HTMLElement|null} */
+let collectionSelectionMetaEl = null;
+/** @type {HTMLButtonElement|null} */
+let deleteSelectedBtn = null;
+/** @type {HTMLButtonElement|null} */
+let printSelectedBtn = null;
 /** @type {HTMLImageElement|null} */
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
@@ -221,6 +232,7 @@ async function addGameCard(game) {
   }
 
   filterGames("");
+  updateCollectionActions();
   await refreshPreview();
 
   if (failed) {
@@ -229,59 +241,121 @@ async function addGameCard(game) {
       true,
     );
   } else {
-    setStatus(`Added ${game.name}`);
+    setStatus(`Added ${game.name} to collection.`);
   }
 }
 
-function renderDeck() {
-  if (!deckListEl) return;
-  const deck = getDeck();
-  const selectedIndex = getSelectedDeckIndex();
-  deckListEl.innerHTML = "";
+function updateCollectionActions() {
+  const selectedCount = getSelectedCardIds().size;
+  const label =
+    selectedCount === 0
+      ? "No cards selected"
+      : selectedCount === 1
+        ? "1 card selected"
+        : `${selectedCount} cards selected`;
 
-  if (deck.length === 0) {
+  if (collectionSelectionMetaEl) collectionSelectionMetaEl.textContent = label;
+  if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedCount === 0;
+  if (printSelectedBtn) printSelectedBtn.disabled = selectedCount === 0;
+}
+
+function renderCollection() {
+  if (!collectionListEl) return;
+  const collection = getCollection();
+  const selectedIds = getSelectedCardIds();
+  const previewCard = getPreviewCard();
+  collectionListEl.innerHTML = "";
+
+  if (collection.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     empty.textContent = "Search for a game and press Enter to add cards.";
-    deckListEl.appendChild(empty);
+    collectionListEl.appendChild(empty);
+    updateCollectionActions();
     return;
   }
 
-  deck.forEach((card, index) => {
-    const platform = platformById[card.platformId];
-    const item = document.createElement("div");
-    item.className = "deck-item";
-    if (index === selectedIndex) item.classList.add("deck-item--selected");
+  const tree = buildCollectionTree(collection);
 
-    item.innerHTML = `
-      <button type="button" class="deck-item__select">
-        <span class="deck-item__emoji">${platform?.emoji ?? "🎮"}</span>
-        <span class="deck-item__name">${card.gameName}</span>
-        ${card.imageFailed ? '<span class="deck-item__badge">placeholder</span>' : ""}
-      </button>
-      <button type="button" class="deck-item__remove" aria-label="Remove card">×</button>
-    `;
+  for (const { platform, games } of tree) {
+    const platformDetails = document.createElement("details");
+    platformDetails.className = "collection-platform";
+    platformDetails.open = true;
 
-    item.querySelector(".deck-item__select")?.addEventListener("click", async () => {
-      selectDeckIndex(index);
-      renderDeck();
-      await refreshPreview();
-    });
-    item.querySelector(".deck-item__remove")?.addEventListener("click", () => {
-      removeCard(card.id);
-      renderDeck();
-      refreshPreview();
-    });
+    const platformSummary = document.createElement("summary");
+    platformSummary.textContent = `${platform.emoji} ${platform.name}`;
+    platformDetails.appendChild(platformSummary);
 
-    deckListEl.appendChild(item);
-  });
+    for (const game of games) {
+      const gameDetails = document.createElement("details");
+      gameDetails.className = "collection-game";
+      gameDetails.open = true;
 
-  const selected = deckListEl.querySelector(".deck-item--selected");
-  selected?.scrollIntoView({ block: "nearest" });
+      const gameSummary = document.createElement("summary");
+      gameSummary.textContent = game.name;
+      gameDetails.appendChild(gameSummary);
+
+      const cardsEl = document.createElement("div");
+      cardsEl.className = "collection-cards";
+
+      for (const card of game.cards) {
+        const row = document.createElement("div");
+        row.className = "collection-card";
+        if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
+        if (previewCard?.id === card.id) row.classList.add("collection-card--preview");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "collection-card__check";
+        checkbox.checked = selectedIds.has(card.id);
+        checkbox.addEventListener("change", () => {
+          toggleCardSelection(card.id);
+          renderCollection();
+          updateCollectionActions();
+        });
+
+        const label = document.createElement("button");
+        label.type = "button";
+        label.className = "collection-card__label";
+        label.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
+        label.addEventListener("click", async (e) => {
+          if (e.shiftKey) {
+            selectCard(card.id, { extend: true });
+          } else if (e.metaKey || e.ctrlKey) {
+            selectCard(card.id, { toggle: true });
+          } else {
+            selectCard(card.id);
+          }
+          renderCollection();
+          updateCollectionActions();
+          await refreshPreview();
+        });
+
+        row.appendChild(checkbox);
+        row.appendChild(label);
+
+        if (card.imageFailed) {
+          const badge = document.createElement("span");
+          badge.className = "collection-card__badge";
+          badge.textContent = "placeholder";
+          row.appendChild(badge);
+        }
+
+        cardsEl.appendChild(row);
+      }
+
+      gameDetails.appendChild(cardsEl);
+      platformDetails.appendChild(gameDetails);
+    }
+
+    collectionListEl.appendChild(platformDetails);
+  }
+
+  updateCollectionActions();
 }
 
-async function refreshDeckImageStatus() {
-  for (const card of getDeck()) {
+async function refreshCollectionImageStatus() {
+  for (const card of getCollection()) {
     const game = gameByRaId(card.raGameId);
     if (!game) continue;
     const { failed } = await resolveGameImage(game, card.imageType);
@@ -292,7 +366,7 @@ async function refreshDeckImageStatus() {
 }
 
 async function refreshPreview() {
-  const card = getSelectedCard();
+  const card = getPreviewCard();
   if (!previewImageEl || !previewMetaEl) return;
 
   if (!card) {
@@ -369,70 +443,61 @@ function bindEvents() {
     saveSettings(getSettings());
   });
 
-  document.getElementById("export-settings")?.addEventListener("click", () => {
-    exportSettingsFile(getSettings());
-    setStatus("Settings exported.");
+  document.getElementById("export-project")?.addEventListener("click", () => {
+    exportProjectFile(getSettings(), getCollection());
+    setStatus("Project exported.");
   });
 
-  document.getElementById("import-settings")?.addEventListener("click", async () => {
+  document.getElementById("import-project")?.addEventListener("click", async () => {
     try {
-      const imported = await importSettingsFile();
+      const imported = await importProjectFile();
       const defaults = defaultSettings();
       updateSettings({
-        platformColors: { ...defaults.platformColors, ...imported.platformColors },
-        imageType: imported.imageType ?? defaults.imageType,
-        selectedPlatformId: imported.selectedPlatformId ?? defaults.selectedPlatformId,
+        platformColors: { ...defaults.platformColors, ...imported.settings.platformColors },
+        imageType: imported.settings.imageType ?? defaults.imageType,
+        selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
       });
       saveSettings(getSettings());
+      replaceCollection(imported.cards);
+      saveCollection(getCollection());
+      if (imported.cards.length > 0) {
+        setSelectedCardIds(imported.cards.map((c) => c.id));
+        setPreviewCardId(imported.cards[0].id);
+      }
       syncPlatformControls();
       if (imageTypeSelect) imageTypeSelect.value = getSettings().imageType;
-      setStatus("Settings imported.");
+      renderCollection();
+      await refreshPreview();
+      setStatus(`Imported project with ${imported.cards.length} card(s).`);
     } catch {
-      setStatus("Could not import settings.", true);
+      setStatus("Could not import project.", true);
     }
   });
 
-  document.getElementById("export-pdf")?.addEventListener("click", async () => {
-    const deck = getDeck();
-    if (deck.length === 0) {
-      setStatus("Add at least one card before exporting.", true);
+  deleteSelectedBtn?.addEventListener("click", () => {
+    const selected = getSelectedCards();
+    if (selected.length === 0) return;
+    const noun = selected.length === 1 ? "1 card" : `${selected.length} cards`;
+    if (!confirm(`Delete ${noun} from your collection?`)) return;
+    removeCards(selected.map((card) => card.id));
+    renderCollection();
+    refreshPreview();
+    setStatus(`Deleted ${noun}.`);
+  });
+
+  printSelectedBtn?.addEventListener("click", async () => {
+    const selected = getSelectedCards();
+    if (selected.length === 0) {
+      setStatus("Select at least one card to print.", true);
       return;
     }
     setStatus("Generating PDF…");
     try {
-      await exportLetterPdf(deck, getSettings().platformColors);
-      setStatus(`Exported ${deck.length} card(s) to PDF.`);
+      await exportLetterPdf(selected, getSettings().platformColors);
+      setStatus(`Printed ${selected.length} card(s) to PDF.`);
     } catch (err) {
       setStatus("PDF export failed.", true);
       console.error(err);
-    }
-  });
-
-  document.getElementById("clear-deck")?.addEventListener("click", () => {
-    if (getDeck().length === 0) return;
-    if (confirm("Clear all cards from the deck?")) {
-      clearDeck();
-      renderDeck();
-      refreshPreview();
-      setStatus("Deck cleared.");
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    const deck = getDeck();
-    if (deck.length === 0) return;
-    const index = getSelectedDeckIndex();
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      selectDeckIndex(Math.min(index + 1, deck.length - 1));
-      renderDeck();
-      refreshPreview();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      selectDeckIndex(Math.max(index - 1, 0));
-      renderDeck();
-      refreshPreview();
     }
   });
 }
@@ -440,7 +505,12 @@ function bindEvents() {
 export function initUI() {
   platformResultsEl = document.getElementById("platform-results");
   gameResultsEl = document.getElementById("game-results");
-  deckListEl = document.getElementById("deck-list");
+  collectionListEl = document.getElementById("collection-list");
+  collectionSelectionMetaEl = document.getElementById("collection-selection-meta");
+  deleteSelectedBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("delete-selected")
+  );
+  printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
   statusEl = document.getElementById("status");
@@ -458,18 +528,22 @@ export function initUI() {
 
   bindEvents();
   syncPlatformControls();
-  renderDeck();
-  refreshDeckImageStatus().then(() => {
-    renderDeck();
+  renderCollection();
+  refreshCollectionImageStatus().then(() => {
+    renderCollection();
     refreshPreview();
   });
 
   subscribe((event) => {
     if (event === "settings") saveSettings(getSettings());
-    if (event === "deck") {
-      saveDeck(getDeck());
-      renderDeck();
+    if (event === "collection") {
+      saveCollection(getCollection());
+      renderCollection();
     }
-    if (event === "selection") refreshPreview();
+    if (event === "selection") {
+      renderCollection();
+      updateCollectionActions();
+      refreshPreview();
+    }
   });
 }

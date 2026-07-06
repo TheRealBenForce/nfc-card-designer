@@ -48,11 +48,9 @@
 
         <section class="section section--actions">
           <div class="button-row">
-            <button id="export-settings" type="button" class="btn btn--secondary">Export settings</button>
-            <button id="import-settings" type="button" class="btn btn--secondary">Import settings</button>
+            <button id="export-project" type="button" class="btn btn--secondary">Export</button>
+            <button id="import-project" type="button" class="btn btn--secondary">Import</button>
           </div>
-          <button id="export-pdf" type="button" class="btn btn--primary">Download PDF sheet</button>
-          <button id="clear-deck" type="button" class="btn btn--ghost">Clear deck</button>
         </section>
       </aside>
 
@@ -65,9 +63,16 @@
         <p class="preview-dimensions">52 mm × 84 mm</p>
       </section>
 
-      <aside class="panel panel--deck">
-        <h2 class="section__title">Deck <span class="deck-hint">↑↓ to browse</span></h2>
-        <div id="deck-list" class="deck-list"></div>
+      <aside class="panel panel--collection">
+        <div class="collection-header">
+          <h2 class="section__title">Collection</h2>
+          <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
+        </div>
+        <div class="collection-actions">
+          <button id="delete-selected" type="button" class="btn btn--ghost" disabled>Delete selected</button>
+          <button id="print-selected" type="button" class="btn btn--primary" disabled>Print PDF</button>
+        </div>
+        <div id="collection-list" class="collection-list"></div>
       </aside>
     </div>
 

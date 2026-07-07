@@ -50,6 +50,8 @@ async function main() {
     "package.json",
     "--exclude",
     "README.md",
+    "--exclude",
+    "assets/images/*",
   ];
 
   console.log(`→ Syncing site to s3://${bucket}/`);

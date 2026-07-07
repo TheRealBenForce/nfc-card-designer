@@ -56,7 +56,7 @@ Game images are **not stored in git**. `fetch-images` downloads missing thumbnai
 ```bash
 npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
 npm run fetch-images       # download missing thumbnails → upload to S3
-npm run deploy             # sync site files to S3 + CloudFront invalidation
+npm run deploy             # sync site files to S3 + CloudFront invalidation (excludes assets/images/*)
 ```
 
 Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.

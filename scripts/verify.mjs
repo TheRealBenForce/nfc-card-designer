@@ -63,6 +63,12 @@ async function main() {
   console.log("→ Image lookup…");
   await run("node", ["scripts/test-image-lookup.mjs"]);
 
+  console.log("→ Libretro thumbnails…");
+  await run("node", ["scripts/test-libretro-thumbnails.mjs"]);
+
+  console.log("→ Fetch-images skip logic…");
+  await run("node", ["scripts/test-fetch-images-skip.mjs"]);
+
   console.log("→ Game catalog JSON…");
   await run("node", ["scripts/test-game-catalog.mjs"]);
 

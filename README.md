@@ -6,7 +6,7 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 
 - **12 retro platforms** — Atari 2600 through PlayStation, plus Neo Geo and Arcade
 - **Game search** — type **3+ letters**, pick a game, **browse artwork types** in preview, then add to collection
-- **RetroAchievements artwork** — box art, title screens, and in-game images (bundled locally)
+- **Libretro thumbnails** — box art, title screens, and in-game snapshots (bundled locally)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
 - **Persistence** — `localStorage` plus export/import JSON (settings and all cards)
@@ -25,7 +25,7 @@ assets/
   images/platforms/             # Downloaded artwork (platform/game folders)
 scripts/
   fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
-  fetch-images.mjs              # Download PNGs + update games.js + availability
+  fetch-images.mjs              # Download libretro thumbnails + update games.js + availability
   export-games-json.mjs         # Rebuild games-by-platform.json from games.js
   export-image-availability.mjs  # scan-images: index PNGs on disk
   verify.mjs                    # Run before merging changes
@@ -49,18 +49,24 @@ npm run verify   # run before merging changes (tests + smoke checks)
 
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
-## Artwork setup (RetroAchievements)
+## Artwork setup (libretro thumbnails)
 
-The live site does not call the RetroAchievements API. Download images once on your machine and commit them to the repo.
+The live site does not fetch images at runtime. Download thumbnails once on your machine from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) and commit them to the repo.
+
+```bash
+npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
+npm run export-games-json  # rebuild retail-only JSON from existing games.js
+npm run fetch-images       # download thumbnails + scan-images
+npm start                  # runs scan-images automatically, then serves the app
+```
+
+Game catalogs still come from the RetroAchievements API (`fetch-game-list`). Only artwork is sourced from libretro thumbnails.
+
+For `fetch-game-list`, copy `.env.example` to `.env` and add your RetroAchievements Web API key:
 
 ```bash
 cp .env.example .env
-# Edit .env — add your Web API Key (see below)
 npm run test-ra-auth
-npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
-npm run export-games-json  # rebuild retail-only JSON from existing games.js
-npm run fetch-images       # download artwork + scan-images
-npm start                  # runs scan-images automatically, then serves the app
 ```
 
 `npm start` and `npm run fetch-images` both refresh `assets/data/image-availability.json` from files on disk. You can also run `npm run scan-images` on its own after copying images manually.
@@ -84,7 +90,7 @@ npm run fetch-game-list -- --platform=nes
 npm run fetch-game-list -- --with-achievements   # smaller lists (games with achievements only)
 npm run fetch-game-list -- --include-non-retail  # include hacks, homebrew, demos, etc.
 npm run fetch-images -- --platform=genesis
-npm run fetch-images -- --force                  # re-download existing files
+npm run fetch-images -- --force                  # re-download existing files (default skips them)
 ```
 
 By default, `fetch-game-list` keeps **retail releases only** and excludes RetroAchievements entries tagged as `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, deprecated `~Z~` pages, and `[Subset - …]` entries.

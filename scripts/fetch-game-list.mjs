@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fetches the full RetroAchievements game catalog for each platform and
- * writes assets/js/data/games.js (images populated later by fetch-images).
+ * writes assets/js/data/games.js (images populated later by fetch-images from libretro).
  */
 
 import path from "node:path";

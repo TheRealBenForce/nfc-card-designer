@@ -1,4 +1,4 @@
-import { writeFile, mkdir, readdir } from "node:fs/promises";
+import { writeFile, mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isRetailRelease } from "../assets/js/retailFilter.js";
@@ -29,6 +29,7 @@ const GAMES_HEADER = `/**
  * @property {string} platformId
  * @property {string} name
  * @property {number} raGameId
+ * @property {string} [libretroName] - Resolved libretro thumbnail basename (no .png)
  * @property {GameImages} images
  */
 
@@ -214,4 +215,32 @@ export function gameImagePath(platformId, raGameId, type) {
 /** @param {string} platformId @param {number} raGameId */
 export function gameImageDir(platformId, raGameId) {
   return path.join(root, "assets/images/platforms", platformId, "games", String(raGameId));
+}
+
+/** @param {string} filePath */
+export async function imageFilePresent(filePath) {
+  try {
+    const info = await stat(filePath);
+    return info.isFile() && info.size > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * @param {string} dir
+ * @param {string[]} imageTypes
+ * @param {boolean} [force]
+ */
+export async function existingImageTypes(dir, imageTypes, force = false) {
+  if (force) return [];
+
+  /** @type {string[]} */
+  const present = [];
+  for (const type of imageTypes) {
+    if (await imageFilePresent(path.join(dir, `${type}.png`))) {
+      present.push(type);
+    }
+  }
+  return present;
 }

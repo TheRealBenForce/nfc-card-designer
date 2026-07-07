@@ -217,14 +217,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  if (err instanceof Error) {
-    console.error(err.message);
-    if (err.cause instanceof Error && err.cause.stack) {
-      console.error("\nCaused by:");
-      console.error(err.cause.stack);
-    }
-  } else {
-    console.error(err);
-  }
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 });

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Game controller favicon">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#253250" />
+      <stop offset="1" stop-color="#111a2f" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#0b1220" />
+  <path
+    d="M21 22h22c4.4 0 8 3.6 8 8v8c0 3.3-1.8 6.4-4.8 8l-2 1.1c-1.9 1-4.2.9-6-.2l-5.2-3.2a2.1 2.1 0 0 0-2.2 0l-5.2 3.2c-1.8 1.1-4.1 1.2-6 .2l-2-1.1A9 9 0 0 1 13 38v-8c0-4.4 3.6-8 8-8Z"
+    fill="url(#body)"
+  />
+  <circle cx="25" cy="35" r="2.8" fill="#6cb7ff" />
+  <circle cx="39" cy="35" r="2.8" fill="#6cb7ff" />
+  <rect x="18.5" y="31" width="8" height="2.6" rx="1.2" fill="#d7e3ff" />
+  <rect x="21.2" y="28.3" width="2.6" height="8" rx="1.2" fill="#d7e3ff" />
+  <circle cx="46.2" cy="30.5" r="1.8" fill="#ff5f6d" />
+  <circle cx="43.2" cy="33.5" r="1.8" fill="#42d392" />
+  <circle cx="49.2" cy="33.5" r="1.8" fill="#ffd166" />
+  <circle cx="46.2" cy="36.5" r="1.8" fill="#8ab4ff" />
+</svg>

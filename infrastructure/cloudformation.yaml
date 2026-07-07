@@ -102,6 +102,31 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  RouteRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${AWS::StackName}-route-rewrite"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite extensionless paths to route index documents
+        Runtime: cloudfront-js-1.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri || "/";
+
+          if (uri.endsWith("/")) {
+            request.uri = uri + "index.html";
+            return request;
+          }
+
+          if (uri.indexOf(".") === -1) {
+            request.uri = uri + "/index.html";
+          }
+
+          return request;
+        }
+
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -125,6 +150,9 @@ Resources:
         DefaultCacheBehavior:
           TargetOriginId: SiteBucketOrigin
           ViewerProtocolPolicy: redirect-to-https
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt RouteRewriteFunction.FunctionARN
           AllowedMethods:
             - GET
             - HEAD

@@ -89,6 +89,21 @@ Runs on every push to `main`:
 
 Created automatically by the CloudFormation stack — see **Deploy IAM user permissions** above. No manual policy attachment needed.
 
+If you use a separate workstation IAM user (for example, `ZaparooUploader`) and want `npm run deploy` to invalidate CloudFront too, attach an identity policy that includes `cloudfront:CreateInvalidation`.
+
+Example policy JSON:
+
+`infrastructure/policies/zaparoo-uploader-policy.json`
+
+Apply it with AWS CLI:
+
+```bash
+aws iam put-user-policy \
+  --user-name ZaparooUploader \
+  --policy-name ZaparooUploaderInline \
+  --policy-document file://infrastructure/policies/zaparoo-uploader-policy.json
+```
+
 ## Local commands
 
 ```bash

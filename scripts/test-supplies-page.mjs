@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser smoke test for the /supplies page.
+ * Browser smoke test for the /supplies.html page.
  * Run: node scripts/test-supplies-page.mjs
  * Requires: static server running (see npm run verify)
  */
@@ -20,7 +20,7 @@ async function main() {
   });
 
   try {
-    await page.goto(`${BASE}/supplies/`, { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto(`${BASE}/supplies.html`, { waitUntil: "networkidle", timeout: 15000 });
 
     const title = await page.title();
     if (!title.includes("Supplies")) {
@@ -48,7 +48,7 @@ async function main() {
     console.log("✓ NFC Card Designer link navigates home");
 
     await page.locator(".header__link", { hasText: "Supplies" }).click();
-    await page.waitForURL(/\/supplies\/?$/, { timeout: 5000 });
+    await page.waitForURL(/\/supplies\.html$/, { timeout: 5000 });
     console.log("✓ Navigation from designer to supplies works");
 
     if (errors.length) {

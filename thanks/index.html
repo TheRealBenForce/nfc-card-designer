@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanks · NFC Card Designer</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon-gamepad.svg" />
+    <link rel="alternate icon" href="/assets/images/favicon-gamepad.svg" />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <style>
+      .thanks {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+
+      .thanks__title {
+        margin: 0 0 0.75rem;
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+      }
+
+      .thanks__copy {
+        margin: 0 0 1.25rem;
+        color: var(--text-muted);
+      }
+
+      .thanks__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <nav class="header__nav" aria-label="Site">
+        <h1 class="header__title">
+          <a class="header__brand" href="../">NFC Card Designer</a>
+        </h1>
+        <a class="header__link" href="../supplies/">Supplies</a>
+        <a class="header__link" href="../recognition/">Recognition</a>
+      </nav>
+    </header>
+
+    <main class="thanks">
+      <h1 class="thanks__title">Thanks for supporting the project!</h1>
+      <p class="thanks__copy">
+        Your support helps keep the NFC Card Designer and supporting resources available to the Zaparoo community.
+      </p>
+      <p class="thanks__copy">
+        You can return to the app to design more labels, or browse supplies if you still need materials.
+      </p>
+      <div class="thanks__actions">
+        <a class="btn btn--primary btn--inline" href="../">Back to designer</a>
+        <a class="btn btn--secondary btn--inline" href="../supplies/">View supplies</a>
+      </div>
+    </main>
+  </body>
+</html>

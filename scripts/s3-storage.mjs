@@ -19,8 +19,22 @@ let client = null;
  * @returns {number | undefined}
  */
 function awsStatusCode(err) {
-  if (!err || typeof err !== "object" || !("$metadata" in err)) return undefined;
-  return /** @type {{ $metadata?: { httpStatusCode?: number } }} */ (err).$metadata?.httpStatusCode;
+  if (!err || typeof err !== "object") return undefined;
+
+  if ("$metadata" in err) {
+    const metadataStatus = /** @type {{ $metadata?: { httpStatusCode?: number } }} */ (err).$metadata
+      ?.httpStatusCode;
+    if (typeof metadataStatus === "number") return metadataStatus;
+  }
+
+  if ("$response" in err) {
+    const responseStatus = /** @type {{ $response?: { statusCode?: number } }} */ (err).$response
+      ?.statusCode;
+    if (typeof responseStatus === "number") return responseStatus;
+  }
+
+  if ("statusCode" in err && typeof err.statusCode === "number") return err.statusCode;
+  return undefined;
 }
 
 /**
@@ -28,8 +42,16 @@ function awsStatusCode(err) {
  * @returns {string | undefined}
  */
 function awsRequestId(err) {
-  if (!err || typeof err !== "object" || !("$metadata" in err)) return undefined;
-  return /** @type {{ $metadata?: { requestId?: string } }} */ (err).$metadata?.requestId;
+  if (!err || typeof err !== "object") return undefined;
+
+  if ("$metadata" in err) {
+    const metadataRequestId = /** @type {{ $metadata?: { requestId?: string } }} */ (err).$metadata
+      ?.requestId;
+    if (metadataRequestId) return metadataRequestId;
+  }
+
+  const headers = awsResponseHeaders(err);
+  return headers?.["x-amz-request-id"];
 }
 
 /**
@@ -54,6 +76,23 @@ function awsErrorName(err) {
 }
 
 /**
+ * @param {unknown} err
+ * @returns {Record<string, string> | undefined}
+ */
+function awsResponseHeaders(err) {
+  if (!err || typeof err !== "object" || !("$response" in err)) return undefined;
+  const headers = /** @type {{ $response?: { headers?: Record<string, string> } }} */ (err).$response
+    ?.headers;
+  if (!headers) return undefined;
+  /** @type {Record<string, string>} */
+  const normalized = {};
+  for (const [key, value] of Object.entries(headers)) {
+    normalized[key.toLowerCase()] = value;
+  }
+  return normalized;
+}
+
+/**
  * @returns {string}
  */
 function awsEnvSummary() {
@@ -75,6 +114,9 @@ export function formatAwsError(err, context) {
   const requestId = awsRequestId(err);
   const code = awsErrorCode(err);
   const name = awsErrorName(err) || "Error";
+  const headers = awsResponseHeaders(err);
+  const bucketRegion = headers?.["x-amz-bucket-region"];
+  const extendedRequestId = headers?.["x-amz-id-2"];
   const message =
     err && typeof err === "object" && "message" in err && typeof err.message === "string"
       ? err.message
@@ -86,6 +128,8 @@ export function formatAwsError(err, context) {
   if (code && code !== name) details.push(`code=${code}`);
   if (status) details.push(`status=${status}`);
   if (requestId) details.push(`requestId=${requestId}`);
+  if (extendedRequestId) details.push(`extendedRequestId=${extendedRequestId}`);
+  if (bucketRegion) details.push(`bucketRegion=${bucketRegion}`);
 
   /** @type {string[]} */
   const hints = [];
@@ -104,11 +148,23 @@ export function formatAwsError(err, context) {
   ) {
     hints.push("Check AWS_REGION matches the bucket's region.");
   }
+  if (bucketRegion) {
+    hints.push(`S3 reports bucket region "${bucketRegion}" — set AWS_REGION=${bucketRegion}.`);
+  }
   if (status === 403 || name === "AccessDenied" || code === "AccessDenied") {
     hints.push("Check IAM permissions include s3:ListBucket, s3:GetObject, and s3:PutObject.");
   }
   if (status === 404 || name === "NoSuchBucket" || code === "NoSuchBucket") {
     hints.push("Check S3_BUCKET exists and is spelled correctly.");
+  }
+  if (
+    name === "Unknown" &&
+    message === "UnknownError" &&
+    context.startsWith("Failed to check S3 object")
+  ) {
+    hints.push(
+      "This came from S3 HeadObject; S3 often omits a body for HEAD errors. Use the status/hints above to diagnose region or permission mismatches.",
+    );
   }
 
   const lines = [headline];

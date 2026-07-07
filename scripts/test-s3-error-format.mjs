@@ -39,6 +39,37 @@ try {
     throw new Error("Expected env summary in formatted AWS error");
   }
 
+  const unknownHeadErr =
+    /** @type {Error & { $response?: { statusCode?: number; headers?: Record<string, string> } }} */ (
+      new Error("UnknownError")
+    );
+  unknownHeadErr.name = "Unknown";
+  unknownHeadErr.$response = {
+    statusCode: 301,
+    headers: {
+      "x-amz-bucket-region": "us-west-2",
+      "x-amz-request-id": "req-456",
+      "x-amz-id-2": "ext-789",
+    },
+  };
+
+  const unknownMessage = formatAwsError(
+    unknownHeadErr,
+    "Failed to check S3 object s3://example-bucket/bar.png",
+  );
+  if (!unknownMessage.includes("status=301")) {
+    throw new Error("Expected fallback response status in unknown HEAD error");
+  }
+  if (!unknownMessage.includes("bucketRegion=us-west-2")) {
+    throw new Error("Expected bucket region detail in unknown HEAD error");
+  }
+  if (!unknownMessage.includes("set AWS_REGION=us-west-2")) {
+    throw new Error("Expected explicit AWS_REGION hint from bucket-region header");
+  }
+  if (!unknownMessage.includes("S3 often omits a body for HEAD errors")) {
+    throw new Error("Expected explanatory hint for UnknownError from HeadObject");
+  }
+
   console.log("✓ formatAwsError includes AWS details and setup hints");
 } finally {
   if (originalEnv.AWS_REGION === undefined) delete process.env.AWS_REGION;

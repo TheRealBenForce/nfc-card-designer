@@ -10,6 +10,7 @@ Creates:
 - **ACM certificate** with DNS validation in your Route53 hosted zone
 - **CloudFront distribution** with HTTPS
 - **Route53 A + AAAA** alias records pointing at CloudFront
+- **IAM deploy user** with scoped S3 + CloudFront invalidation permissions (optional access key)
 
 ### Deploy the stack
 
@@ -30,10 +31,41 @@ Replace `HostedZoneId` with your Route53 zone ID for `therealbenforce.com`.
 
 After deploy, note the outputs:
 
-- `BucketName` → GitHub secret / `S3_BUCKET`
+- `BucketName` → `S3_BUCKET` in `.env` / GitHub (workflow sets this automatically)
 - `DistributionId` → GitHub secret `CLOUDFRONT_DISTRIBUTION_ID`
+- `DeployUserAccessKeyId` → GitHub secret `AWS_ACCESS_KEY_ID`
+- `DeployUserSecretAccessKey` → GitHub secret `AWS_SECRET_ACCESS_KEY` (**copy immediately** — only shown at stack create)
+
+### Update an existing stack
+
+If you already deployed the stack before the deploy user was added:
+
+```bash
+aws cloudformation deploy \
+  --region us-east-1 \
+  --stack-name zaparoo-nfc-card-designer \
+  --template-file infrastructure/cloudformation.yaml \
+  --parameter-overrides \
+    DomainName=zaparoo.therealbenforce.com \
+    HostedZoneId=Z0123456789ABCDEFGHIJ \
+  --capabilities CAPABILITY_IAM
+```
+
+Then open **CloudFormation → Stacks → Outputs** and copy the new access key values.
 
 ACM DNS validation records are created automatically when `HostedZoneId` is supplied.
+
+### Deploy IAM user permissions
+
+The `zaparoo-github-deploy` user (name configurable via `DeployUserName`) can:
+
+| Action | Purpose |
+|--------|---------|
+| `s3:ListBucket` | `aws s3 sync` and `HeadObject` prefix listing |
+| `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` | Site deploy + `fetch-images` uploads |
+| `cloudfront:CreateInvalidation` | Bust cache after deploy |
+
+Permissions are scoped to this stack's bucket and CloudFront distribution only.
 
 ## GitHub Actions
 
@@ -47,16 +79,15 @@ Runs on every push to `main`:
 
 ### Required repository secrets
 
-| Secret | Purpose |
-|--------|---------|
-| `AWS_ACCESS_KEY_ID` | Deploy IAM user |
-| `AWS_SECRET_ACCESS_KEY` | Deploy IAM user |
-| `CLOUDFRONT_DISTRIBUTION_ID` | Cache invalidation after deploy |
+| Secret | Source |
+|--------|--------|
+| `AWS_ACCESS_KEY_ID` | Stack output `DeployUserAccessKeyId` |
+| `AWS_SECRET_ACCESS_KEY` | Stack output `DeployUserSecretAccessKey` |
+| `CLOUDFRONT_DISTRIBUTION_ID` | Stack output `DistributionId` |
 
-### IAM permissions (minimum)
+### IAM permissions
 
-- `s3:ListBucket`, `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` on the site bucket
-- `cloudfront:CreateInvalidation` on the distribution
+Created automatically by the CloudFormation stack — see **Deploy IAM user permissions** above. No manual policy attachment needed.
 
 ## Local commands
 

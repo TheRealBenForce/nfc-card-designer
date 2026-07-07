@@ -11,6 +11,20 @@ Parameters:
   HostedZoneId:
     Type: String
     Description: Route53 hosted zone ID for the parent domain (e.g. therealbenforce.com)
+  DeployUserName:
+    Type: String
+    Default: zaparoo-github-deploy
+    Description: IAM user for GitHub Actions deploy and workstation fetch-images uploads
+  CreateDeployAccessKey:
+    Type: String
+    Default: "true"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: Create an access key for the deploy user (secret shown once in stack outputs)
+
+Conditions:
+  CreateDeployAccessKey: !Equals [!Ref CreateDeployAccessKey, "true"]
 
 Resources:
   SiteBucket:
@@ -121,6 +135,49 @@ Resources:
         DNSName: !GetAtt CloudFrontDistribution.DomainName
         HostedZoneId: Z2FDTNDATAQYW2
 
+  DeployUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref DeployUserName
+      Tags:
+        - Key: Project
+          Value: nfc-card-designer
+        - Key: Purpose
+          Value: github-actions-deploy
+
+  DeployUserPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-site-deploy"
+      Users:
+        - !Ref DeployUser
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ListSiteBucket
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource: !GetAtt SiteBucket.Arn
+          - Sid: ReadWriteSiteObjects
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+          - Sid: InvalidateCloudFront
+            Effect: Allow
+            Action:
+              - cloudfront:CreateInvalidation
+            Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+  DeployUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Condition: CreateDeployAccessKey
+    Properties:
+      UserName: !Ref DeployUser
+
 Outputs:
   BucketName:
     Description: S3 bucket for site assets and game images
@@ -141,3 +198,14 @@ Outputs:
   CertificateArn:
     Description: ACM certificate ARN
     Value: !Ref SiteCertificate
+  DeployUserName:
+    Description: IAM user for GitHub Actions and workstation S3 uploads
+    Value: !Ref DeployUser
+  DeployUserAccessKeyId:
+    Condition: CreateDeployAccessKey
+    Description: Access key ID for GitHub secret AWS_ACCESS_KEY_ID
+    Value: !Ref DeployUserAccessKey
+  DeployUserSecretAccessKey:
+    Condition: CreateDeployAccessKey
+    Description: Secret access key for GitHub secret AWS_SECRET_ACCESS_KEY (copy now — shown once)
+    Value: !GetAtt DeployUserAccessKey.SecretAccessKey

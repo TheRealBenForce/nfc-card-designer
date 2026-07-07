@@ -41,8 +41,9 @@ Workflow: `.github/workflows/deploy.yml`
 
 Runs on every push to `main`:
 
-1. `npm run fetch-images` — downloads missing libretro thumbnails and uploads to S3 (skips existing objects)
-2. `npm run deploy` — `aws s3 sync` site files + CloudFront invalidation
+1. `node scripts/deploy.mjs` — `aws s3 sync` site files + CloudFront invalidation
+
+**Game images are not fetched in CI.** Run `npm run fetch-images` from your workstation when you need to upload thumbnails to S3.
 
 ### Required repository secrets
 

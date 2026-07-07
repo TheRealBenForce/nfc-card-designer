@@ -108,7 +108,9 @@ Infrastructure template: [`infrastructure/cloudformation.yaml`](infrastructure/c
 
 1. Deploy the CloudFormation stack in **us-east-1** (see [`infrastructure/README.md`](infrastructure/README.md)).
 2. Add GitHub repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFRONT_DISTRIBUTION_ID`.
-3. Push to `main` — `.github/workflows/deploy.yml` runs `fetch-images` then `deploy` automatically.
+3. Push to `main` — `.github/workflows/deploy.yml` syncs the site to S3 automatically.
+
+Run `fetch-images` from your workstation when you need new artwork uploaded to S3 (not in CI).
 
 Live site: https://zaparoo.therealbenforce.com
 

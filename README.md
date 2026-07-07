@@ -59,7 +59,18 @@ npm run fetch-images       # download missing thumbnails → upload to S3
 npm run deploy             # sync site files to S3 + CloudFront invalidation
 ```
 
-Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.
+Set AWS credentials in `.env` (see `.env.example`). Scripts load `.env` automatically (merge PR #9 or pull `cursor/auto-load-env-51f3`). Existing images are skipped on both disk and S3 unless you pass `--force`.
+
+**Windows:** you do not need `export` or `source`. Just create `.env` in the project root and run `npm run fetch-images`. If you are on an older checkout without auto-load, use PowerShell:
+
+```powershell
+Get-Content .env | ForEach-Object {
+  if ($_ -match '^\s*#' -or $_ -match '^\s*$') { return }
+  $i = $_.IndexOf('='); if ($i -lt 1) { return }
+  Set-Item -Path ("env:" + $_.Substring(0, $i).Trim()) -Value $_.Substring($i + 1).Trim()
+}
+npm run fetch-images
+```
 
 ```bash
 npm run fetch-images -- --local-only   # dev: save to assets/images/ only, no S3

@@ -4,9 +4,9 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 
 ## Features
 
-- **12 retro platforms** — Atari 2600 through PlayStation, plus Neo Geo and Arcade
+- **17 retro platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine, Neo Geo, and Arcade
 - **Game search** — type **3+ letters**, pick a game, **browse artwork types** in preview, then add to collection
-- **Libretro thumbnails** — box art, title screens, and in-game snapshots (bundled locally)
+- **Libretro thumbnails** — box art, title screens, and in-game snapshots (hosted on S3, not in git)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
 - **Persistence** — `localStorage` plus export/import JSON (settings and all cards)
@@ -49,33 +49,32 @@ npm run verify   # run before merging changes (tests + smoke checks)
 
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
-## Artwork setup (libretro thumbnails)
+## Artwork setup (libretro thumbnails → S3)
 
-The live site does not fetch images at runtime. Download thumbnails once on your machine from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) and commit them to the repo.
+Game images are **not stored in git**. `fetch-images` downloads missing thumbnails from the [libretro CDN](https://thumbnails.libretro.com/) and uploads them to your S3 bucket (`zaparoo.therealbenforce.com`).
 
 ```bash
-npm run fetch-game-list    # full retail catalogs per platform → games.js + JSON
-npm run export-games-json  # rebuild retail-only JSON from existing games.js
-npm run fetch-images       # download thumbnails + scan-images
-npm start                  # runs scan-images automatically, then serves the app
+npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
+npm run fetch-images       # download missing thumbnails → upload to S3
+npm run deploy             # sync site files to S3 + CloudFront invalidation
 ```
 
-Game catalogs still come from the RetroAchievements API (`fetch-game-list`). Only artwork is sourced from libretro thumbnails.
+Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.
 
-For `fetch-game-list`, copy `.env.example` to `.env` and add your RetroAchievements Web API key:
+```bash
+npm run fetch-images -- --local-only   # dev: save to assets/images/ only, no S3
+```
+
+Game catalogs come from RetroAchievements for most platforms; **DOS** uses libretro thumbnail listings (RA does not support DOS).
+
+For `fetch-game-list`, add your RetroAchievements Web API key:
 
 ```bash
 cp .env.example .env
 npm run test-ra-auth
 ```
 
-`npm start` and `npm run fetch-images` both refresh `assets/data/image-availability.json` from files on disk. You can also run `npm run scan-images` on its own after copying images manually.
-
-```bash
-npm run scan-images
-```
-
-Images are stored as:
+Images are stored in S3 at:
 
 ```
 assets/images/platforms/<platformId>/games/<raGameId>/boxArt.png
@@ -83,33 +82,35 @@ assets/images/platforms/<platformId>/games/<raGameId>/titleScreen.png
 assets/images/platforms/<platformId>/games/<raGameId>/gamePicture.png
 ```
 
+Only platforms with games in the catalog appear in the platform selector.
+
 Optional flags:
 
 ```bash
 npm run fetch-game-list -- --platform=nes
-npm run fetch-game-list -- --with-achievements   # smaller lists (games with achievements only)
-npm run fetch-game-list -- --include-non-retail  # include hacks, homebrew, demos, etc.
+npm run fetch-game-list -- --with-achievements
+npm run fetch-game-list -- --include-non-retail
 npm run fetch-images -- --platform=genesis
-npm run fetch-images -- --force                  # re-download existing files (default skips them)
+npm run fetch-images -- --force
 ```
-
-By default, `fetch-game-list` keeps **retail releases only** and excludes RetroAchievements entries tagged as `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, deprecated `~Z~` pages, and `[Subset - …]` entries.
 
 ### API key
 
 Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
 
-Add to `.env` in the project root (save as **UTF-8** if you use Notepad on Windows):
-
 ```env
 RETROACHIEVEMENTS_API_KEY=your_key_here
 ```
 
-## Deploy to GitHub Pages
+## Deploy to AWS (S3 + CloudFront)
 
-1. Push to GitHub (including `assets/images/platforms/` if you fetched artwork).
-2. **Settings → Pages** → Source: `main` branch, `/ (root)` folder.
-3. Site publishes at `https://<username>.github.io/<repository>/`.
+Infrastructure template: [`infrastructure/cloudformation.yaml`](infrastructure/cloudformation.yaml)
+
+1. Deploy the CloudFormation stack in **us-east-1** (see [`infrastructure/README.md`](infrastructure/README.md)).
+2. Add GitHub repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFRONT_DISTRIBUTION_ID`.
+3. Push to `main` — `.github/workflows/deploy.yml` runs `fetch-images` then `deploy` automatically.
+
+Live site: https://zaparoo.therealbenforce.com
 
 ## Card layout
 

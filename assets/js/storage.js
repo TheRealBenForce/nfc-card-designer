@@ -7,13 +7,13 @@ import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
 } from "./platformDefaults.js";
-import { platforms } from "./data/platforms.js";
+import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
-    selectedPlatformId: platforms[0].id,
+    selectedPlatformId: firstPlatformWithCatalogGames(),
   };
 }
 

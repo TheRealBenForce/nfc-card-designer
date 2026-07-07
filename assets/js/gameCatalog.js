@@ -1,4 +1,5 @@
 import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
+import { platforms } from "./data/platforms.js";
 import { isRetailRelease } from "./retailFilter.js";
 import { isSearchable, searchableCount } from "./imageAvailability.js";
 
@@ -74,6 +75,24 @@ export function gameCountForPlatform(platformId) {
  */
 export function catalogCountForPlatform(platformId) {
   return byPlatform?.[platformId]?.length ?? 0;
+}
+
+/** Platforms that have at least one game in the catalog JSON. */
+export function platformsWithCatalogGames() {
+  return platforms.filter((platform) => catalogCountForPlatform(platform.id) > 0);
+}
+
+/** @returns {string} */
+export function firstPlatformWithCatalogGames() {
+  return platformsWithCatalogGames()[0]?.id ?? platforms[0]?.id ?? "nes";
+}
+
+/**
+ * @param {string} platformId
+ * @returns {boolean}
+ */
+export function platformHasCatalogGames(platformId) {
+  return catalogCountForPlatform(platformId) > 0;
 }
 
 /**

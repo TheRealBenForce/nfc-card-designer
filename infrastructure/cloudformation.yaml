@@ -60,24 +60,28 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
-          - Sid: AllowDeployUploaderListBucket
+          - Sid: AllowAccountPrincipalsListBucket
             Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:user/${DeployUserName}"
+            Principal: "*"
             Action:
               - s3:ListBucket
               - s3:GetBucketLocation
             Resource: !GetAtt SiteBucket.Arn
-          - Sid: AllowDeployUploaderObjectReadWrite
+            Condition:
+              StringEquals:
+                aws:PrincipalAccount: !Ref AWS::AccountId
+          - Sid: AllowAccountPrincipalsObjectReadWrite
             Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:user/${DeployUserName}"
+            Principal: "*"
             Action:
               - s3:GetObject
               - s3:PutObject
               - s3:DeleteObject
               - s3:AbortMultipartUpload
             Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                aws:PrincipalAccount: !Ref AWS::AccountId
 
   SiteCertificate:
     Type: AWS::CertificateManager::Certificate

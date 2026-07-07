@@ -11,6 +11,7 @@
     "scan-images": "node scripts/export-image-availability.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
+    "deploy": "node scripts/deploy.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
@@ -18,11 +19,15 @@
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
     "test:fetch-images-skip": "node scripts/test-fetch-images-skip.mjs",
+    "test:platform-visibility": "node scripts/test-platform-visibility.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
     "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.856.0"
   },
   "devDependencies": {
     "playwright": "^1.61.1"

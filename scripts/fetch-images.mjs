@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 /**
- * Downloads libretro thumbnails into
- * assets/images/platforms/<platformId>/games/<raGameId>/ and updates games.js.
- *
- * Skips images that already exist on disk unless --force is passed.
+ * Downloads libretro thumbnails and uploads them to S3 (and optionally keeps local copies).
  */
 
 import { writeFile, mkdir } from "node:fs/promises";
@@ -18,6 +15,7 @@ import {
   existingImageTypes,
   writeImageAvailabilityJson,
 } from "./games-data.mjs";
+import { imagePresent, s3BucketFromEnv, uploadFileToS3 } from "./s3-storage.mjs";
 
 const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
 const REQUEST_DELAY_MS = 150;
@@ -27,6 +25,7 @@ function parseArgs() {
   return {
     platformId: platformArg?.split("=")[1],
     force: process.argv.includes("--force"),
+    localOnly: process.argv.includes("--local-only"),
   };
 }
 
@@ -47,8 +46,20 @@ async function downloadImage(url, destPath) {
   return true;
 }
 
+/**
+ * @param {string} platformId
+ * @param {number} raGameId
+ * @param {string} type
+ */
+function objectKeyForImage(platformId, raGameId, type) {
+  return gameImagePath(platformId, raGameId, type);
+}
+
 async function main() {
-  const { platformId, force } = parseArgs();
+  const { platformId, force, localOnly } = parseArgs();
+  const bucket = s3BucketFromEnv();
+  const uploadToS3 = Boolean(bucket) && !localOnly;
+
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const platformsPath = path.join(root, "assets/js/data/platforms.js");
   const { platforms } = await import(pathToFileURL(platformsPath).href);
@@ -72,12 +83,19 @@ async function main() {
   if (force) {
     console.log("Force mode: re-downloading even when images already exist.\n");
   } else {
-    console.log("Existing images are skipped. Pass --force to re-download.\n");
+    console.log("Existing images are skipped (local disk and S3). Pass --force to re-download.\n");
+  }
+
+  if (uploadToS3) {
+    console.log(`Upload target: s3://${bucket}/\n`);
+  } else if (!localOnly && !bucket) {
+    console.log("S3_BUCKET not set — saving images locally only.\n");
   }
 
   const stats = {
     downloaded: 0,
     skipped: 0,
+    uploaded: 0,
     failed: 0,
     gamesDone: 0,
     gamesFullySkipped: 0,
@@ -98,8 +116,20 @@ async function main() {
     const dir = gameImageDir(game.platformId, game.raGameId);
     await mkdir(dir, { recursive: true });
 
-    const alreadyPresent = await existingImageTypes(dir, IMAGE_TYPES, force);
-    const missingTypes = IMAGE_TYPES.filter((type) => !alreadyPresent.includes(type));
+    /** @type {string[]} */
+    const alreadyPresent = [];
+    /** @type {string[]} */
+    const missingTypes = [];
+
+    for (const type of IMAGE_TYPES) {
+      const destPath = path.join(dir, `${type}.png`);
+      const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
+      if (!force && (await imagePresent(destPath, objectKey))) {
+        alreadyPresent.push(type);
+      } else {
+        missingTypes.push(type);
+      }
+    }
 
     if (alreadyPresent.length > 0) {
       applyImagePaths(current, game.platformId, game.raGameId, alreadyPresent);
@@ -110,7 +140,7 @@ async function main() {
       stats.gamesFullySkipped += 1;
       stats.gamesDone += 1;
       console.log(
-        `[${stats.gamesDone}/${targets.length}] ${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} on disk)`,
+        `[${stats.gamesDone}/${targets.length}] ${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} present)`,
       );
       continue;
     }
@@ -126,6 +156,7 @@ async function main() {
 
     for (const type of missingTypes) {
       const destPath = path.join(dir, `${type}.png`);
+      const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
 
       const libretroName = await resolveLibretroFilename(
         platform.libretroPlaylist,
@@ -148,6 +179,11 @@ async function main() {
         current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
         gameDownloaded += 1;
         stats.downloaded += 1;
+
+        if (uploadToS3) {
+          const uploaded = await uploadFileToS3(destPath, objectKey);
+          if (uploaded) stats.uploaded += 1;
+        }
       } else {
         gameFailed += 1;
         stats.failed += 1;
@@ -173,8 +209,8 @@ async function main() {
   await writeImageAvailabilityJson(finalGames);
 
   console.log(
-    `\nDone. ${stats.downloaded} downloaded, ${stats.skipped} skipped, ${stats.failed} failed/missing` +
-      ` (${stats.gamesFullySkipped} games already complete)`,
+    `\nDone. ${stats.downloaded} downloaded, ${stats.uploaded} uploaded, ${stats.skipped} skipped, ` +
+      `${stats.failed} failed/missing (${stats.gamesFullySkipped} games already complete)`,
   );
   console.log(`Updated ${gamesPath}`);
   console.log("Updated assets/data/image-availability.json");

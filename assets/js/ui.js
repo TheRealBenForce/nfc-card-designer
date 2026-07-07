@@ -6,6 +6,8 @@ import {
   pickGameFromCatalog,
   gameCountForPlatform,
   catalogCountForPlatform,
+  platformsWithCatalogGames,
+  platformHasCatalogGames,
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
@@ -209,7 +211,8 @@ function renderPlatformResults() {
   const settings = getSettings();
   platformResultsEl.innerHTML = "";
 
-  platforms.forEach((platform) => {
+  const visiblePlatforms = platformsWithCatalogGames();
+  visiblePlatforms.forEach((platform) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "list-item";
@@ -279,8 +282,17 @@ function selectPlatform(platformId) {
 
 function syncPlatformControls() {
   const settings = getSettings();
-  const platform = platformById[settings.selectedPlatformId];
-  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  if (!platformHasCatalogGames(settings.selectedPlatformId)) {
+    const fallback = platformsWithCatalogGames()[0];
+    if (fallback && fallback.id !== settings.selectedPlatformId) {
+      updateSettings({ selectedPlatformId: fallback.id });
+      saveSettings(getSettings());
+    }
+  }
+
+  const currentSettings = getSettings();
+  const platform = platformById[currentSettings.selectedPlatformId];
+  const platformDefaults = currentSettings.platformDefaults[currentSettings.selectedPlatformId];
 
   if (platformColorInput && platform && platformDefaults) {
     platformColorInput.value = platformDefaults.color;

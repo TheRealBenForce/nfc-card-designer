@@ -62,10 +62,14 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 
 ## Adding a platform
 
-1. Add entry to `assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `raConsoleId`, `libretroPlaylist`, optional `searchAliases`).
-2. `npm run fetch-game-list -- --platform=<id>`
-3. `npm run fetch-images -- --platform=<id>`
-4. Commit `games.js`, `games-by-platform.json`, `image-availability.json`, and downloaded images.
+1. Add entry to `assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `raConsoleId` or `catalogSource: "libretro"`, optional `searchAliases`).
+2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
+3. `npm run fetch-platform-icons`
+4. `npm run fetch-game-list -- --platform=<id>`
+5. `npm run fetch-images -- --platform=<id>`
+6. Commit `games.js`, `games-by-platform.json`, `image-availability.json`, and platform icons (not game PNGs — those live in S3).
+
+Platforms with **zero catalog games** are hidden from the platform selector automatically.
 
 ## Settings & export format
 
@@ -80,9 +84,9 @@ Preview still lets users switch artwork types; the platform priority picks which
 
 ## Artwork source
 
-Game catalogs still come from the RetroAchievements API (`fetch-game-list`). Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images`.
+Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images` and uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
 
-Each platform maps to a libretro playlist folder via `libretroPlaylist` in `platforms.js`. `fetch-images` resolves thumbnail filenames by probing common region suffixes, then falls back to directory listing prefix matching. The resolved basename is stored as `libretroName` on each game in `games.js`. **Re-runs skip images that already exist on disk** (non-empty PNGs); pass `--force` to re-download.
+`fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation; deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
 
 Image types map to libretro folders:
 
@@ -100,12 +104,14 @@ Pass `--include-non-retail` to opt out.
 
 ## GitHub Pages deploy checklist
 
+Replaced by AWS deploy — see `infrastructure/README.md` and `.github/workflows/deploy.yml`.
+
 Commit to `main`:
 
-- [ ] `index.html`, `assets/` (JS, CSS, data JSON)
-- [ ] `assets/data/games-by-platform.json` (full catalog if you ran `fetch-game-list`)
-- [ ] `assets/data/image-availability.json` (from `scan-images` — required for search on Pages)
-- [ ] `assets/images/platforms/` (if you want artwork on the live site)
+- [ ] `index.html`, `assets/` (JS, CSS, data JSON, platform icons)
+- [ ] `assets/data/games-by-platform.json`
+- [ ] `assets/data/image-availability.json`
+- [ ] Game PNGs are uploaded to S3 by CI (`fetch-images`), not committed to git
 
 `.env` is gitignored. The live site never calls the RA API.
 

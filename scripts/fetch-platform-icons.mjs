@@ -23,6 +23,10 @@ const PLATFORM_CARBON_FOLDERS = {
   "game-boy-color": "gbc",
   snes: "snes",
   genesis: "genesis",
+  "sega-cd": "segacd",
+  "sega-32x": "sega32x",
+  "turbo-grafx": "tg16",
+  "pc-engine-cd": "pce-cd",
   saturn: "saturn",
   n64: "n64",
   "neo-geo": "neogeo",
@@ -30,12 +34,17 @@ const PLATFORM_CARBON_FOLDERS = {
   arcade: "arcade",
 };
 
+const DOS_PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DOS">
+  <rect width="64" height="64" rx="8" fill="#1b4f9c"/>
+  <text x="32" y="40" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#c0c0c0">DOS</text>
+</svg>`;
+
 async function main() {
   for (const [platformId, carbonFolder] of Object.entries(PLATFORM_CARBON_FOLDERS)) {
-    const url = `${CARBON_BASE}/${carbonFolder}/art/system.svg`;
     const destDir = path.join(root, "assets/images/platforms", platformId);
     const destFile = path.join(destDir, "icon.svg");
 
+    const url = `${CARBON_BASE}/${carbonFolder}/art/system.svg`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
@@ -47,7 +56,12 @@ async function main() {
     console.log(`✓ ${platformId} ← ${carbonFolder}/art/system.svg`);
   }
 
-  console.log(`\nDownloaded ${Object.keys(PLATFORM_CARBON_FOLDERS).length} platform icons.`);
+  const dosDir = path.join(root, "assets/images/platforms", "dos");
+  await mkdir(dosDir, { recursive: true });
+  await writeFile(path.join(dosDir, "icon.svg"), DOS_PLACEHOLDER_SVG, "utf8");
+  console.log("✓ dos ← bundled placeholder SVG");
+
+  console.log(`\nDownloaded ${Object.keys(PLATFORM_CARBON_FOLDERS).length + 1} platform icons.`);
 }
 
 main().catch((err) => {

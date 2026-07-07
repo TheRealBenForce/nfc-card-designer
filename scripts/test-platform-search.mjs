@@ -30,10 +30,10 @@ async function main() {
     await page.locator("summary", { hasText: "Platform Settings" }).click();
 
     const initialCount = await countPlatformItems(page);
-    if (initialCount !== 12) {
-      throw new Error(`Expected 12 platforms in browse list, got ${initialCount}`);
+    if (initialCount < 1) {
+      throw new Error(`Expected at least one platform in browse list, got ${initialCount}`);
     }
-    console.log("✓ Shows all 12 platforms to browse");
+    console.log(`✓ Shows ${initialCount} platforms with catalog games`);
 
     await page.getByRole("button", { name: "NES", exact: true }).click();
     const nesSelected = await page.locator("#platform-results .list-item--selected").textContent();

@@ -10,6 +10,7 @@ import { existsSync } from "node:fs";
 import { getGameList, delay } from "./ra-api.mjs";
 import { gamesPath, writeGamesJs } from "./games-data.mjs";
 import { isRetailRelease } from "./game-filters.mjs";
+import { fetchLibretroGameCatalog } from "./libretro-catalog.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const platformsPath = path.join(root, "assets/js/data/platforms.js");
@@ -54,6 +55,19 @@ async function main() {
 
     process.stdout.write(`Fetching game list for ${platform.name}… `);
     try {
+      if (platform.catalogSource === "libretro") {
+        const catalog = await fetchLibretroGameCatalog(platform, { retailOnly });
+        games.push(...catalog);
+        console.log(`${catalog.length} retail games (libretro thumbnails)`);
+        await delay(300);
+        continue;
+      }
+
+      if (!platform.raConsoleId) {
+        console.log("skipped (no catalog source configured)");
+        continue;
+      }
+
       const list = await getGameList(platform.raConsoleId, { onlyWithAchievements });
       if (!Array.isArray(list)) {
         console.log("failed (unexpected response)");

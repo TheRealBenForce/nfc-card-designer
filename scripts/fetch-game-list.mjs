@@ -4,6 +4,7 @@
  * writes assets/js/data/games.js (images populated later by fetch-images from libretro).
  */
 
+import "./load-env.mjs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { existsSync } from "node:fs";

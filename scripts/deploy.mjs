@@ -3,6 +3,7 @@
  * Deploy the static site to S3 and invalidate CloudFront.
  */
 
+import "./load-env.mjs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

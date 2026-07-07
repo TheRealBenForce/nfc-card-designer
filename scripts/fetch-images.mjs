@@ -3,6 +3,7 @@
  * Downloads libretro thumbnails and uploads them to S3 (and optionally keeps local copies).
  */
 
+import "./load-env.mjs";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

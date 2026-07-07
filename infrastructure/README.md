@@ -93,7 +93,7 @@ Created automatically by the CloudFormation stack — see **Deploy IAM user perm
 
 ```bash
 cp .env.example .env
-# fill AWS_* and S3_BUCKET
+# fill AWS_* and S3_BUCKET — npm scripts load .env automatically
 
 npm run fetch-images          # download + upload missing images to S3
 npm run fetch-images -- --local-only   # disk only, no S3

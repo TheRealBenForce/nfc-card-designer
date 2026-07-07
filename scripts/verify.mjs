@@ -66,6 +66,9 @@ async function main() {
   console.log("→ Libretro thumbnails…");
   await run("node", ["scripts/test-libretro-thumbnails.mjs"]);
 
+  console.log("→ S3 error formatting…");
+  await run("node", ["scripts/test-s3-error-format.mjs"]);
+
   console.log("→ Fetch-images skip logic…");
   await run("node", ["scripts/test-fetch-images-skip.mjs"]);
 

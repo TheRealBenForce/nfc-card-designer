@@ -87,6 +87,30 @@ export async function uploadFileToS3(localPath, objectKey) {
 }
 
 /**
+ * @param {Buffer} body
+ * @param {string} objectKey
+ */
+export async function uploadBufferToS3(body, objectKey) {
+  const bucket = s3BucketFromEnv();
+  if (!bucket) return false;
+
+  const key = objectKey.replace(/^\/+/, "");
+  const ext = path.extname(key).toLowerCase();
+  const contentType = contentTypeForExtension(ext);
+
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      CacheControl: ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable",
+    }),
+  );
+  return true;
+}
+
+/**
  * @param {string} ext
  */
 function contentTypeForExtension(ext) {
@@ -123,12 +147,15 @@ export async function localFilePresent(localPath) {
 /**
  * @param {string} localPath
  * @param {string} objectKey
- * @param {{ force?: boolean }} [options]
+ * @param {{ force?: boolean, checkLocal?: boolean, checkRemote?: boolean }} [options]
  */
 export async function imagePresent(localPath, objectKey, options = {}) {
+  const checkLocal = options.checkLocal !== false;
+  const checkRemote = options.checkRemote !== false;
+
   if (!options.force) {
-    if (await localFilePresent(localPath)) return true;
-    if (await s3ObjectExists(objectKey)) return true;
+    if (checkLocal && (await localFilePresent(localPath))) return true;
+    if (checkRemote && (await s3ObjectExists(objectKey))) return true;
   }
   return false;
 }

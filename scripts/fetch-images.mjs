@@ -15,7 +15,7 @@ import {
   existingImageTypes,
   writeImageAvailabilityJson,
 } from "./games-data.mjs";
-import { imagePresent, s3BucketFromEnv, uploadFileToS3 } from "./s3-storage.mjs";
+import { imagePresent, s3BucketFromEnv, uploadBufferToS3, uploadFileToS3 } from "./s3-storage.mjs";
 
 const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
 const REQUEST_DELAY_MS = 150;
@@ -26,6 +26,7 @@ function parseArgs() {
     platformId: platformArg?.split("=")[1],
     force: process.argv.includes("--force"),
     localOnly: process.argv.includes("--local-only"),
+    s3Only: process.argv.includes("--s3-only"),
   };
 }
 
@@ -39,11 +40,10 @@ function applyImagePaths(game, platformId, raGameId, types = IMAGE_TYPES) {
   }
 }
 
-async function downloadImage(url, destPath) {
+async function downloadImageBuffer(url) {
   const res = await fetch(url, { headers: { "User-Agent": "nfc-card-designer/1.0" } });
-  if (!res.ok) return false;
-  await writeFile(destPath, Buffer.from(await res.arrayBuffer()));
-  return true;
+  if (!res.ok) return null;
+  return Buffer.from(await res.arrayBuffer());
 }
 
 /**
@@ -56,9 +56,18 @@ function objectKeyForImage(platformId, raGameId, type) {
 }
 
 async function main() {
-  const { platformId, force, localOnly } = parseArgs();
+  const { platformId, force, localOnly, s3Only } = parseArgs();
+  if (localOnly && s3Only) {
+    throw new Error("Choose either --local-only or --s3-only, not both.");
+  }
+
   const bucket = s3BucketFromEnv();
   const uploadToS3 = Boolean(bucket) && !localOnly;
+  const keepLocal = !s3Only;
+
+  if (s3Only && !bucket) {
+    throw new Error("S3_BUCKET is required when using --s3-only.");
+  }
 
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const platformsPath = path.join(root, "assets/js/data/platforms.js");
@@ -83,11 +92,20 @@ async function main() {
   if (force) {
     console.log("Force mode: re-downloading even when images already exist.\n");
   } else {
-    console.log("Existing images are skipped (local disk and S3). Pass --force to re-download.\n");
+    if (s3Only) {
+      console.log("Existing images are skipped using S3 only. Pass --force to re-download.\n");
+    } else if (localOnly) {
+      console.log("Existing images are skipped using local disk only. Pass --force to re-download.\n");
+    } else {
+      console.log("Existing images are skipped (local disk and S3). Pass --force to re-download.\n");
+    }
   }
 
   if (uploadToS3) {
     console.log(`Upload target: s3://${bucket}/\n`);
+    if (s3Only) {
+      console.log("S3-only mode: downloaded images are uploaded to S3 and not saved locally.\n");
+    }
   } else if (!localOnly && !bucket) {
     console.log("S3_BUCKET not set — saving images locally only.\n");
   }
@@ -114,7 +132,9 @@ async function main() {
     }
 
     const dir = gameImageDir(game.platformId, game.raGameId);
-    await mkdir(dir, { recursive: true });
+    if (keepLocal) {
+      await mkdir(dir, { recursive: true });
+    }
 
     /** @type {string[]} */
     const alreadyPresent = [];
@@ -124,7 +144,7 @@ async function main() {
     for (const type of IMAGE_TYPES) {
       const destPath = path.join(dir, `${type}.png`);
       const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
-      if (!force && (await imagePresent(destPath, objectKey))) {
+      if (!force && (await imagePresent(destPath, objectKey, { checkLocal: keepLocal, checkRemote: uploadToS3 }))) {
         alreadyPresent.push(type);
       } else {
         missingTypes.push(type);
@@ -174,14 +194,20 @@ async function main() {
       if (!resolvedLibretroName) resolvedLibretroName = libretroName;
 
       const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
-      const ok = await downloadImage(url, destPath);
-      if (ok) {
+      const imageBuffer = await downloadImageBuffer(url);
+      if (imageBuffer) {
+        if (keepLocal) {
+          await writeFile(destPath, imageBuffer);
+        }
+
         current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
         gameDownloaded += 1;
         stats.downloaded += 1;
 
         if (uploadToS3) {
-          const uploaded = await uploadFileToS3(destPath, objectKey);
+          const uploaded = keepLocal
+            ? await uploadFileToS3(destPath, objectKey)
+            : await uploadBufferToS3(imageBuffer, objectKey);
           if (uploaded) stats.uploaded += 1;
         }
       } else {

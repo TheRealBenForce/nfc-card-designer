@@ -11,7 +11,7 @@ import {
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
-import { IMAGE_TYPES } from "./config.js";
+import { IMAGE_TYPES, CARD_PREVIEW_WIDTH_PX } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
 import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
@@ -627,7 +627,7 @@ async function refreshPreview() {
     );
     if (browseState !== snapshot) return;
 
-    previewImageEl.src = canvasToDataUrl(canvas, 400);
+    previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
     return;
@@ -647,7 +647,7 @@ async function refreshPreview() {
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
   const canvas = await renderCard(card, getSettings().platformDefaults);
-  previewImageEl.src = canvasToDataUrl(canvas, 400);
+  previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
 }
 

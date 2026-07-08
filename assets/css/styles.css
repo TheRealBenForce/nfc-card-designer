@@ -642,7 +642,8 @@ body {
 
 .preview-image {
   display: block;
-  max-width: 100%;
+  width: min(100%, 52mm);
+  max-height: 84mm;
   height: auto;
   border-radius: 4px;
 }

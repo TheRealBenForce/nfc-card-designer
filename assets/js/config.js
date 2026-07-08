@@ -1,6 +1,11 @@
 /** Card and print dimensions (millimeters). */
 export const CARD_WIDTH_MM = 52;
 export const CARD_HEIGHT_MM = 84;
+/** CSS reference pixel density used by browsers for absolute units. */
+export const CSS_PX_PER_MM = 96 / 25.4;
+/** Maximum on-screen preview size for a life-size 52×84 mm card. */
+export const CARD_PREVIEW_WIDTH_PX = Math.round(CARD_WIDTH_MM * CSS_PX_PER_MM);
+export const CARD_PREVIEW_HEIGHT_PX = Math.round(CARD_HEIGHT_MM * CSS_PX_PER_MM);
 
 /**
  * Card layout ratios. Each segment is split long-edge to long-edge:

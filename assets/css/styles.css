@@ -431,14 +431,63 @@ body {
   min-width: 0;
 }
 
+.input--color-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.color-tool-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.color-tool-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.color-tool-btn__swatch {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--swatch-color, #000000);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.color-tool-btn__label {
+  flex: 1;
+}
+
 .btn--icon {
   flex-shrink: 0;
   padding: 0.45rem 0.65rem;
   font-size: 0.8rem;
 }
 
-.artwork-color-field[hidden] {
-  display: none;
+.artwork-color-field {
+  position: relative;
 }
 
 .rotation-fields {
@@ -700,10 +749,30 @@ body {
   border-radius: 4px;
 }
 
+.preview-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 720px;
+}
+
+.preview-main {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
 .preview-artwork-controls {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  flex: 1 1 220px;
+  max-width: 260px;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  align-self: stretch;
 }
 
 .preview-artwork-reset {
@@ -909,6 +978,16 @@ body {
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
+  }
+
+  .preview-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .preview-artwork-controls {
+    width: 100%;
+    max-width: 360px;
   }
 
   .panel {

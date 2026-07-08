@@ -53,14 +53,13 @@
               <select id="platform-artwork-background-mode" class="input"></select>
             </label>
 
-            <div id="platform-artwork-background-color-field" class="field artwork-color-field">
+            <div class="field artwork-color-field">
               <span class="field__label">Background color</span>
-              <div class="artwork-color-field__controls">
-                <input id="platform-artwork-background-color" class="input input--color" type="color" value="#000000" />
-                <button id="platform-artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
-                  Eyedropper
-                </button>
-              </div>
+              <input id="platform-artwork-background-color" class="input input--color-hidden" type="color" value="#000000" tabindex="-1" aria-hidden="true" />
+              <button id="platform-artwork-color-tool" type="button" class="color-tool-btn" disabled>
+                <span class="color-tool-btn__swatch" aria-hidden="true"></span>
+                <span class="color-tool-btn__label">Eyedropper Tool</span>
+              </button>
             </div>
           </div>
         </details>
@@ -96,52 +95,55 @@
 
       <section class="panel panel--preview">
         <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
-        <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
-        <div class="preview-frame">
-          <img id="preview-image" class="preview-image" alt="" />
-        </div>
-        <div id="preview-artwork-controls" class="preview-artwork-controls" hidden>
-          <p id="preview-artwork-controls-title" class="field__label">Artwork display</p>
-          <div
-            id="preview-artwork-alignment-grid"
-            class="alignment-grid"
-            role="radiogroup"
-            aria-label="Card artwork alignment override"
-          ></div>
-          <label class="field">
-            <span class="field__label">Background</span>
-            <select id="preview-artwork-background-mode" class="input"></select>
-          </label>
-          <div id="preview-artwork-background-color-field" class="field artwork-color-field">
-            <span class="field__label">Background color</span>
-            <div class="artwork-color-field__controls">
-              <input id="preview-artwork-background-color" class="input input--color" type="color" value="#000000" />
-              <button id="preview-artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
-                Eyedropper
+        <div class="preview-layout">
+          <div class="preview-main">
+            <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
+            <div class="preview-frame">
+              <img id="preview-image" class="preview-image" alt="" />
+            </div>
+            <label for="preview-calibration-input" class="preview-calibration">
+              <span class="preview-calibration__label">Screen calibration</span>
+              <input
+                id="preview-calibration-input"
+                class="preview-calibration__range"
+                type="range"
+                min="70"
+                max="130"
+                step="1"
+                value="100"
+              />
+              <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+            </label>
+            <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+            <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
+              Add to collection
+            </button>
+          </div>
+          <aside id="preview-artwork-controls" class="preview-artwork-controls" hidden>
+            <p id="preview-artwork-controls-title" class="field__label">Artwork display</p>
+            <div
+              id="preview-artwork-alignment-grid"
+              class="alignment-grid"
+              role="radiogroup"
+              aria-label="Card artwork alignment override"
+            ></div>
+            <label class="field">
+              <span class="field__label">Background</span>
+              <select id="preview-artwork-background-mode" class="input"></select>
+            </label>
+            <div class="field artwork-color-field">
+              <span class="field__label">Background color</span>
+              <input id="preview-artwork-background-color" class="input input--color-hidden" type="color" value="#000000" tabindex="-1" aria-hidden="true" />
+              <button id="preview-artwork-color-tool" type="button" class="color-tool-btn" disabled>
+                <span class="color-tool-btn__swatch" aria-hidden="true"></span>
+                <span class="color-tool-btn__label">Eyedropper Tool</span>
               </button>
             </div>
-          </div>
-          <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
-            Use platform defaults
-          </button>
+            <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
+              Use platform defaults
+            </button>
+          </aside>
         </div>
-        <label for="preview-calibration-input" class="preview-calibration">
-          <span class="preview-calibration__label">Screen calibration</span>
-          <input
-            id="preview-calibration-input"
-            class="preview-calibration__range"
-            type="range"
-            min="70"
-            max="130"
-            step="1"
-            value="100"
-          />
-          <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-        </label>
-        <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
-        <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
-          Add to collection
-        </button>
       </section>
 
       <aside class="panel panel--collection">

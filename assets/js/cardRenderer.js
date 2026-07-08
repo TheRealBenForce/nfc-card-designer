@@ -17,8 +17,7 @@ import {
 } from "./artworkDisplay.js";
 
 const ALPHA_THRESHOLD = 16;
-const BLUR_RADIUS_PX = 24;
-const BLURRED_INSET_RATIO = 0.1;
+const BLUR_RADIUS_PX = 18;
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -207,17 +206,13 @@ function drawNearestEdgeBackground(ctx, rect, img, rotationDeg, align) {
  * @param {HTMLImageElement} img
  */
 function drawBlurredImageBackground(ctx, rect, img) {
-  const inset = Math.round(Math.min(rect.w, rect.h) * BLURRED_INSET_RATIO);
-  const innerW = Math.max(1, rect.w - inset * 2);
-  const innerH = Math.max(1, rect.h - inset * 2);
-
   const scratch = document.createElement("canvas");
   scratch.width = rect.w;
   scratch.height = rect.h;
   const scratchCtx = scratch.getContext("2d");
   if (!scratchCtx) return;
 
-  const scale = Math.min(innerW / img.width, innerH / img.height);
+  const scale = Math.max(rect.w / img.width, rect.h / img.height);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
   const drawX = (rect.w - drawW) / 2;

@@ -49,7 +49,7 @@ export const ARTWORK_BACKGROUND_MODE_ORDER = [
 
 /** @type {Record<ArtworkBackgroundMode, { label: string }>} */
 export const ARTWORK_BACKGROUND_MODES = {
-  select: { label: "Select" },
+  select: { label: "Select Tool" },
   consoleColor: { label: "Console color" },
   nearestEdge: { label: "Nearest edge" },
   blurredBoxArt: { label: "Blurred box art" },

@@ -102,10 +102,8 @@ let platformArtworkAlignmentGridEl = null;
 let platformArtworkBackgroundModeEl = null;
 /** @type {HTMLInputElement|null} */
 let platformArtworkBackgroundColorEl = null;
-/** @type {HTMLElement|null} */
-let platformArtworkBackgroundColorFieldEl = null;
 /** @type {HTMLButtonElement|null} */
-let platformArtworkEyedropperBtn = null;
+let platformArtworkColorToolBtn = null;
 /** @type {HTMLElement|null} */
 let previewArtworkControlsEl = null;
 /** @type {HTMLElement|null} */
@@ -114,10 +112,8 @@ let previewArtworkAlignmentGridEl = null;
 let previewArtworkBackgroundModeEl = null;
 /** @type {HTMLInputElement|null} */
 let previewArtworkBackgroundColorEl = null;
-/** @type {HTMLElement|null} */
-let previewArtworkBackgroundColorFieldEl = null;
 /** @type {HTMLButtonElement|null} */
-let previewArtworkEyedropperBtn = null;
+let previewArtworkColorToolBtn = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
@@ -216,13 +212,48 @@ function syncArtworkAlignmentGrid(gridEl, artworkDisplay) {
 /**
  * @param {HTMLSelectElement | null} modeEl
  * @param {HTMLInputElement | null} colorEl
- * @param {HTMLElement | null} colorFieldEl
+ * @param {HTMLButtonElement | null} colorToolBtn
  * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
-function syncArtworkBackgroundControls(modeEl, colorEl, colorFieldEl, artworkDisplay) {
+function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDisplay) {
+  const selectToolActive = artworkDisplay.backgroundMode === "select";
   if (modeEl) modeEl.value = artworkDisplay.backgroundMode;
   if (colorEl) colorEl.value = artworkDisplay.backgroundColor;
-  if (colorFieldEl) colorFieldEl.hidden = artworkDisplay.backgroundMode !== "select";
+  if (colorToolBtn) {
+    colorToolBtn.disabled = !selectToolActive;
+    colorToolBtn.style.setProperty("--swatch-color", artworkDisplay.backgroundColor);
+  }
+}
+
+/**
+ * @param {HTMLButtonElement} toolBtn
+ * @param {HTMLInputElement} colorInput
+ * @param {(color: string) => void} onColor
+ */
+function bindColorToolButton(toolBtn, colorInput, onColor) {
+  toolBtn.addEventListener("click", async () => {
+    if (toolBtn.disabled) return;
+
+    if ("EyeDropper" in window) {
+      try {
+        const dropper = new EyeDropper();
+        const { sRGBHex } = await dropper.open();
+        onColor(sRGBHex);
+        return;
+      } catch (err) {
+        if (err && typeof err === "object" && "name" in err && err.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    colorInput.click();
+  });
+
+  colorInput.addEventListener("input", () => {
+    if (toolBtn.disabled) return;
+    onColor(colorInput.value);
+  });
 }
 
 /**
@@ -268,7 +299,7 @@ function syncPlatformArtworkDisplayControls() {
   syncArtworkBackgroundControls(
     platformArtworkBackgroundModeEl,
     platformArtworkBackgroundColorEl,
-    platformArtworkBackgroundColorFieldEl,
+    platformArtworkColorToolBtn,
     platformDefaults.artworkDisplay,
   );
 }
@@ -297,7 +328,7 @@ function syncPreviewArtworkControls() {
   syncArtworkBackgroundControls(
     previewArtworkBackgroundModeEl,
     previewArtworkBackgroundColorEl,
-    previewArtworkBackgroundColorFieldEl,
+    previewArtworkColorToolBtn,
     context.display,
   );
 }
@@ -991,65 +1022,10 @@ function bindEvents() {
     refreshPreview();
   });
 
-  platformArtworkBackgroundColorEl?.addEventListener("input", (e) => {
-    const settings = getSettings();
-    setPlatformArtworkDisplay(
-      settings.selectedPlatformId,
-      { backgroundColor: /** @type {HTMLInputElement} */ (e.target).value },
-    );
-    saveSettings(getSettings());
-    refreshPreview();
-  });
-
-  platformArtworkEyedropperBtn?.addEventListener("click", async () => {
-    if (!("EyeDropper" in window)) {
-      logStatus("Eyedropper is not supported in this browser.", true);
-      return;
-    }
-    try {
-      const dropper = new EyeDropper();
-      const { sRGBHex } = await dropper.open();
-      const settings = getSettings();
-      setPlatformArtworkDisplay(settings.selectedPlatformId, {
-        backgroundColor: sRGBHex,
-        backgroundMode: "select",
-      });
-      saveSettings(getSettings());
-      syncPlatformArtworkDisplayControls();
-      refreshPreview();
-    } catch {
-      // user cancelled
-    }
-  });
-
   previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
     applyPreviewArtworkPatch({
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
     });
-  });
-
-  previewArtworkBackgroundColorEl?.addEventListener("input", (e) => {
-    applyPreviewArtworkPatch({
-      backgroundColor: /** @type {HTMLInputElement} */ (e.target).value,
-    });
-  });
-
-  previewArtworkEyedropperBtn?.addEventListener("click", async () => {
-    if (!getPreviewArtworkControlContext()) return;
-    if (!("EyeDropper" in window)) {
-      logStatus("Eyedropper is not supported in this browser.", true);
-      return;
-    }
-    try {
-      const dropper = new EyeDropper();
-      const { sRGBHex } = await dropper.open();
-      applyPreviewArtworkPatch({
-        backgroundColor: sRGBHex,
-        backgroundMode: "select",
-      });
-    } catch {
-      // user cancelled
-    }
   });
 
   previewArtworkResetBtn?.addEventListener("click", () => {
@@ -1185,9 +1161,8 @@ export async function initUI() {
   platformArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("platform-artwork-background-color")
   );
-  platformArtworkBackgroundColorFieldEl = document.getElementById("platform-artwork-background-color-field");
-  platformArtworkEyedropperBtn = /** @type {HTMLButtonElement|null} */ (
-    document.getElementById("platform-artwork-eyedropper")
+  platformArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("platform-artwork-color-tool")
   );
   previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
   previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
@@ -1197,9 +1172,8 @@ export async function initUI() {
   previewArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-artwork-background-color")
   );
-  previewArtworkBackgroundColorFieldEl = document.getElementById("preview-artwork-background-color-field");
-  previewArtworkEyedropperBtn = /** @type {HTMLButtonElement|null} */ (
-    document.getElementById("preview-artwork-eyedropper")
+  previewArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-color-tool")
   );
   previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-reset")
@@ -1227,6 +1201,28 @@ export async function initUI() {
   }
   if (previewArtworkBackgroundModeEl) {
     mountArtworkBackgroundModeSelect(previewArtworkBackgroundModeEl);
+  }
+
+  if (platformArtworkColorToolBtn && platformArtworkBackgroundColorEl) {
+    bindColorToolButton(platformArtworkColorToolBtn, platformArtworkBackgroundColorEl, (color) => {
+      const settings = getSettings();
+      setPlatformArtworkDisplay(settings.selectedPlatformId, {
+        backgroundColor: color,
+        backgroundMode: "select",
+      });
+      saveSettings(getSettings());
+      syncPlatformArtworkDisplayControls();
+      refreshPreview();
+    });
+  }
+
+  if (previewArtworkColorToolBtn && previewArtworkBackgroundColorEl) {
+    bindColorToolButton(previewArtworkColorToolBtn, previewArtworkBackgroundColorEl, (color) => {
+      applyPreviewArtworkPatch({
+        backgroundColor: color,
+        backgroundMode: "select",
+      });
+    });
   }
 
   syncPlatformArtworkDisplayControls();

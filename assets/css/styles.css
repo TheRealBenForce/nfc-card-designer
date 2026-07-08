@@ -750,37 +750,9 @@ body {
   align-self: stretch;
 }
 
-.preview-artwork-controls__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.preview-artwork-controls__header .field__label {
-  margin: 0;
-}
-
 .preview-artwork-rotate-btn {
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.preview-artwork-rotate-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.preview-artwork-rotate-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  width: 100%;
+  margin-bottom: 0.5rem;
 }
 
 .preview-artwork-reset {

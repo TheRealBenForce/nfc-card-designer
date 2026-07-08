@@ -10,14 +10,13 @@ import {
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
-import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
   const headerSettings = normalizeHeaderSettings();
   return {
     platformDefaults: defaultPlatformDefaults(),
-    selectedPlatformId: firstPlatformWithCatalogGames(),
+    selectedPlatformId: "",
     ...headerSettings,
     searchOnlyGamesWithImages: false,
     ...headerSettings,
@@ -109,7 +108,10 @@ export function loadSettings() {
         parsed.platformColors,
         parsed.artworkDisplay,
       ),
-      selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
+      selectedPlatformId:
+        typeof parsed.selectedPlatformId === "string"
+          ? parsed.selectedPlatformId
+          : defaults.selectedPlatformId,
       searchOnlyGamesWithImages:
         typeof parsed.searchOnlyGamesWithImages === "boolean"
           ? parsed.searchOnlyGamesWithImages

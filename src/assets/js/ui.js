@@ -208,6 +208,17 @@ let filteredGames = [];
 /** @type {number} */
 let filteredGamesTotal = 0;
 
+/**
+ * Treat empty/invalid ids as no active platform selection.
+ * @returns {string | null}
+ */
+function getActivePlatformId() {
+  const selectedPlatformId = getSettings().selectedPlatformId;
+  if (!selectedPlatformId) return null;
+  if (!platformHasCatalogGames(selectedPlatformId)) return null;
+  return selectedPlatformId;
+}
+
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
@@ -377,57 +388,95 @@ function mountArtworkBackgroundModeSelect(selectEl) {
 
 function syncPlatformArtworkDisplayControls() {
   const settings = getSettings();
-  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
-  if (!platformDefaults) return;
+  const activePlatformId = getActivePlatformId();
+  const artworkDisplay = activePlatformId
+    ? getPlatformArtworkDisplay(settings.platformDefaults, activePlatformId)
+    : normalizeArtworkDisplay();
 
-  syncArtworkAlignmentGrid(platformArtworkAlignmentGridEl, platformDefaults.artworkDisplay);
+  syncArtworkAlignmentGrid(platformArtworkAlignmentGridEl, artworkDisplay);
   syncArtworkBackgroundControls(
     platformArtworkBackgroundModeEl,
     platformArtworkBackgroundColorEl,
     platformArtworkColorToolBtn,
-    platformDefaults.artworkDisplay,
+    artworkDisplay,
   );
   syncArtworkZoomControl(
     platformArtworkZoomEl,
     platformArtworkZoomValueEl,
-    platformDefaults.artworkDisplay,
+    artworkDisplay,
   );
+
+  const controlsDisabled = !activePlatformId;
+  if (platformArtworkAlignmentGridEl) {
+    for (const btn of platformArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
+      /** @type {HTMLButtonElement} */ (btn).disabled = controlsDisabled;
+    }
+  }
+  if (platformArtworkBackgroundModeEl) {
+    platformArtworkBackgroundModeEl.disabled = controlsDisabled;
+  }
+  if (platformArtworkZoomEl) {
+    platformArtworkZoomEl.disabled = controlsDisabled;
+  }
+  if (platformArtworkColorToolBtn && controlsDisabled) {
+    platformArtworkColorToolBtn.disabled = true;
+  }
 }
 
 function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
-  const showControls = Boolean(context);
-
-  if (previewArtworkControlsEl) {
-    previewArtworkControlsEl.hidden = !showControls;
-  }
-
-  if (!context) return;
+  const activePlatformId = getActivePlatformId();
+  const fallbackDisplay = activePlatformId
+    ? getPlatformArtworkDisplay(getSettings().platformDefaults, activePlatformId)
+    : normalizeArtworkDisplay();
+  const display = context?.display ?? fallbackDisplay;
 
   if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Artwork Display";
+    previewArtworkControlsTitleEl.textContent = context
+      ? "Artwork Display"
+      : "Artwork Display (select a game or card)";
   }
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
-    previewArtworkResetBtn.disabled = !context.hasOverride;
+    previewArtworkResetBtn.disabled = !context || !context.hasOverride;
   }
 
   if (previewArtworkRotateBtn) {
+    const rotation = context?.cardRotation ?? 0;
     previewArtworkRotateBtn.hidden = false;
-    previewArtworkRotateBtn.disabled = false;
-    const rotation = context.cardRotation ?? 0;
+    previewArtworkRotateBtn.disabled = !context;
     previewArtworkRotateBtn.title = `Rotate artwork 90° (current ${rotation}°)`;
   }
 
-  syncArtworkAlignmentGrid(previewArtworkAlignmentGridEl, context.display);
+  if (previewArtworkControlsEl) {
+    previewArtworkControlsEl.hidden = false;
+  }
+
+  syncArtworkAlignmentGrid(previewArtworkAlignmentGridEl, display);
   syncArtworkBackgroundControls(
     previewArtworkBackgroundModeEl,
     previewArtworkBackgroundColorEl,
     previewArtworkColorToolBtn,
-    context.display,
+    display,
   );
-  syncArtworkZoomControl(previewArtworkZoomEl, previewArtworkZoomValueEl, context.display);
+  syncArtworkZoomControl(previewArtworkZoomEl, previewArtworkZoomValueEl, display);
+
+  const controlsDisabled = !context;
+  if (previewArtworkAlignmentGridEl) {
+    for (const btn of previewArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
+      /** @type {HTMLButtonElement} */ (btn).disabled = controlsDisabled;
+    }
+  }
+  if (previewArtworkBackgroundModeEl) {
+    previewArtworkBackgroundModeEl.disabled = controlsDisabled;
+  }
+  if (previewArtworkZoomEl) {
+    previewArtworkZoomEl.disabled = controlsDisabled;
+  }
+  if (previewArtworkColorToolBtn && controlsDisabled) {
+    previewArtworkColorToolBtn.disabled = true;
+  }
 }
 
 /**
@@ -664,11 +713,16 @@ function mountPriorityList(listEl, priority, onChange) {
 
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId) {
+    gameSearchHintEl.textContent = "Select a platform to search retail releases.";
+    gameSearchHintEl.classList.remove("field-hint--ready");
+    return;
+  }
 
   const requireImages = getSettings().searchOnlyGamesWithImages;
-  const settings = getSettings();
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
-  const catalogSize = catalogCountForPlatform(settings.selectedPlatformId);
+  const gameCount = gameCountForPlatform(activePlatformId, { requireImages });
+  const catalogSize = catalogCountForPlatform(activePlatformId);
 
   if (query.length === 0) {
     if (gameCount === 0) {
@@ -715,11 +769,18 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 }
 
 function filterGames(query) {
-  const settings = getSettings();
+  const activePlatformId = getActivePlatformId();
   const q = query.trim();
-  const result = searchGames(settings.selectedPlatformId, q, {
-    requireImages: settings.searchOnlyGamesWithImages,
-  });
+  if (!activePlatformId) {
+    filteredGames = [];
+    filteredGamesTotal = 0;
+    gameHighlightIndex = 0;
+    renderGameResults();
+    updateGameSearchHint(q);
+    return;
+  }
+  const requireImages = getSettings().searchOnlyGamesWithImages;
+  const result = searchGames(activePlatformId, q, { requireImages });
   filteredGames = result.games;
   filteredGamesTotal = result.total;
   gameHighlightIndex = 0;
@@ -732,7 +793,9 @@ function renderPlatformResults() {
   const settings = getSettings();
   platformResultsEl.innerHTML = "";
 
-  const visiblePlatforms = platformsWithCatalogGames();
+  const visiblePlatforms = [...platformsWithCatalogGames()].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+  );
   visiblePlatforms.forEach((platform) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -745,13 +808,22 @@ function renderPlatformResults() {
   });
 }
 
+function closeGameResults() {
+  if (!gameResultsEl) return;
+  gameResultsEl.hidden = true;
+}
+
 function renderGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.innerHTML = "";
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId) {
+    closeGameResults();
+    return;
+  }
 
-  const settings = getSettings();
-  const requireImages = settings.searchOnlyGamesWithImages;
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
+  const requireImages = getSettings().searchOnlyGamesWithImages;
+  const gameCount = gameCountForPlatform(activePlatformId, { requireImages });
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -784,7 +856,8 @@ function renderGameResults() {
     btn.textContent = game.name;
     btn.addEventListener("click", () => {
       if (gameSearchInput) gameSearchInput.value = game.name;
-      browseGameFromSearch(game);
+      closeGameResults();
+      void browseGameFromSearch(game);
     });
     gameResultsEl.appendChild(btn);
   });
@@ -842,21 +915,29 @@ function currentHeaderSettingsSnapshot() {
 
 function syncPlatformControls() {
   syncGlobalSettingsControls();
-  const settings = getSettings();
-  if (!platformHasCatalogGames(settings.selectedPlatformId)) {
-    const fallback = platformsWithCatalogGames()[0];
-    if (fallback && fallback.id !== settings.selectedPlatformId) {
-      updateSettings({ selectedPlatformId: fallback.id });
-      saveSettings(getSettings());
-    }
+  const selectedPlatformId = getSettings().selectedPlatformId;
+  if (selectedPlatformId && !platformHasCatalogGames(selectedPlatformId)) {
+    updateSettings({ selectedPlatformId: "" });
+    saveSettings(getSettings());
   }
 
+  const activePlatformId = getActivePlatformId();
   const currentSettings = getSettings();
-  const platform = platformById[currentSettings.selectedPlatformId];
-  const platformDefaults = currentSettings.platformDefaults[currentSettings.selectedPlatformId];
+  const platform = activePlatformId ? platformById[activePlatformId] : null;
+  const platformDefaults = activePlatformId
+    ? currentSettings.platformDefaults[activePlatformId]
+    : null;
 
-  if (platformColorInput && platform && platformDefaults) {
-    platformColorInput.value = platformDefaults.color;
+  if (platformColorInput) {
+    platformColorInput.value = platform && platformDefaults ? platformDefaults.color : "#000000";
+    platformColorInput.disabled = !activePlatformId;
+  }
+  if (gameSearchInput) {
+    gameSearchInput.disabled = !activePlatformId;
+    gameSearchInput.placeholder = activePlatformId ? "Search games..." : "Select a platform first";
+  }
+  if (!activePlatformId) {
+    closeGameResults();
   }
 
   renderPlatformResults();
@@ -868,13 +949,18 @@ function syncPlatformControls() {
 
 function renderPlatformImagePriorityList() {
   if (!platformPriorityListEl) return;
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId) {
+    platformPriorityListEl.innerHTML = "";
+    return;
+  }
 
   const settings = getSettings();
-  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  const platformDefaults = settings.platformDefaults[activePlatformId];
   if (!platformDefaults) return;
 
   mountPriorityList(platformPriorityListEl, platformDefaults.imageTypePriority, (next) => {
-    setPlatformImageTypePriority(settings.selectedPlatformId, next);
+    setPlatformImageTypePriority(activePlatformId, next);
     saveSettings(getSettings());
     renderPlatformImagePriorityList();
     renderPlatformRotationFields();
@@ -884,9 +970,14 @@ function renderPlatformImagePriorityList() {
 
 function renderPlatformRotationFields() {
   if (!platformRotationFieldsEl) return;
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId) {
+    platformRotationFieldsEl.innerHTML = "";
+    return;
+  }
 
   const settings = getSettings();
-  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  const platformDefaults = settings.platformDefaults[activePlatformId];
   platformRotationFieldsEl.innerHTML = "";
 
   if (!platformDefaults) return;
@@ -919,7 +1010,7 @@ function renderPlatformRotationFields() {
       const imageType = target.dataset.imageType;
       if (!imageType) return;
       setPlatformImageRotation(
-        settings.selectedPlatformId,
+        activePlatformId,
         imageType,
         Number(target.value),
       );
@@ -936,8 +1027,8 @@ function renderPlatformRotationFields() {
 async function applyPlatformPriorityToBrowse() {
   if (!browseState) return;
 
-  const settings = getSettings();
-  if (browseState.game.platformId !== settings.selectedPlatformId) return;
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId || browseState.game.platformId !== activePlatformId) return;
 
   const priority = getArtworkPriorityForPlatform(browseState.game.platformId);
   const availableTypes = await getAvailableImageTypes(browseState.game, priority);
@@ -960,15 +1051,20 @@ async function applyPlatformPriorityToBrowse() {
 }
 
 function pickGameFromSearch() {
+  const activePlatformId = getActivePlatformId();
+  if (!activePlatformId) {
+    logStatus("Select a platform before searching for games.", true);
+    return null;
+  }
+
   const query = gameSearchInput?.value.trim() ?? "";
   if (query.length < MIN_GAME_SEARCH_CHARS) {
     logStatus(`Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`, true);
     return null;
   }
 
-  const settings = getSettings();
-  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex, {
-    requireImages: settings.searchOnlyGamesWithImages,
+  const game = pickGameFromCatalog(activePlatformId, query, gameHighlightIndex, {
+    requireImages: getSettings().searchOnlyGamesWithImages,
   });
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
@@ -1029,6 +1125,7 @@ function clearBrowse() {
 
 function resetGameSearch({ focus = false } = {}) {
   clearBrowse();
+  closeGameResults();
   if (gameSearchInput) {
     gameSearchInput.value = "";
     if (focus) gameSearchInput.focus();
@@ -1304,7 +1401,7 @@ function bindEvents() {
 
   gameSearchInput?.addEventListener("keydown", (e) => {
     const query = gameSearchInput?.value.trim() ?? "";
-    const dropdownOpen = query.length >= MIN_GAME_SEARCH_CHARS;
+    const dropdownOpen = Boolean(getActivePlatformId()) && query.length >= MIN_GAME_SEARCH_CHARS;
 
     if (dropdownOpen && e.key === "ArrowDown") {
       e.preventDefault();
@@ -1321,7 +1418,10 @@ function bindEvents() {
     if (e.key === "Enter") {
       e.preventDefault();
       const game = pickGameFromSearch();
-      if (game) browseGameFromSearch(game);
+      if (game) {
+        closeGameResults();
+        void browseGameFromSearch(game);
+      }
     }
   });
 
@@ -1352,16 +1452,18 @@ function bindEvents() {
   });
 
   platformColorInput?.addEventListener("input", (e) => {
-    const settings = getSettings();
-    setPlatformColor(settings.selectedPlatformId, /** @type {HTMLInputElement} */ (e.target).value);
+    const activePlatformId = getActivePlatformId();
+    if (!activePlatformId) return;
+    setPlatformColor(activePlatformId, /** @type {HTMLInputElement} */ (e.target).value);
     saveSettings(getSettings());
     refreshPreview();
   });
 
   platformArtworkBackgroundModeEl?.addEventListener("change", (e) => {
-    const settings = getSettings();
+    const activePlatformId = getActivePlatformId();
+    if (!activePlatformId) return;
     setPlatformArtworkDisplay(
-      settings.selectedPlatformId,
+      activePlatformId,
       { backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value },
     );
     saveSettings(getSettings());
@@ -1370,12 +1472,13 @@ function bindEvents() {
   });
 
   platformArtworkZoomEl?.addEventListener("input", (e) => {
+    const activePlatformId = getActivePlatformId();
+    if (!activePlatformId) return;
     const zoom = Math.min(
       MAX_ARTWORK_ZOOM,
       Math.max(MIN_ARTWORK_ZOOM, Number(/** @type {HTMLInputElement} */ (e.target).value)),
     );
-    const settings = getSettings();
-    setPlatformArtworkDisplay(settings.selectedPlatformId, { zoom });
+    setPlatformArtworkDisplay(activePlatformId, { zoom });
     saveSettings(getSettings());
     syncPlatformArtworkDisplayControls();
     refreshPreview();
@@ -1449,7 +1552,10 @@ function bindEvents() {
         platformDefaults:
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
-        selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
+        selectedPlatformId:
+          typeof imported.settings.selectedPlatformId === "string"
+            ? imported.settings.selectedPlatformId
+            : defaults.selectedPlatformId,
         showHeader: imported.settings.showHeader ?? defaults.showHeader,
         showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
         headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
@@ -1605,8 +1711,9 @@ export async function initUI() {
 
   if (platformArtworkAlignmentGridEl) {
     mountArtworkAlignmentGrid(platformArtworkAlignmentGridEl, (alignment) => {
-      const settings = getSettings();
-      setPlatformArtworkDisplay(settings.selectedPlatformId, { alignment });
+      const activePlatformId = getActivePlatformId();
+      if (!activePlatformId) return;
+      setPlatformArtworkDisplay(activePlatformId, { alignment });
       saveSettings(getSettings());
       syncPlatformArtworkDisplayControls();
       refreshPreview();
@@ -1628,8 +1735,9 @@ export async function initUI() {
 
   if (platformArtworkColorToolBtn && platformArtworkBackgroundColorEl) {
     bindColorToolButton(platformArtworkColorToolBtn, platformArtworkBackgroundColorEl, (color) => {
-      const settings = getSettings();
-      setPlatformArtworkDisplay(settings.selectedPlatformId, {
+      const activePlatformId = getActivePlatformId();
+      if (!activePlatformId) return;
+      setPlatformArtworkDisplay(activePlatformId, {
         backgroundColor: color,
         backgroundMode: "select",
       });

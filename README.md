@@ -64,6 +64,7 @@ Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped 
 ```bash
 npm run fetch-images -- --local-only   # dev: save to assets/images/ only, no S3
 npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local image files
+npm run sync-s3-sample-images          # pull a small random local cache from S3
 ```
 
 Game catalogs come from RetroAchievements for most platforms; **DOS** uses libretro thumbnail listings (RA does not support DOS).
@@ -94,6 +95,8 @@ npm run fetch-game-list -- --include-non-retail
 npm run fetch-images -- --platform=genesis
 npm run fetch-images -- --force
 npm run fetch-images -- --s3-only --force
+npm run sync-s3-sample-images -- --count=10
+npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
 ```
 
 ### API key

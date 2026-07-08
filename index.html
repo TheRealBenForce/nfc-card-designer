@@ -52,7 +52,7 @@
             id="game-search"
             class="input"
             type="search"
-            placeholder="Search games… (3+ letters)"
+            placeholder="Search games..."
             autocomplete="off"
             aria-autocomplete="list"
             aria-controls="game-results"
@@ -71,13 +71,25 @@
       </aside>
 
       <section class="panel panel--preview">
-        <h2 class="section__title">Preview</h2>
         <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
         <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
         <div class="preview-frame">
           <img id="preview-image" class="preview-image" alt="" />
         </div>
-        <p class="preview-dimensions">52 mm × 84 mm</p>
+        <label for="preview-calibration-input" class="preview-calibration">
+          <span class="preview-calibration__label">Screen calibration</span>
+          <input
+            id="preview-calibration-input"
+            class="preview-calibration__range"
+            type="range"
+            min="70"
+            max="130"
+            step="1"
+            value="100"
+          />
+          <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+        </label>
+        <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
         <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
           Add to collection
         </button>

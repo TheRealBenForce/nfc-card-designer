@@ -52,6 +52,13 @@ npm start   # scan-images runs via prestart
 npm run scan-images   # optional: refresh generated image-availability snapshot
 ```
 
+### Pull a local random sample cache from S3 (for CORS-safe previewing)
+
+```bash
+npm run sync-s3-sample-images
+npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
+```
+
 ### Before merging UI or script changes
 
 ```bash

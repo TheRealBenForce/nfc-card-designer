@@ -11,7 +11,11 @@ import {
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
-import { IMAGE_TYPES } from "./config.js";
+import {
+  IMAGE_TYPES,
+  CARD_PREVIEW_WIDTH_PX,
+  PREVIEW_CALIBRATION_STORAGE_KEY,
+} from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
 import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
@@ -65,6 +69,10 @@ let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewMetaEl = null;
 /** @type {HTMLInputElement|null} */
+let previewCalibrationInputEl = null;
+/** @type {HTMLElement|null} */
+let previewCalibrationValueEl = null;
+/** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
@@ -92,6 +100,51 @@ let filteredGamesTotal = 0;
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
+}
+
+/**
+ * @param {number} value
+ */
+function clampPreviewCalibrationScale(value) {
+  return Math.min(1.3, Math.max(0.7, value));
+}
+
+function loadPreviewCalibrationScale() {
+  try {
+    const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
+    if (!raw) return 1;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return 1;
+    return clampPreviewCalibrationScale(parsed);
+  } catch {
+    return 1;
+  }
+}
+
+/**
+ * @param {number} nextScale
+ * @param {{ persist?: boolean }} [options]
+ */
+function applyPreviewCalibrationScale(nextScale, options = {}) {
+  const scale = clampPreviewCalibrationScale(nextScale);
+
+  document.documentElement.style.setProperty("--preview-calibration-scale", String(scale));
+
+  const percent = Math.round(scale * 100);
+  if (previewCalibrationInputEl) {
+    previewCalibrationInputEl.value = String(percent);
+  }
+  if (previewCalibrationValueEl) {
+    previewCalibrationValueEl.textContent = `${percent}%`;
+  }
+
+  if (options.persist !== false) {
+    try {
+      localStorage.setItem(PREVIEW_CALIBRATION_STORAGE_KEY, String(scale));
+    } catch {
+      // no-op when storage is unavailable
+    }
+  }
 }
 
 function getArtworkPriorityForPlatform(platformId) {
@@ -162,7 +215,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
           ? "No retail games in catalog for this platform yet."
           : "No games available for this platform.";
     } else {
-      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
+      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog`;
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
@@ -627,7 +680,7 @@ async function refreshPreview() {
     );
     if (browseState !== snapshot) return;
 
-    previewImageEl.src = canvasToDataUrl(canvas, 400);
+    previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
     return;
@@ -647,7 +700,7 @@ async function refreshPreview() {
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
   const canvas = await renderCard(card, getSettings().platformDefaults);
-  previewImageEl.src = canvasToDataUrl(canvas, 400);
+  previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
 }
 
@@ -688,6 +741,11 @@ function bindEvents() {
 
   addBrowsedGameBtn?.addEventListener("click", () => {
     addBrowsedGame();
+  });
+
+  previewCalibrationInputEl?.addEventListener("input", (e) => {
+    const nextPercent = Number(/** @type {HTMLInputElement} */ (e.target).value);
+    applyPreviewCalibrationScale(nextPercent / 100);
   });
 
   document.getElementById("export-project")?.addEventListener("click", () => {
@@ -782,6 +840,10 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
+  previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-calibration-input")
+  );
+  previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
@@ -795,6 +857,7 @@ export async function initUI() {
   );
 
   bindEvents();
+  applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
   if (gameResultsEl) gameResultsEl.hidden = true;
   updateGameSearchHint();

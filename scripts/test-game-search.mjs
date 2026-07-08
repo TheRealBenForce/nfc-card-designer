@@ -104,6 +104,30 @@ async function main() {
     }
     console.log("✓ Switching browse games keeps artwork tabs and preview controls");
 
+    const artworkControls = page.locator("#preview-artwork-controls");
+    if (await artworkControls.isHidden()) {
+      throw new Error("Artwork display controls should be visible while browsing");
+    }
+    console.log("✓ Artwork display controls are visible while browsing");
+
+    await page.route("**/*.png", async (route) => route.abort());
+    await page.fill("#game-search", "met");
+    await page.waitForTimeout(150);
+    await page.getByRole("option", { name: /Metroid/i }).first().click();
+    await page.waitForTimeout(500);
+
+    const previewSrc = await page.locator("#preview-image").getAttribute("src");
+    if (!previewSrc?.startsWith("data:image/")) {
+      throw new Error("Missing artwork should still render a placeholder preview image");
+    }
+    if (await artworkControls.isHidden()) {
+      throw new Error("Artwork display controls should remain visible for placeholder previews");
+    }
+    if (!(await addBtn.isVisible())) {
+      throw new Error("Add to collection should remain available for placeholder previews");
+    }
+    console.log("✓ Games without artwork show placeholder preview and controls");
+
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
     await page.getByRole("button", { name: "SNES", exact: true }).click();

@@ -76,7 +76,13 @@ async function main() {
     if (portrait.layout.platform.y !== 0 || portrait.layout.art.y !== portrait.layout.platform.h) {
       throw new Error("Portrait card should place platform strip on top, artwork below");
     }
-    console.log("✓ Portrait: platform strip top (25%), artwork bottom (75%)");
+    const expectedHeaderHeight = Math.round(portrait.height * 0.15);
+    if (portrait.layout.platform.h !== expectedHeaderHeight) {
+      throw new Error(
+        `Portrait header should default to 15% (${expectedHeaderHeight}px), got ${portrait.layout.platform.h}px`,
+      );
+    }
+    console.log("✓ Portrait: platform strip top (15%), artwork below");
 
     if (portrait.layout.logo.x !== portrait.layout.platform.x) {
       throw new Error("Logo should stay within the platform strip");
@@ -112,7 +118,30 @@ async function main() {
     if (landscape.color.y !== landscape.logo.h) {
       throw new Error("Landscape platform column should split logo top, color bottom");
     }
-    console.log("✓ Landscape: artwork left (75%), platform right (25%), logo above color");
+    console.log("✓ Landscape: artwork left (85%), platform right (15%), logo above color");
+
+    const noHeader = await page.evaluate(async () => {
+      const { computeCardLayout } = await import("/assets/js/cardLayout.js");
+      return computeCardLayout(520, 840, { showHeader: false, showPlatformColor: true });
+    });
+    if (noHeader.platform.h !== 0 || noHeader.platform.w !== 0) {
+      throw new Error("Hidden header should collapse platform segment");
+    }
+    if (noHeader.art.w !== 520 || noHeader.art.h !== 840) {
+      throw new Error("Hidden header should allow artwork to fill the whole card");
+    }
+
+    const noColor = await page.evaluate(async () => {
+      const { computeCardLayout } = await import("/assets/js/cardLayout.js");
+      return computeCardLayout(520, 840, { showHeader: true, showPlatformColor: false });
+    });
+    if (noColor.color.w !== 0 || noColor.color.h !== 0) {
+      throw new Error("Hidden platform color should collapse color segment");
+    }
+    if (noColor.logo.w !== noColor.platform.w || noColor.logo.h !== noColor.platform.h) {
+      throw new Error("Hidden platform color should let the logo use the full header");
+    }
+    console.log("✓ Header toggles: hide header or color adjusts layout correctly");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

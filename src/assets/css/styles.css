@@ -650,6 +650,16 @@ body {
   margin-top: 0.75rem;
 }
 
+.field--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field--checkbox input[type="checkbox"] {
+  margin: 0;
+}
+
 .checkbox-field {
   display: flex;
   align-items: flex-start;
@@ -673,6 +683,10 @@ body {
   margin-bottom: 0.35rem;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.field__label--inline {
+  margin-bottom: 0;
 }
 
 .field-hint {

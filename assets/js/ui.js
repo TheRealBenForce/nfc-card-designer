@@ -89,11 +89,17 @@ let printSelectedBtn = null;
 /** @type {HTMLImageElement|null} */
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
+let previewFrameEl = null;
+/** @type {HTMLElement|null} */
+let previewSkeletonEl = null;
+/** @type {HTMLElement|null} */
 let previewMetaEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
 let previewCalibrationValueEl = null;
+/** @type {HTMLInputElement|null} */
+let searchOnlyGamesWithImagesInput = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
@@ -165,6 +171,35 @@ let browseState = null;
 /** Monotonic tokens so stale async browse/preview work cannot overwrite newer UI state. */
 let browseRequestId = 0;
 let previewRequestId = 0;
+
+/** Delay before showing the preview skeleton to avoid flicker on fast cache hits. */
+const PREVIEW_SKELETON_DELAY_MS = 120;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let previewSkeletonTimer = null;
+
+function schedulePreviewSkeleton() {
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  clearTimeout(previewSkeletonTimer);
+  previewSkeletonTimer = setTimeout(showPreviewSkeleton, PREVIEW_SKELETON_DELAY_MS);
+}
+
+function showPreviewSkeleton() {
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  previewSkeletonTimer = null;
+  previewSkeletonEl.hidden = false;
+  previewSkeletonEl.setAttribute("aria-hidden", "false");
+  previewFrameEl.classList.add("preview-frame--loading");
+}
+
+function cancelPreviewSkeleton() {
+  clearTimeout(previewSkeletonTimer);
+  previewSkeletonTimer = null;
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  previewSkeletonEl.hidden = true;
+  previewSkeletonEl.setAttribute("aria-hidden", "true");
+  previewFrameEl.classList.remove("preview-frame--loading");
+}
 
 /** @type {number} */
 let gameHighlightIndex = 0;
@@ -525,6 +560,7 @@ function getSingleSelectedCard() {
  * @param {import("./state.js").Card} card
  */
 async function browseSelectedCard(card) {
+  schedulePreviewSkeleton();
   const game =
     gameForCard(card) ?? {
       platformId: card.platformId,
@@ -629,8 +665,9 @@ function mountPriorityList(listEl, priority, onChange) {
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
 
+  const requireImages = getSettings().searchOnlyGamesWithImages;
   const settings = getSettings();
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
   const catalogSize = catalogCountForPlatform(settings.selectedPlatformId);
 
   if (query.length === 0) {
@@ -638,7 +675,9 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No games available for this platform.";
+          : requireImages
+            ? "No games with artwork available for this platform."
+            : "No games available for this platform.";
     } else {
       gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog`;
     }
@@ -658,7 +697,11 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 
   if (filteredGamesTotal === 0) {
     gameSearchHintEl.textContent =
-      gameCount === 0 ? "No games on this platform yet." : `No games matching "${query}".`;
+      gameCount === 0
+        ? requireImages
+          ? "No games with artwork on this platform yet."
+          : "No games on this platform yet."
+        : `No games matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -674,7 +717,9 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 function filterGames(query) {
   const settings = getSettings();
   const q = query.trim();
-  const result = searchGames(settings.selectedPlatformId, q);
+  const result = searchGames(settings.selectedPlatformId, q, {
+    requireImages: settings.searchOnlyGamesWithImages,
+  });
   filteredGames = result.games;
   filteredGamesTotal = result.total;
   gameHighlightIndex = 0;
@@ -705,7 +750,8 @@ function renderGameResults() {
   gameResultsEl.innerHTML = "";
 
   const settings = getSettings();
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
+  const requireImages = settings.searchOnlyGamesWithImages;
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -719,7 +765,9 @@ function renderGameResults() {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     if (gameCount === 0) {
-      empty.textContent = "No games on this platform yet.";
+      empty.textContent = requireImages
+        ? "No games with artwork on this platform yet."
+        : "No games on this platform yet.";
     } else {
       empty.textContent = `No games matching "${query}".`;
     }
@@ -765,6 +813,9 @@ function selectPlatform(platformId) {
 
 function syncGlobalSettingsControls() {
   const settings = getSettings();
+  if (searchOnlyGamesWithImagesInput) {
+    searchOnlyGamesWithImagesInput.checked = !settings.searchOnlyGamesWithImages;
+  }
   if (globalShowHeaderInput) {
     globalShowHeaderInput.checked = settings.showHeader;
   }
@@ -916,7 +967,9 @@ function pickGameFromSearch() {
   }
 
   const settings = getSettings();
-  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
+  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex, {
+    requireImages: settings.searchOnlyGamesWithImages,
+  });
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
     return null;
@@ -927,6 +980,7 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
+  schedulePreviewSkeleton();
   const selectedCard = getSingleSelectedCard();
   const editingSelectedCard =
     Boolean(selectedCard) &&
@@ -966,6 +1020,7 @@ async function browseGameFromSearch(game) {
 
 function clearBrowse() {
   browseRequestId += 1;
+  cancelPreviewSkeleton();
   browseState = null;
   renderPreviewTypeTabs();
   syncBrowseActionButton();
@@ -1159,74 +1214,90 @@ async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
   const requestId = ++previewRequestId;
+  schedulePreviewSkeleton();
 
-  if (browseState) {
-    const snapshot = browseState;
-    const { game, imageType } = snapshot;
-    const platform = platformById[game.platformId];
-    const targetCard = snapshot.targetCardId
-      ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
-      : null;
-    const cardForRender = targetCard
-      ? {
-          ...targetCard,
-          platformId: game.platformId,
-          gameName: game.name,
-          raGameId: game.raGameId,
-          imageType,
-        }
-      : {
-          id: "browse",
-          platformId: game.platformId,
-          gameName: game.name,
-          raGameId: game.raGameId,
-          imageType,
-          headerSettings: currentHeaderSettingsSnapshot(),
-          ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
-          ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
-            ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
-            : {}),
-        };
-    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+  try {
+    if (browseState) {
+      const snapshot = browseState;
+      const { game, imageType } = snapshot;
+      const platform = platformById[game.platformId];
+      const targetCard = snapshot.targetCardId
+        ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
+        : null;
+      const cardForRender = targetCard
+        ? {
+            ...targetCard,
+            platformId: game.platformId,
+            gameName: game.name,
+            raGameId: game.raGameId,
+            imageType,
+          }
+        : {
+            id: "browse",
+            platformId: game.platformId,
+            gameName: game.name,
+            raGameId: game.raGameId,
+            imageType,
+            headerSettings: currentHeaderSettingsSnapshot(),
+            ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
+            ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
+              ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
+              : {}),
+          };
+      previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-    const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
+      const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
+      if (requestId !== previewRequestId) return;
+      if (browseState !== snapshot) return;
+
+      previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
+      previewImageEl.alt = `Preview: ${game.name}`;
+      syncBrowseActionButton();
+      renderPreviewTypeTabs();
+      syncPreviewArtworkControls();
+      return;
+    }
+
+    syncBrowseActionButton();
+    syncPreviewArtworkControls();
+
+    const card = getPreviewCard();
+    if (!card) {
+      if (requestId !== previewRequestId) return;
+      previewImageEl.src = PLACEHOLDER_SVG;
+      previewImageEl.alt = "Preview placeholder";
+      previewMetaEl.textContent = "Search for a game to preview artwork.";
+      renderPreviewTypeTabs();
+      return;
+    }
+
+    const platform = platformById[card.platformId];
+    previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
+
+    const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
     if (requestId !== previewRequestId) return;
-    if (browseState !== snapshot) return;
+    if (browseState) return;
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
-    previewImageEl.alt = `Preview: ${game.name}`;
-    syncBrowseActionButton();
+    previewImageEl.alt = `Preview: ${card.gameName}`;
     renderPreviewTypeTabs();
-    syncPreviewArtworkControls();
-    return;
+  } finally {
+    if (requestId === previewRequestId) {
+      cancelPreviewSkeleton();
+    }
   }
-
-  syncBrowseActionButton();
-  syncPreviewArtworkControls();
-
-  const card = getPreviewCard();
-  if (!card) {
-    if (requestId !== previewRequestId) return;
-    previewImageEl.src = PLACEHOLDER_SVG;
-    previewImageEl.alt = "Preview placeholder";
-    previewMetaEl.textContent = "Search for a game to preview artwork.";
-    renderPreviewTypeTabs();
-    return;
-  }
-
-  const platform = platformById[card.platformId];
-  previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
-
-  const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
-  if (requestId !== previewRequestId) return;
-  if (browseState) return;
-
-  previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
-  previewImageEl.alt = `Preview: ${card.gameName}`;
-  renderPreviewTypeTabs();
 }
 
 function bindEvents() {
+  searchOnlyGamesWithImagesInput?.addEventListener("change", (e) => {
+    updateSettings({
+      // Checked means "include games with no images", so require-images is the inverse.
+      searchOnlyGamesWithImages: !/** @type {HTMLInputElement} */ (e.target).checked,
+    });
+    saveSettings(getSettings());
+    filterGames(gameSearchInput?.value ?? "");
+  });
+
   gameSearchInput?.addEventListener("input", (e) => {
     filterGames(/** @type {HTMLInputElement} */ (e.target).value);
   });
@@ -1382,6 +1453,8 @@ function bindEvents() {
         showHeader: imported.settings.showHeader ?? defaults.showHeader,
         showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
         headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
+        searchOnlyGamesWithImages:
+          imported.settings.searchOnlyGamesWithImages ?? defaults.searchOnlyGamesWithImages,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -1461,11 +1534,16 @@ export async function initUI() {
   );
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+  previewFrameEl = document.getElementById("preview-frame");
+  previewSkeletonEl = document.getElementById("preview-skeleton");
   previewMetaEl = document.getElementById("preview-meta");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
+  searchOnlyGamesWithImagesInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("search-only-games-with-images")
+  );
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
@@ -1573,6 +1651,7 @@ export async function initUI() {
   syncPlatformArtworkDisplayControls();
   syncPreviewArtworkControls();
   syncBrowseActionButton();
+  syncGlobalSettingsControls();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();

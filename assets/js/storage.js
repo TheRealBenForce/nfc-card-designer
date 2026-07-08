@@ -19,6 +19,8 @@ export function defaultSettings() {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
     ...headerSettings,
+    searchOnlyGamesWithImages: false,
+    ...headerSettings,
   };
 }
 
@@ -86,6 +88,8 @@ export function saveSettings(settings) {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     ...headerSettings,
+    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
+    ...headerSettings,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -106,6 +110,10 @@ export function loadSettings() {
         parsed.artworkDisplay,
       ),
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
+      searchOnlyGamesWithImages:
+        typeof parsed.searchOnlyGamesWithImages === "boolean"
+          ? parsed.searchOnlyGamesWithImages
+          : defaults.searchOnlyGamesWithImages,
       ...headerSettings,
     };
   } catch {
@@ -157,6 +165,7 @@ export function buildProjectData(settings, collection) {
     version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
     cards: collection.map(serializeCard),
   };
@@ -213,6 +222,10 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
+            searchOnlyGamesWithImages:
+              typeof parsed.searchOnlyGamesWithImages === "boolean"
+                ? parsed.searchOnlyGamesWithImages
+                : undefined,
             ...importedHeaderSettings,
           },
           cards: cards.map((card) => normalizeCard(card, importedHeaderSettings)).filter(Boolean),

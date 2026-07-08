@@ -35,6 +35,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {boolean} showHeader
  * @property {boolean} showPlatformColor
  * @property {number} headerHeightPercent
+ * @property {boolean} searchOnlyGamesWithImages
  */
 
 /** @type {AppSettings} */

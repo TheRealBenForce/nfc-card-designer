@@ -35,7 +35,7 @@ const PLATFORM_CARBON_FOLDERS = {
 };
 
 const DOS_PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DOS">
-  <rect width="64" height="64" rx="8" fill="#1b4f9c"/>
+  <rect width="64" height="64" rx="8" fill="#000000"/>
   <text x="32" y="40" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#c0c0c0">DOS</text>
 </svg>`;
 

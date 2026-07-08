@@ -11,7 +11,13 @@ import {
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
-import { IMAGE_TYPES, CARD_PREVIEW_WIDTH_PX } from "./config.js";
+import {
+  IMAGE_TYPES,
+  CARD_PREVIEW_WIDTH_PX,
+  CARD_WIDTH_MM,
+  CARD_HEIGHT_MM,
+  CSS_PX_PER_MM,
+} from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
 import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
@@ -64,6 +70,10 @@ let printSelectedBtn = null;
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewMetaEl = null;
+/** @type {HTMLElement|null} */
+let previewDisplaySizeEl = null;
+/** @type {HTMLElement|null} */
+let previewActualSizeEl = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
@@ -92,6 +102,35 @@ let filteredGamesTotal = 0;
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
+}
+
+/**
+ * @param {number} value
+ * @returns {string}
+ */
+function formatMm(value) {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded} mm` : `${rounded.toFixed(1)} mm`;
+}
+
+function updatePreviewDimensions() {
+  if (previewActualSizeEl) {
+    previewActualSizeEl.textContent =
+      `Actual Size (W × H): ${formatMm(CARD_WIDTH_MM)} × ${formatMm(CARD_HEIGHT_MM)}`;
+  }
+  if (!previewDisplaySizeEl || !previewImageEl) return;
+
+  const hasImage = previewImageEl.getAttribute("src");
+  if (!hasImage) {
+    previewDisplaySizeEl.textContent = "Display Size (W × H): -- mm × -- mm";
+    return;
+  }
+
+  const bounds = previewImageEl.getBoundingClientRect();
+  const displayWmm = bounds.width / CSS_PX_PER_MM;
+  const displayHmm = bounds.height / CSS_PX_PER_MM;
+  previewDisplaySizeEl.textContent =
+    `Display Size (W × H): ${formatMm(displayWmm)} × ${formatMm(displayHmm)}`;
 }
 
 function getArtworkPriorityForPlatform(platformId) {
@@ -629,6 +668,7 @@ async function refreshPreview() {
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
+    updatePreviewDimensions();
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
     return;
   }
@@ -640,6 +680,7 @@ async function refreshPreview() {
   if (!card) {
     previewImageEl.removeAttribute("src");
     previewMetaEl.textContent = "Search for a game to preview artwork.";
+    updatePreviewDimensions();
     return;
   }
 
@@ -649,6 +690,7 @@ async function refreshPreview() {
   const canvas = await renderCard(card, getSettings().platformDefaults);
   previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
+  updatePreviewDimensions();
 }
 
 function bindEvents() {
@@ -782,6 +824,8 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
+  previewDisplaySizeEl = document.getElementById("preview-display-size");
+  previewActualSizeEl = document.getElementById("preview-actual-size");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
@@ -795,6 +839,9 @@ export async function initUI() {
   );
 
   bindEvents();
+  previewImageEl?.addEventListener("load", updatePreviewDimensions);
+  window.addEventListener("resize", updatePreviewDimensions);
+  updatePreviewDimensions();
   syncPlatformControls();
   if (gameResultsEl) gameResultsEl.hidden = true;
   updateGameSearchHint();

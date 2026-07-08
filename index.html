@@ -77,7 +77,12 @@
         <div class="preview-frame">
           <img id="preview-image" class="preview-image" alt="" />
         </div>
-        <p class="preview-dimensions">52 mm × 84 mm</p>
+        <div class="preview-dimensions" aria-live="polite">
+          <p id="preview-display-size" class="preview-dimensions__line">
+            Display Size (W × H): -- mm × -- mm
+          </p>
+          <p id="preview-actual-size" class="preview-dimensions__line">Actual Size (W × H): 52 mm × 84 mm</p>
+        </div>
         <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
           Add to collection
         </button>

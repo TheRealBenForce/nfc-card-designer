@@ -39,6 +39,7 @@ body {
   align-items: baseline;
   gap: 1rem;
   margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
 }
 
 .site-container {

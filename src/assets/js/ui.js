@@ -86,6 +86,10 @@ let collectionSelectionMetaEl = null;
 let deleteSelectedBtn = null;
 /** @type {HTMLButtonElement|null} */
 let printSelectedBtn = null;
+/** @type {HTMLButtonElement|null} */
+let selectAllBtn = null;
+/** @type {HTMLButtonElement|null} */
+let deselectAllBtn = null;
 /** @type {HTMLImageElement|null} */
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
@@ -1110,6 +1114,7 @@ function renderPreviewTypeTabs() {
 }
 
 function updateCollectionActions() {
+  const totalCards = getCollection().length;
   const selectedCount = getSelectedCardIds().size;
   const label =
     selectedCount === 0
@@ -1121,6 +1126,8 @@ function updateCollectionActions() {
   if (collectionSelectionMetaEl) collectionSelectionMetaEl.textContent = label;
   if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedCount === 0;
   if (printSelectedBtn) printSelectedBtn.disabled = selectedCount === 0;
+  if (selectAllBtn) selectAllBtn.disabled = totalCards === 0 || selectedCount === totalCards;
+  if (deselectAllBtn) deselectAllBtn.disabled = selectedCount === 0;
 }
 
 function renderCollection() {
@@ -1507,6 +1514,16 @@ function bindEvents() {
     logStatus(`Deleted ${noun}.`);
   });
 
+  selectAllBtn?.addEventListener("click", () => {
+    const allCardIds = getCollection().map((card) => card.id);
+    if (allCardIds.length === 0) return;
+    setSelectedCardIds(allCardIds);
+  });
+
+  deselectAllBtn?.addEventListener("click", () => {
+    setSelectedCardIds([]);
+  });
+
   printSelectedBtn?.addEventListener("click", async () => {
     const selected = getSelectedCards();
     if (selected.length === 0) {
@@ -1533,6 +1550,8 @@ export async function initUI() {
     document.getElementById("delete-selected")
   );
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
+  selectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("select-all"));
+  deselectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("deselect-all"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewFrameEl = document.getElementById("preview-frame");
   previewSkeletonEl = document.getElementById("preview-skeleton");

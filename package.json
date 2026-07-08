@@ -10,6 +10,7 @@
     "export-games-json": "node scripts/export-games-json.mjs",
     "scan-images": "node scripts/export-image-availability.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
+    "trueup-images": "node scripts/trueup-s3-images.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
     "deploy": "node scripts/deploy.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",

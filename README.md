@@ -64,6 +64,8 @@ Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped 
 ```bash
 npm run fetch-images -- --local-only   # dev: save to assets/images/ only, no S3
 npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local image files
+npm run trueup-images -- --platform=nes # compare S3 keys with catalog IDs (dry run)
+npm run trueup-images -- --platform=nes --delete-extra --yes # delete S3 keys not in catalog
 ```
 
 Game catalogs come from RetroAchievements for most platforms; **DOS** uses libretro thumbnail listings (RA does not support DOS).

@@ -130,5 +130,6 @@ Commit to `main`:
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
 | `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
+| `npm run trueup-images` | Compare S3 game-image keys to catalog IDs; optionally delete extras |
 | `npm run scan-images` | Optional rescan disk → `image-availability.json` snapshot |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

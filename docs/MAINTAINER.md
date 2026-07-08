@@ -28,9 +28,7 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 **Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
 
-`games.js` stores relative image keys, but runtime lookups always resolve to S3 URLs.
-
-**Image path keys** prefer:
+**Image paths** always prefer:
 
 ```
 assets/images/platforms/<platformId>/games/<raGameId>/<type>.png
@@ -52,6 +50,13 @@ npm start   # scan-images runs via prestart
 
 ```bash
 npm run scan-images   # optional: refresh generated image-availability snapshot
+```
+
+### Pull a local random sample cache from S3 (for CORS-safe previewing)
+
+```bash
+npm run sync-s3-sample-images
+npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
 ```
 
 ### Before merging UI or script changes

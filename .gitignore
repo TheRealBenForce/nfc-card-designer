@@ -1,2 +1,6 @@
 .env
 node_modules/
+
+# Local game image cache (development only)
+assets/images/platforms/*/games/
+assets/images/games/

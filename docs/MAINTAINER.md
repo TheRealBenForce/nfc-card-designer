@@ -6,9 +6,9 @@ Internal reference for future changes to NFC Card Designer. Read this before edi
 
 ```
 index.html
-  └── assets/js/main.js          # loads catalog + image index, then initUI
+  └── assets/js/main.js          # loads catalog, then initUI
         ├── gameCatalog.js       # search (games-by-platform.json)
-        ├── imageAvailability.js  # which games are searchable
+        ├── imageAvailability.js  # runtime cache of probed image types
         ├── imageProvider.js     # resolve PNG paths for a card
         ├── cardRenderer.js      # canvas preview/PDF tiles
         ├── ui.js                # all DOM / events
@@ -24,9 +24,9 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 |------|------------|---------|---------|
 | `assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json` | `gameCatalog.js` | Game **names** for search (retail only by default) |
 | `assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
-| `assets/data/image-availability.json` | `scan-images`, `fetch-images` | `imageAvailability.js` | Which `raGameId`s have PNGs on disk → **search visibility** |
+| `assets/data/image-availability.json` | `scan-images`, `fetch-images` | scripts / debugging workflows | Optional generated snapshot of detected image types |
 
-**Search requires both** a catalog entry and an availability entry. A PNG on disk alone is not enough until `npm run scan-images` runs (automatic on `npm start` and end of `fetch-images`).
+**Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
 
 **Image paths** always prefer:
 
@@ -46,10 +46,10 @@ npm run fetch-images -- --platform=game-boy
 npm start   # scan-images runs via prestart
 ```
 
-### After manually copying PNGs into `assets/images/platforms/`
+### After manually copying PNGs into `assets/images/platforms/` (local dev only)
 
 ```bash
-npm run scan-images
+npm run scan-images   # optional: refresh generated image-availability snapshot
 ```
 
 ### Before merging UI or script changes
@@ -67,7 +67,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 3. `npm run fetch-platform-icons`
 4. `npm run fetch-game-list -- --platform=<id>`
 5. `npm run fetch-images -- --platform=<id>`
-6. Commit `games.js`, `games-by-platform.json`, `image-availability.json`, and platform icons (not game PNGs — those live in S3).
+6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3). `image-availability.json` is optional generated metadata.
 
 Platforms with **zero catalog games** are hidden from the platform selector automatically.
 
@@ -110,7 +110,6 @@ Commit to `main`:
 
 - [ ] `index.html`, `assets/` (JS, CSS, data JSON, platform icons)
 - [ ] `assets/data/games-by-platform.json`
-- [ ] `assets/data/image-availability.json`
 - [ ] Game PNGs are uploaded to S3 by CI (`fetch-images`), not committed to git
 
 `.env` is gitignored. The live site never calls the RA API.
@@ -119,7 +118,7 @@ Commit to `main`:
 
 1. **Don't commit test images under `assets/images/`** — use temp dirs in tests (`test-image-scan.mjs`). Real user images at the same path will block `git pull`.
 2. **`games-by-platform.json` ≠ `games.js`** — UI search uses JSON; stale JSON = small catalog in the app even after `fetch-game-list`.
-3. **`scan-images` scans disk** — not just `games.js` paths. Required when images exist but search says "no artwork".
+3. **`scan-images` scans disk** — useful for debugging generated metadata, but search itself no longer depends on this file.
 4. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
 5. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
 
@@ -131,5 +130,5 @@ Commit to `main`:
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
 | `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
-| `npm run scan-images` | Rescan disk → `image-availability.json` only |
+| `npm run scan-images` | Optional rescan disk → `image-availability.json` snapshot |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

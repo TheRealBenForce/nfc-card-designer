@@ -200,7 +200,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
           ? "No retail games in catalog for this platform yet."
           : "No games available for this platform.";
     } else {
-      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
+      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog`;
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;

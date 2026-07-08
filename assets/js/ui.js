@@ -124,6 +124,10 @@ let previewArtworkResetBtn = null;
 /** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[] } | null} */
 let browseState = null;
 
+/** Monotonic tokens so stale async browse/preview work cannot overwrite newer UI state. */
+let browseRequestId = 0;
+let previewRequestId = 0;
+
 /** @type {number} */
 let gameHighlightIndex = 0;
 /** @type {import('./gameCatalog.js').Game[]} */
@@ -615,10 +619,13 @@ function pickGameFromSearch() {
 }
 
 async function browseGameFromSearch(game) {
+  const requestId = ++browseRequestId;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
   const availableTypes = await getAvailableImageTypes(game, priority);
+  if (requestId !== browseRequestId) return;
+
   if (availableTypes.length === 0) {
     logStatus(`No artwork available for ${game.name}.`, true);
     return;
@@ -632,10 +639,12 @@ async function browseGameFromSearch(game) {
 
   renderPreviewTypeTabs();
   await refreshPreview();
+  if (requestId !== browseRequestId) return;
   logStatus(`Previewing ${game.name}.`);
 }
 
 function clearBrowse() {
+  browseRequestId += 1;
   browseState = null;
   renderPreviewTypeTabs();
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
@@ -810,6 +819,8 @@ async function refreshCollectionImageStatus() {
 async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
+  const requestId = ++previewRequestId;
+
   if (browseState) {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
@@ -826,23 +837,26 @@ async function refreshPreview() {
       },
       getSettings().platformDefaults,
     );
+    if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
+    renderPreviewTypeTabs();
     syncPreviewArtworkControls();
     return;
   }
 
-  renderPreviewTypeTabs();
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
   syncPreviewArtworkControls();
 
   const card = getPreviewCard();
   if (!card) {
+    if (requestId !== previewRequestId) return;
     previewImageEl.removeAttribute("src");
     previewMetaEl.textContent = "Search for a game to preview artwork.";
+    renderPreviewTypeTabs();
     return;
   }
 
@@ -850,8 +864,12 @@ async function refreshPreview() {
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
   const canvas = await renderCard(card, getSettings().platformDefaults);
+  if (requestId !== previewRequestId) return;
+  if (browseState) return;
+
   previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
+  renderPreviewTypeTabs();
 }
 
 function bindEvents() {

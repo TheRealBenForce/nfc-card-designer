@@ -130,25 +130,25 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 ```
 ┌──────────────────────────────┐
-│  LOGO (75%)   │ COLOR (25%)  │  ← platform strip, top ~25%
+│  LOGO (75%)   │ COLOR (25%)  │  ← platform strip, top ~15% (default)
 ├──────────────────────────────┤
 │                              │
-│        ARTWORK (75%)         │  ← bottom ~75%
+│        ARTWORK (85%)         │  ← bottom ~85% (default)
 │                              │
 └──────────────────────────────┘
 ```
 
-- **Top ~25%** — platform strip (wide segment → split left | right):
+- **Top ~15%** — platform strip (wide segment → split left | right):
   - **Left ~75%** — logo
   - **Right ~25%** — platform color
-- **Bottom ~75%** — game artwork (cover-fill, full card width)
+- **Bottom ~85%** — game artwork (cover-fill, full card width)
 
 ### Landscape card (same rules)
 
 ```
 ┌────────────────────────────┬───────┐
 │                            │ LOGO  │
-│        ARTWORK (75%)       │ (75%  │
+│        ARTWORK (85%)       │ (75%  │
 │                            │ of    │
 │                            │ col)  │
 │                            ├───────┤
@@ -156,8 +156,8 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 └────────────────────────────┴───────┘
 ```
 
-- **Left ~75%** — artwork
-- **Right ~25%** — platform column (tall segment → split top | bottom):
+- **Left ~85%** — artwork
+- **Right ~15%** — platform column (tall segment → split top | bottom):
   - **Top ~75%** — logo
   - **Bottom ~25%** — platform color
 

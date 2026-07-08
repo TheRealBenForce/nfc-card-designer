@@ -35,6 +35,7 @@ import {
 } from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
+import { normalizeHeaderHeightPercent } from "./headerSettings.js";
 import {
   subscribe,
   getSettings,
@@ -99,6 +100,14 @@ let gameSearchInput = null;
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let platformColorInput = null;
+/** @type {HTMLInputElement|null} */
+let globalShowHeaderInput = null;
+/** @type {HTMLInputElement|null} */
+let globalShowPlatformColorInput = null;
+/** @type {HTMLInputElement|null} */
+let globalHeaderHeightInput = null;
+/** @type {HTMLElement|null} */
+let globalHeaderHeightValueEl = null;
 /** @type {HTMLElement|null} */
 let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
@@ -754,7 +763,25 @@ function selectPlatform(platformId) {
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
+function syncGlobalSettingsControls() {
+  const settings = getSettings();
+  if (globalShowHeaderInput) {
+    globalShowHeaderInput.checked = settings.showHeader;
+  }
+  if (globalShowPlatformColorInput) {
+    globalShowPlatformColorInput.checked = settings.showPlatformColor;
+    globalShowPlatformColorInput.disabled = !settings.showHeader;
+  }
+  if (globalHeaderHeightInput) {
+    globalHeaderHeightInput.value = String(settings.headerHeightPercent);
+  }
+  if (globalHeaderHeightValueEl) {
+    globalHeaderHeightValueEl.textContent = `${settings.headerHeightPercent}%`;
+  }
+}
+
 function syncPlatformControls() {
+  syncGlobalSettingsControls();
   const settings = getSettings();
   if (!platformHasCatalogGames(settings.selectedPlatformId)) {
     const fallback = platformsWithCatalogGames()[0];
@@ -1149,7 +1176,7 @@ async function refreshPreview() {
         };
     previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-    const canvas = await renderCard(cardForRender, getSettings().platformDefaults);
+    const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
     if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
 
@@ -1177,7 +1204,7 @@ async function refreshPreview() {
   const platform = platformById[card.platformId];
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-  const canvas = await renderCard(card, getSettings().platformDefaults);
+  const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
   if (requestId !== previewRequestId) return;
   if (browseState) return;
 
@@ -1212,6 +1239,32 @@ function bindEvents() {
       const game = pickGameFromSearch();
       if (game) browseGameFromSearch(game);
     }
+  });
+
+  globalShowHeaderInput?.addEventListener("change", (e) => {
+    updateSettings({ showHeader: /** @type {HTMLInputElement} */ (e.target).checked });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalShowPlatformColorInput?.addEventListener("change", (e) => {
+    updateSettings({
+      showPlatformColor: /** @type {HTMLInputElement} */ (e.target).checked,
+    });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalHeaderHeightInput?.addEventListener("input", (e) => {
+    const headerHeightPercent = normalizeHeaderHeightPercent(
+      Number(/** @type {HTMLInputElement} */ (e.target).value),
+    );
+    updateSettings({ headerHeightPercent });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
   });
 
   platformColorInput?.addEventListener("input", (e) => {
@@ -1313,6 +1366,9 @@ function bindEvents() {
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
+        showHeader: imported.settings.showHeader ?? defaults.showHeader,
+        showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
+        headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -1373,7 +1429,7 @@ function bindEvents() {
     }
     logStatus("Generating PDF…");
     try {
-      await exportLetterPdf(selected, getSettings().platformDefaults);
+      await exportLetterPdf(selected, getSettings().platformDefaults, getSettings());
       logStatus(`Printed ${selected.length} card(s) to PDF.`);
     } catch (err) {
       logStatus("PDF export failed.", true);
@@ -1399,6 +1455,16 @@ export async function initUI() {
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
+  globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-show-header")
+  );
+  globalShowPlatformColorInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-show-platform-color")
+  );
+  globalHeaderHeightInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-header-height")
+  );
+  globalHeaderHeightValueEl = document.getElementById("global-header-height-value");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
   platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
   platformPriorityListEl = /** @type {HTMLOListElement|null} */ (
@@ -1506,7 +1572,10 @@ export async function initUI() {
   });
 
   subscribe((event) => {
-    if (event === "settings") saveSettings(getSettings());
+    if (event === "settings") {
+      saveSettings(getSettings());
+      syncGlobalSettingsControls();
+    }
     if (event === "collection") {
       saveCollection(getCollection());
       if (browseState?.targetCardId && !getCollection().some((card) => card.id === browseState.targetCardId)) {

@@ -9,10 +9,10 @@ export const CARD_PREVIEW_HEIGHT_PX = Math.round(CARD_HEIGHT_MM * CSS_PX_PER_MM)
 
 /**
  * Card layout ratios. Each segment is split long-edge to long-edge:
- * portrait segments → left | right, landscape segments → top | bottom.
+ * portrait segments → top | bottom, landscape segments → left | right.
  */
-export const ART_RATIO = 0.75;
-export const PLATFORM_RATIO = 0.25;
+export const ART_RATIO = 0.85;
+export const PLATFORM_RATIO = 0.15;
 export const LOGO_RATIO = 0.75;
 export const COLOR_RATIO = 0.25;
 

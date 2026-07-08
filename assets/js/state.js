@@ -27,6 +27,9 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string} selectedPlatformId
+ * @property {boolean} showHeader
+ * @property {boolean} showPlatformColor
+ * @property {number} headerHeightPercent
  */
 
 /** @type {AppSettings} */

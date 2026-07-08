@@ -9,13 +9,16 @@ import {
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
+import { normalizeHeaderSettings } from "./headerSettings.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
+  const headerSettings = normalizeHeaderSettings();
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
+    ...headerSettings,
   };
 }
 
@@ -67,9 +70,11 @@ function normalizeCard(card) {
  * @param {import('./state.js').AppSettings} settings
  */
 export function saveSettings(settings) {
+  const headerSettings = normalizeHeaderSettings(settings);
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    ...headerSettings,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -81,6 +86,7 @@ export function loadSettings() {
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
+    const headerSettings = normalizeHeaderSettings(parsed);
 
     return {
       platformDefaults: normalizePlatformDefaults(
@@ -89,6 +95,7 @@ export function loadSettings() {
         parsed.artworkDisplay,
       ),
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
+      ...headerSettings,
     };
   } catch {
     return defaultSettings();
@@ -134,10 +141,12 @@ export function loadDeck() {
  * @param {import('./state.js').Card[]} collection
  */
 export function buildProjectData(settings, collection) {
+  const headerSettings = normalizeHeaderSettings(settings);
   return {
     version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    ...headerSettings,
     cards: collection.map(serializeCard),
   };
 }
@@ -192,6 +201,7 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
+            ...normalizeHeaderSettings(parsed),
           },
           cards: cards.map((card) => normalizeCard(card)).filter(Boolean),
         });

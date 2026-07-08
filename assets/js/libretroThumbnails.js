@@ -25,6 +25,42 @@ export const LIBRETRO_REGION_SUFFIXES = [
 const INVALID_FILENAME_CHARS = /[&*/:\\`<>?|]/g;
 
 /**
+ * Normalize a catalog title for fuzzy comparison with libretro filenames.
+ * Handles common RA vs No-Intro differences (leading "The", colons vs dashes).
+ * @param {string} name
+ */
+export function normalizeLibretroTitle(name) {
+  let normalized = sanitizeLibretroFilename(name);
+  const thePrefix = normalized.match(/^The (.+)$/i);
+  if (thePrefix) normalized = `${thePrefix[1]}, The`;
+  normalized = normalized.replace(/:/g, " -").replace(/\s+/g, " ").trim();
+  normalized = normalized.replace(/\s+\([^)]*\)$/g, "").trim();
+  return normalized.toLowerCase();
+}
+
+/**
+ * Alternate spellings RA titles may use vs libretro / No-Intro names.
+ * @param {string} gameName
+ */
+export function libretroTitleVariants(gameName) {
+  /** @type {string[]} */
+  const variants = [gameName];
+
+  if (gameName.includes(":")) {
+    variants.push(gameName.replace(/:/g, " -"));
+    variants.push(gameName.replace(/:/g, " - "));
+  }
+
+  const thePrefix = gameName.match(/^The (.+)$/i);
+  if (thePrefix) variants.push(`${thePrefix[1]}, The`);
+
+  const commaThe = gameName.match(/^(.+), The$/i);
+  if (commaThe) variants.push(`The ${commaThe[1]}`);
+
+  return [...new Set(variants)];
+}
+
+/**
  * Characters forbidden in libretro thumbnail filenames become underscores.
  * @param {string} name
  */
@@ -59,12 +95,16 @@ export function libretroThumbnailDirectoryUrl(playlistName, imageFolder) {
  * @param {string} gameName
  */
 export function libretroFilenameCandidates(gameName) {
-  const base = sanitizeLibretroFilename(gameName);
   /** @type {string[]} */
-  const candidates = [base];
+  const candidates = [];
 
-  for (const suffix of LIBRETRO_REGION_SUFFIXES) {
-    candidates.push(`${base} ${suffix}`);
+  for (const variant of libretroTitleVariants(gameName)) {
+    const base = sanitizeLibretroFilename(variant);
+    candidates.push(base);
+
+    for (const suffix of LIBRETRO_REGION_SUFFIXES) {
+      candidates.push(`${base} ${suffix}`);
+    }
   }
 
   return [...new Set(candidates)];
@@ -79,14 +119,19 @@ export function libretroFilenameCandidates(gameName) {
 export function scoreLibretroFilename(gameName, filename) {
   const listingName = filename.replace(/\.png$/i, "");
   const target = sanitizeLibretroFilename(gameName);
-  if (!listingName.toLowerCase().startsWith(target.toLowerCase())) return -1;
+  const normalizedTarget = normalizeLibretroTitle(gameName);
+  const normalizedListing = normalizeLibretroTitle(listingName);
 
-  const rest = listingName.slice(target.length);
-  if (rest && !/^(\s+\(|\s+-\s+|$)/.test(rest)) return -1;
+  const directPrefix = listingName.toLowerCase().startsWith(target.toLowerCase());
+  const normalizedPrefix = normalizedListing === normalizedTarget || normalizedListing.startsWith(`${normalizedTarget} `);
+  if (!directPrefix && !normalizedPrefix) return -1;
+
+  const rest = directPrefix ? listingName.slice(target.length) : "";
+  if (directPrefix && rest && !/^(\s+\(|\s+-\s+|$)/.test(rest) && !normalizedPrefix) return -1;
   if (rest.includes(" + ") && !gameName.includes("+")) return -1;
 
   let score = 0;
-  if (listingName === target) score += 100;
+  if (listingName === target || normalizedListing === normalizedTarget) score += 100;
   if (rest.includes("(USA)")) score += 50;
   if (rest.includes("(World)")) score += 40;
   if (rest.includes("(Europe)")) score += 30;

@@ -74,8 +74,13 @@ async function main() {
     "package.json",
     "--exclude",
     "README.md",
+    // Game artwork is uploaded separately via fetch-images / upload-images.
+    // These patterns must cover nested paths — "assets/images/*" only excludes
+    // direct children and would still delete platforms/<id>/games/<raGameId>/*.png.
     "--exclude",
-    "assets/images/*",
+    "assets/images/platforms/*/games/*/*",
+    "--exclude",
+    "assets/images/games/*",
   ];
 
   console.log(`→ Syncing site to s3://${bucket}/`);

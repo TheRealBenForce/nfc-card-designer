@@ -553,14 +553,6 @@ function syncBrowseActionButton() {
 }
 
 /**
- * @returns {import("./state.js").Card | null}
- */
-function getSingleSelectedCard() {
-  const selected = getSelectedCards();
-  return selected.length === 1 ? selected[0] : null;
-}
-
-/**
  * @param {import("./state.js").Card} card
  */
 async function browseSelectedCard(card) {
@@ -593,27 +585,9 @@ async function browseSelectedCard(card) {
   await refreshPreview();
 }
 
-function syncBrowseStateWithSelection() {
-  const selectedCard = getSingleSelectedCard();
-  if (!selectedCard) {
-    if (browseState?.targetCardId) {
-      clearBrowse();
-      void refreshPreview();
-    }
-    return;
-  }
-
-  if (
-    browseState?.targetCardId === selectedCard.id &&
-    browseState.game.platformId === selectedCard.platformId &&
-    browseState.game.raGameId === selectedCard.raGameId &&
-    browseState.game.name === selectedCard.gameName &&
-    browseState.imageType === selectedCard.imageType
-  ) {
-    return;
-  }
-
-  void browseSelectedCard(selectedCard);
+function getEditingCard() {
+  if (!browseState?.targetCardId) return null;
+  return getCollection().find((card) => card.id === browseState.targetCardId) ?? null;
 }
 
 /**
@@ -985,13 +959,9 @@ function pickGameFromSearch() {
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
   schedulePreviewSkeleton();
-  const selectedCard = getSingleSelectedCard();
-  const editingSelectedCard =
-    Boolean(selectedCard) &&
-    selectedCard.platformId === game.platformId &&
-    selectedCard.raGameId === game.raGameId;
-  const targetCardId = editingSelectedCard && selectedCard ? selectedCard.id : null;
-  const preferredType = editingSelectedCard && selectedCard ? selectedCard.imageType : null;
+  const editingCard = getEditingCard();
+  const targetCardId = editingCard ? editingCard.id : null;
+  const preferredType = editingCard ? editingCard.imageType : null;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
@@ -1007,7 +977,7 @@ async function browseGameFromSearch(game) {
     resolvedTypes,
     targetCardId,
     artworkDisplayOverride: null,
-    imageRotation: targetCardId && selectedCard ? normalizeRotationDegrees(selectedCard.imageRotation ?? 0) : 0,
+    imageRotation: targetCardId ? normalizeRotationDegrees(editingCard?.imageRotation ?? 0) : 0,
   };
 
   renderPreviewTypeTabs();
@@ -1160,10 +1130,26 @@ function renderCollection() {
     cardsEl.className = "collection-cards";
 
     for (const card of cards) {
-      const row = document.createElement("button");
-      row.type = "button";
+      const row = document.createElement("div");
       row.className = "collection-card";
       if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "collection-card__edit-btn";
+      if (browseState?.targetCardId === card.id) {
+        editBtn.classList.add("collection-card__edit-btn--active");
+      }
+      editBtn.textContent = "✎";
+      editBtn.title = `Edit ${card.gameName}`;
+      editBtn.setAttribute("aria-label", `Edit ${card.gameName}`);
+      editBtn.addEventListener("click", () => {
+        void browseSelectedCard(card);
+      });
+
+      const selectBtn = document.createElement("button");
+      selectBtn.type = "button";
+      selectBtn.className = "collection-card__select-btn";
 
       const mark = document.createElement("span");
       mark.className = "collection-card__mark";
@@ -1175,7 +1161,8 @@ function renderCollection() {
       const artLabel = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
       label.textContent = `${card.gameName} - ${artLabel}`;
 
-      row.addEventListener("click", () => {
+      selectBtn.addEventListener("click", () => {
+        if (browseState) clearBrowse();
         toggleCardSelection(card.id);
         setPreviewCardId(card.id);
         renderCollection();
@@ -1184,16 +1171,18 @@ function renderCollection() {
         refreshPreview();
       });
 
-      row.appendChild(mark);
-      row.appendChild(label);
+      selectBtn.appendChild(mark);
+      selectBtn.appendChild(label);
 
       if (card.imageFailed) {
         const badge = document.createElement("span");
         badge.className = "collection-card__badge";
         badge.textContent = "placeholder";
-        row.appendChild(badge);
+        selectBtn.appendChild(badge);
       }
 
+      row.appendChild(editBtn);
+      row.appendChild(selectBtn);
       cardsEl.appendChild(row);
     }
 
@@ -1695,7 +1684,6 @@ export async function initUI() {
       renderCollection();
     }
     if (event === "selection") {
-      syncBrowseStateWithSelection();
       renderCollection();
       updateCollectionActions();
       syncPreviewArtworkControls();

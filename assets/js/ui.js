@@ -35,6 +35,7 @@ import {
 } from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
+import { normalizeHeaderHeightPercent } from "./headerSettings.js";
 import {
   subscribe,
   getSettings,
@@ -105,6 +106,14 @@ let gameSearchInput = null;
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let platformColorInput = null;
+/** @type {HTMLInputElement|null} */
+let globalShowHeaderInput = null;
+/** @type {HTMLInputElement|null} */
+let globalShowPlatformColorInput = null;
+/** @type {HTMLInputElement|null} */
+let globalHeaderHeightInput = null;
+/** @type {HTMLElement|null} */
+let globalHeaderHeightValueEl = null;
 /** @type {HTMLElement|null} */
 let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
@@ -802,7 +811,37 @@ function selectPlatform(platformId) {
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
+function syncGlobalSettingsControls() {
+  const settings = getSettings();
+  if (searchOnlyGamesWithImagesInput) {
+    searchOnlyGamesWithImagesInput.checked = !settings.searchOnlyGamesWithImages;
+  }
+  if (globalShowHeaderInput) {
+    globalShowHeaderInput.checked = settings.showHeader;
+  }
+  if (globalShowPlatformColorInput) {
+    globalShowPlatformColorInput.checked = settings.showPlatformColor;
+    globalShowPlatformColorInput.disabled = !settings.showHeader;
+  }
+  if (globalHeaderHeightInput) {
+    globalHeaderHeightInput.value = String(settings.headerHeightPercent);
+  }
+  if (globalHeaderHeightValueEl) {
+    globalHeaderHeightValueEl.textContent = `${settings.headerHeightPercent}%`;
+  }
+}
+
+function currentHeaderSettingsSnapshot() {
+  const settings = getSettings();
+  return {
+    showHeader: settings.showHeader,
+    showPlatformColor: settings.showPlatformColor,
+    headerHeightPercent: settings.headerHeightPercent,
+  };
+}
+
 function syncPlatformControls() {
+  syncGlobalSettingsControls();
   const settings = getSettings();
   if (!platformHasCatalogGames(settings.selectedPlatformId)) {
     const fallback = platformsWithCatalogGames()[0];
@@ -939,11 +978,6 @@ function pickGameFromSearch() {
   return game;
 }
 
-function syncGlobalSettingsControls() {
-  if (!searchOnlyGamesWithImagesInput) return;
-  searchOnlyGamesWithImagesInput.checked = !getSettings().searchOnlyGamesWithImages;
-}
-
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
   schedulePreviewSkeleton();
@@ -1006,6 +1040,7 @@ async function addBrowsedGame() {
   if (!browseState) return;
 
   const { game, imageType, targetCardId } = browseState;
+  const headerSettings = currentHeaderSettingsSnapshot();
   const imageFailed = browseStateUsesPlaceholder(browseState);
   const targetCard = targetCardId
     ? getCollection().find((card) => card.id === targetCardId) ?? null
@@ -1018,6 +1053,7 @@ async function addBrowsedGame() {
       raGameId: game.raGameId,
       imageType,
       imageFailed,
+      ...(targetCard.headerSettings ? {} : { headerSettings }),
     });
 
     resetGameSearch({ focus: true });
@@ -1033,6 +1069,7 @@ async function addBrowsedGame() {
     gameName: game.name,
     raGameId: game.raGameId,
     imageType,
+    headerSettings,
     ...(imageFailed ? { imageFailed: true } : {}),
     ...(browseState.artworkDisplayOverride ? { artworkDisplay: browseState.artworkDisplayOverride } : {}),
     ...((normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0)
@@ -1201,6 +1238,7 @@ async function refreshPreview() {
             gameName: game.name,
             raGameId: game.raGameId,
             imageType,
+            headerSettings: currentHeaderSettingsSnapshot(),
             ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
             ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
               ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
@@ -1208,7 +1246,7 @@ async function refreshPreview() {
           };
       previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-      const canvas = await renderCard(cardForRender, getSettings().platformDefaults);
+      const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
       if (requestId !== previewRequestId) return;
       if (browseState !== snapshot) return;
 
@@ -1236,7 +1274,7 @@ async function refreshPreview() {
     const platform = platformById[card.platformId];
     previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-    const canvas = await renderCard(card, getSettings().platformDefaults);
+    const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
     if (requestId !== previewRequestId) return;
     if (browseState) return;
 
@@ -1285,6 +1323,32 @@ function bindEvents() {
       const game = pickGameFromSearch();
       if (game) browseGameFromSearch(game);
     }
+  });
+
+  globalShowHeaderInput?.addEventListener("change", (e) => {
+    updateSettings({ showHeader: /** @type {HTMLInputElement} */ (e.target).checked });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalShowPlatformColorInput?.addEventListener("change", (e) => {
+    updateSettings({
+      showPlatformColor: /** @type {HTMLInputElement} */ (e.target).checked,
+    });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalHeaderHeightInput?.addEventListener("input", (e) => {
+    const headerHeightPercent = normalizeHeaderHeightPercent(
+      Number(/** @type {HTMLInputElement} */ (e.target).value),
+    );
+    updateSettings({ headerHeightPercent });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
   });
 
   platformColorInput?.addEventListener("input", (e) => {
@@ -1386,6 +1450,9 @@ function bindEvents() {
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
+        showHeader: imported.settings.showHeader ?? defaults.showHeader,
+        showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
+        headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
         searchOnlyGamesWithImages:
           imported.settings.searchOnlyGamesWithImages ?? defaults.searchOnlyGamesWithImages,
       });
@@ -1448,7 +1515,7 @@ function bindEvents() {
     }
     logStatus("Generating PDF…");
     try {
-      await exportLetterPdf(selected, getSettings().platformDefaults);
+      await exportLetterPdf(selected, getSettings().platformDefaults, getSettings());
       logStatus(`Printed ${selected.length} card(s) to PDF.`);
     } catch (err) {
       logStatus("PDF export failed.", true);
@@ -1479,6 +1546,16 @@ export async function initUI() {
   );
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
+  globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-show-header")
+  );
+  globalShowPlatformColorInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-show-platform-color")
+  );
+  globalHeaderHeightInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-header-height")
+  );
+  globalHeaderHeightValueEl = document.getElementById("global-header-height-value");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
   platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
   platformPriorityListEl = /** @type {HTMLOListElement|null} */ (

@@ -9,19 +9,24 @@ import {
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
+import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
+  const headerSettings = normalizeHeaderSettings();
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
+    ...headerSettings,
     searchOnlyGamesWithImages: false,
+    ...headerSettings,
   };
 }
 
 /** @param {import('./state.js').Card} card */
 function serializeCard(card) {
+  const normalizedHeaderSettings = normalizeHeaderSettings(card.headerSettings);
   return {
     id: card.id,
     platformId: card.platformId,
@@ -31,11 +36,15 @@ function serializeCard(card) {
     ...(card.imageFailed ? { imageFailed: true } : {}),
     ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
     ...(card.imageRotation ? { imageRotation: normalizeRotationDegrees(card.imageRotation) } : {}),
+    headerSettings: normalizedHeaderSettings,
   };
 }
 
-/** @param {unknown} card */
-function normalizeCard(card) {
+/**
+ * @param {unknown} card
+ * @param {{ showHeader?: unknown, showPlatformColor?: unknown, headerHeightPercent?: unknown } | null | undefined} [fallbackHeaderSettings]
+ */
+function normalizeCard(card, fallbackHeaderSettings) {
   if (!card || typeof card !== "object") return null;
   const entry = /** @type {Record<string, unknown>} */ (card);
   if (
@@ -49,6 +58,11 @@ function normalizeCard(card) {
   }
 
   const normalizedRotation = normalizeRotationDegrees(entry.imageRotation);
+  const normalizedCardHeaderSettings = normalizeHeaderSettings(
+    (entry.headerSettings && typeof entry.headerSettings === "object")
+      ? entry.headerSettings
+      : fallbackHeaderSettings ?? legacyHeaderSettings(),
+  );
 
   return {
     id: entry.id,
@@ -61,6 +75,7 @@ function normalizeCard(card) {
       ? { artworkDisplay: normalizeArtworkDisplay(entry.artworkDisplay) }
       : {}),
     ...(normalizedRotation ? { imageRotation: normalizedRotation } : {}),
+    headerSettings: normalizedCardHeaderSettings,
   };
 }
 
@@ -68,10 +83,13 @@ function normalizeCard(card) {
  * @param {import('./state.js').AppSettings} settings
  */
 export function saveSettings(settings) {
+  const headerSettings = normalizeHeaderSettings(settings);
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    ...headerSettings,
     searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
+    ...headerSettings,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -83,6 +101,7 @@ export function loadSettings() {
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
+    const headerSettings = normalizeHeaderSettings(parsed);
 
     return {
       platformDefaults: normalizePlatformDefaults(
@@ -95,6 +114,7 @@ export function loadSettings() {
         typeof parsed.searchOnlyGamesWithImages === "boolean"
           ? parsed.searchOnlyGamesWithImages
           : defaults.searchOnlyGamesWithImages,
+      ...headerSettings,
     };
   } catch {
     return defaultSettings();
@@ -140,11 +160,13 @@ export function loadDeck() {
  * @param {import('./state.js').Card[]} collection
  */
 export function buildProjectData(settings, collection) {
+  const headerSettings = normalizeHeaderSettings(settings);
   return {
     version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
+    ...headerSettings,
     cards: collection.map(serializeCard),
   };
 }
@@ -186,6 +208,7 @@ export function importProjectFile() {
       }
       try {
         const parsed = JSON.parse(await file.text());
+        const importedHeaderSettings = normalizeHeaderSettings(parsed);
         const cards = Array.isArray(parsed.cards)
           ? parsed.cards
           : Array.isArray(parsed.collection)
@@ -203,8 +226,9 @@ export function importProjectFile() {
               typeof parsed.searchOnlyGamesWithImages === "boolean"
                 ? parsed.searchOnlyGamesWithImages
                 : undefined,
+            ...importedHeaderSettings,
           },
-          cards: cards.map((card) => normalizeCard(card)).filter(Boolean),
+          cards: cards.map((card) => normalizeCard(card, importedHeaderSettings)).filter(Boolean),
         });
       } catch (err) {
         reject(err);

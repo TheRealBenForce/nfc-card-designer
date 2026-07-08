@@ -4,6 +4,10 @@ import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay
 import { normalizeRotationDegrees } from "./platformDefaults.js";
 
 /**
+ * @typedef {import('./headerSettings.js').HeaderSettings} HeaderSettings
+ */
+
+/**
  * @typedef {Object} Card
  * @property {string} id
  * @property {string} platformId
@@ -13,6 +17,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {boolean} [imageFailed]
  * @property {ArtworkDisplaySettings} [artworkDisplay]
  * @property {number} [imageRotation]
+ * @property {HeaderSettings} [headerSettings]
  */
 
 /**
@@ -27,6 +32,9 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string} selectedPlatformId
+ * @property {boolean} showHeader
+ * @property {boolean} showPlatformColor
+ * @property {number} headerHeightPercent
  * @property {boolean} searchOnlyGamesWithImages
  */
 

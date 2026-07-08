@@ -325,9 +325,14 @@ async function drawArtBackground(
 /**
  * @param {import('./state.js').Card} card
  * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
+ * @param {{
+ *   showHeader?: boolean,
+ *   showPlatformColor?: boolean,
+ *   headerHeightPercent?: number,
+ * } | null | undefined} [layoutSettings]
  * @returns {Promise<HTMLCanvasElement>}
  */
-export async function renderCard(card, platformDefaults) {
+export async function renderCard(card, platformDefaults, layoutSettings) {
   const canvas = document.createElement("canvas");
   canvas.width = CARD_RENDER_WIDTH_PX;
   canvas.height = CARD_RENDER_HEIGHT_PX;
@@ -342,7 +347,17 @@ export async function renderCard(card, platformDefaults) {
   const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
   const baseRotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
   const rotation = normalizeRotationDegrees(baseRotation + (card.imageRotation ?? 0));
-  const { art, logo, color: colorRect } = computeCardLayout(canvas.width, canvas.height);
+  const cardHeaderSettings = card.headerSettings && typeof card.headerSettings === "object"
+    ? card.headerSettings
+    : null;
+  const effectiveLayoutSettings = cardHeaderSettings ?? layoutSettings ?? undefined;
+  const {
+    art,
+    logo,
+    color: colorRect,
+    showHeader,
+    showPlatformColor,
+  } = computeCardLayout(canvas.width, canvas.height, effectiveLayoutSettings);
 
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -358,11 +373,15 @@ export async function renderCard(card, platformDefaults) {
   await drawArtBackground(ctx, art, card, normalizedDisplay, color, img, rotation, align, zoom);
   drawContainImageAligned(ctx, img, art.x, art.y, art.w, art.h, rotation, align, zoom);
 
-  const icon = await loadImage(getPlatformIconPath(card.platformId));
-  drawPlatformLogo(ctx, icon, logo);
+  if (showHeader) {
+    const icon = await loadImage(getPlatformIconPath(card.platformId));
+    drawPlatformLogo(ctx, icon, logo);
+  }
 
-  ctx.fillStyle = color;
-  ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
+  if (showPlatformColor) {
+    ctx.fillStyle = color;
+    ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
+  }
 
   return canvas;
 }

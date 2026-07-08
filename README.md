@@ -55,7 +55,7 @@ Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
 ## Artwork setup (libretro thumbnails → S3)
 
-Game images are **not stored in git**. `fetch-images` downloads missing thumbnails from the [libretro CDN](https://thumbnails.libretro.com/) and uploads them to your S3 bucket (`zaparoo.therealbenforce.com`).
+Game images are **not stored in git**. `fetch-images` pulls missing thumbnails from the [libretro CDN](https://thumbnails.libretro.com/) (or a local libretro mirror directory) and uploads them to your S3 bucket (`zaparoo.therealbenforce.com`).
 
 ```bash
 npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
@@ -68,6 +68,7 @@ Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped 
 ```bash
 npm run fetch-images -- --local-only   # dev: save to src/assets/images/ only, no S3
 npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local image files
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails.libretro.com
 npm run sync-s3-sample-images          # pull a small random local cache from S3
 ```
 
@@ -99,6 +100,7 @@ npm run fetch-game-list -- --include-non-retail
 npm run fetch-images -- --platform=genesis
 npm run fetch-images -- --force
 npm run fetch-images -- --s3-only --force
+npm run fetch-images -- --platform=nes --libretro-dir=/path/to/thumbnails.libretro.com --s3-only
 npm run sync-s3-sample-images -- --count=10
 npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
 ```

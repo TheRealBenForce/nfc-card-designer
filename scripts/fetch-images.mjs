@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Downloads libretro thumbnails and uploads them to S3 (and optionally keeps local copies).
+ * Pulls libretro thumbnails (CDN or local mirror) and uploads to S3
+ * (and optionally keeps local copies).
  */
 
 import { writeFile, mkdir } from "node:fs/promises";
@@ -16,14 +17,28 @@ import {
   writeImageAvailabilityJson,
 } from "./games-data.mjs";
 import { imagePresent, s3BucketFromEnv, uploadBufferToS3, uploadFileToS3 } from "./s3-storage.mjs";
+import {
+  directoryExists,
+  readLocalLibretroImage,
+  resolveLocalLibretroFilename,
+} from "./local-libretro-source.mjs";
 
 const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
 const REQUEST_DELAY_MS = 150;
 
+/**
+ * @param {string} name
+ */
+function argValue(name) {
+  const prefix = `${name}=`;
+  const arg = process.argv.find((value) => value.startsWith(prefix));
+  return arg ? arg.slice(prefix.length).trim() : null;
+}
+
 function parseArgs() {
-  const platformArg = process.argv.find((a) => a.startsWith("--platform="));
   return {
-    platformId: platformArg?.split("=")[1],
+    platformId: argValue("--platform"),
+    libretroDir: argValue("--libretro-dir"),
     force: process.argv.includes("--force"),
     localOnly: process.argv.includes("--local-only"),
     s3Only: process.argv.includes("--s3-only"),
@@ -56,9 +71,14 @@ function objectKeyForImage(platformId, raGameId, type) {
 }
 
 async function main() {
-  const { platformId, force, localOnly, s3Only } = parseArgs();
+  const { platformId, libretroDir, force, localOnly, s3Only } = parseArgs();
   if (localOnly && s3Only) {
     throw new Error("Choose either --local-only or --s3-only, not both.");
+  }
+
+  const localLibretroRoot = libretroDir ? path.resolve(libretroDir) : null;
+  if (localLibretroRoot && !(await directoryExists(localLibretroRoot))) {
+    throw new Error(`--libretro-dir does not exist or is not a directory: ${localLibretroRoot}`);
   }
 
   const bucket = s3BucketFromEnv();
@@ -108,6 +128,10 @@ async function main() {
     }
   } else if (!localOnly && !bucket) {
     console.log("S3_BUCKET not set — saving images locally only.\n");
+  }
+
+  if (localLibretroRoot) {
+    console.log(`Using local libretro image source: ${localLibretroRoot}\n`);
   }
 
   const stats = {
@@ -167,7 +191,7 @@ async function main() {
 
     process.stdout.write(
       `[${stats.gamesDone + 1}/${targets.length}] ${game.name} (${game.raGameId}) — ` +
-        `${alreadyPresent.length} skipped, fetching ${missingTypes.length}… `,
+        `${alreadyPresent.length} skipped, processing ${missingTypes.length}… `,
     );
 
     let gameDownloaded = 0;
@@ -178,14 +202,39 @@ async function main() {
       const destPath = path.join(dir, `${type}.png`);
       const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
 
-      const libretroName = await resolveLibretroFilename(
-        platform.libretroPlaylist,
-        type,
-        game.name,
-        resolvedLibretroName,
-      );
+      let libretroName = null;
+      let imageBuffer = null;
 
-      if (!libretroName) {
+      if (localLibretroRoot) {
+        libretroName = await resolveLocalLibretroFilename(
+          localLibretroRoot,
+          platform.libretroPlaylist,
+          type,
+          game.name,
+          resolvedLibretroName,
+        );
+        if (libretroName) {
+          imageBuffer = await readLocalLibretroImage(
+            localLibretroRoot,
+            platform.libretroPlaylist,
+            type,
+            libretroName,
+          );
+        }
+      } else {
+        libretroName = await resolveLibretroFilename(
+          platform.libretroPlaylist,
+          type,
+          game.name,
+          resolvedLibretroName,
+        );
+        if (libretroName) {
+          const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
+          imageBuffer = await downloadImageBuffer(url);
+        }
+      }
+
+      if (!libretroName || !imageBuffer) {
         gameFailed += 1;
         stats.failed += 1;
         continue;
@@ -193,29 +242,24 @@ async function main() {
 
       if (!resolvedLibretroName) resolvedLibretroName = libretroName;
 
-      const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
-      const imageBuffer = await downloadImageBuffer(url);
-      if (imageBuffer) {
-        if (keepLocal) {
-          await writeFile(destPath, imageBuffer);
-        }
-
-        current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
-        gameDownloaded += 1;
-        stats.downloaded += 1;
-
-        if (uploadToS3) {
-          const uploaded = keepLocal
-            ? await uploadFileToS3(destPath, objectKey)
-            : await uploadBufferToS3(imageBuffer, objectKey);
-          if (uploaded) stats.uploaded += 1;
-        }
-      } else {
-        gameFailed += 1;
-        stats.failed += 1;
+      if (keepLocal) {
+        await writeFile(destPath, imageBuffer);
       }
 
-      await delay(REQUEST_DELAY_MS);
+      current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
+      gameDownloaded += 1;
+      stats.downloaded += 1;
+
+      if (uploadToS3) {
+        const uploaded = keepLocal
+          ? await uploadFileToS3(destPath, objectKey)
+          : await uploadBufferToS3(imageBuffer, objectKey);
+        if (uploaded) stats.uploaded += 1;
+      }
+
+      if (!localLibretroRoot) {
+        await delay(REQUEST_DELAY_MS);
+      }
     }
 
     if (resolvedLibretroName) {
@@ -241,7 +285,6 @@ async function main() {
   console.log(`Updated ${gamesPath}`);
   console.log("Updated src/assets/data/image-availability.json");
 }
-
 main().catch((err) => {
   console.error(err instanceof Error ? err.message : err);
   process.exit(1);

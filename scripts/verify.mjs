@@ -69,6 +69,9 @@ async function main() {
   console.log("→ Fetch-images skip logic…");
   await run("node", ["scripts/test-fetch-images-skip.mjs"]);
 
+  console.log("→ Fetch-images local libretro source…");
+  await run("node", ["scripts/test-fetch-images-local-libretro.mjs"]);
+
   console.log("→ Platform visibility…");
   await run("node", ["scripts/test-platform-visibility.mjs"]);
 

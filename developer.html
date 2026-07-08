@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Developer · NFC Card Designer</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon-gamepad.svg" />
+    <link rel="alternate icon" href="/assets/images/favicon-gamepad.svg" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="site-container">
+        <nav class="header__nav" aria-label="Site">
+          <h1 class="header__title">
+            <a class="header__brand" href="./">NFC Card Designer</a>
+          </h1>
+          <span class="header__link header__link--current" aria-current="page">Developer</span>
+          <a class="header__link" href="supplies.html">Supplies</a>
+          <a class="header__link" href="recognition.html">Recognition</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="static-page site-container dev-page">
+      <h1>Developer tools</h1>
+      <p class="static-page__lead">
+        Local-only helpers for testing preview loading, inspecting on-disk artwork, and reading your saved
+        collection. Settings are stored in <code>localStorage</code> and apply to the main app on the same
+        origin.
+      </p>
+
+      <section class="dev-section">
+        <h2>Image load delay</h2>
+        <p>
+          Artificial lag added before each preview image fetch in the main app. Use this to test loading
+          indicators (e.g. the preview skeleton) without throttling the network.
+        </p>
+        <div class="dev-delay">
+          <label class="dev-delay__control" for="dev-image-delay-range">
+            <span class="dev-delay__label">Delay</span>
+            <input
+              id="dev-image-delay-range"
+              class="dev-delay__range"
+              type="range"
+              min="0"
+              max="10000"
+              step="50"
+              value="0"
+            />
+            <input
+              id="dev-image-delay-input"
+              class="input dev-delay__input"
+              type="number"
+              min="0"
+              max="10000"
+              step="50"
+              value="0"
+            />
+            <span class="dev-delay__unit">ms</span>
+          </label>
+          <p id="dev-image-delay-status" class="field-hint dev-delay__status">No artificial delay.</p>
+        </div>
+      </section>
+
+      <section class="dev-section">
+        <div class="dev-section__header">
+          <h2>Local games with artwork</h2>
+          <button id="dev-refresh-local-games" type="button" class="btn btn--secondary btn--small">
+            Refresh
+          </button>
+        </div>
+        <p id="dev-local-games-meta" class="field-hint">Loading image index…</p>
+        <div id="dev-local-games" class="dev-local-games" aria-live="polite"></div>
+      </section>
+
+      <section class="dev-section">
+        <div class="dev-section__header">
+          <h2>Collection JSON</h2>
+          <button id="dev-refresh-collection" type="button" class="btn btn--secondary btn--small">
+            Refresh
+          </button>
+        </div>
+        <p class="field-hint">
+          Reads <code id="dev-collection-storage-key"></code> from <code>localStorage</code> (same data as
+          Export in the main app).
+        </p>
+        <pre id="dev-collection-json" class="dev-json" aria-live="polite">Loading…</pre>
+      </section>
+
+      <p class="static-page__back">
+        <a href="./">← Back to designer</a>
+      </p>
+    </main>
+
+    <script type="module" src="assets/js/developer.js"></script>
+  </body>
+</html>

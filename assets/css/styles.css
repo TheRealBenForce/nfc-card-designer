@@ -173,6 +173,139 @@ body {
   margin-top: 1.5rem;
 }
 
+.dev-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  color: var(--text);
+}
+
+.dev-section {
+  margin-bottom: 2rem;
+}
+
+.dev-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dev-section__header h2 {
+  margin: 0;
+}
+
+.btn--small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.dev-delay {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.dev-delay__control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dev-delay__label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dev-delay__range {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+}
+
+.dev-delay__input {
+  width: 5.5rem;
+}
+
+.dev-delay__unit {
+  color: var(--text-muted);
+}
+
+.dev-delay__status {
+  margin: 0.75rem 0 0;
+}
+
+.dev-json {
+  margin: 0.75rem 0 0;
+  padding: 1rem;
+  max-height: 28rem;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dev-local-games {
+  margin-top: 0.75rem;
+}
+
+.dev-local-games__platform {
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.dev-local-games__summary {
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+
+.dev-local-games__summary::-webkit-details-marker {
+  display: none;
+}
+
+.dev-local-games__list {
+  margin: 0;
+  padding: 0 0.85rem 0.75rem;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.dev-local-games__item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.dev-local-games__item:last-child {
+  border-bottom: none;
+}
+
+.dev-local-games__name {
+  color: var(--text);
+}
+
+.dev-local-games__meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .app {
   display: grid;
   grid-template-columns: minmax(260px, 320px) 1fr minmax(220px, 280px);

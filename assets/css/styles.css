@@ -752,7 +752,7 @@ body {
 
 .preview-artwork-rotate-btn {
   width: 100%;
-  margin-bottom: 0.5rem;
+  margin: 0.1rem 0 0.5rem;
 }
 
 .preview-artwork-reset {

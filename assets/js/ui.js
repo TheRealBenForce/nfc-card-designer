@@ -88,6 +88,10 @@ let printSelectedBtn = null;
 /** @type {HTMLImageElement|null} */
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
+let previewFrameEl = null;
+/** @type {HTMLElement|null} */
+let previewSkeletonEl = null;
+/** @type {HTMLElement|null} */
 let previewMetaEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
@@ -156,6 +160,35 @@ let browseState = null;
 /** Monotonic tokens so stale async browse/preview work cannot overwrite newer UI state. */
 let browseRequestId = 0;
 let previewRequestId = 0;
+
+/** Delay before showing the preview skeleton to avoid flicker on fast cache hits. */
+const PREVIEW_SKELETON_DELAY_MS = 120;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let previewSkeletonTimer = null;
+
+function schedulePreviewSkeleton() {
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  clearTimeout(previewSkeletonTimer);
+  previewSkeletonTimer = setTimeout(showPreviewSkeleton, PREVIEW_SKELETON_DELAY_MS);
+}
+
+function showPreviewSkeleton() {
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  previewSkeletonTimer = null;
+  previewSkeletonEl.hidden = false;
+  previewSkeletonEl.setAttribute("aria-hidden", "false");
+  previewFrameEl.classList.add("preview-frame--loading");
+}
+
+function cancelPreviewSkeleton() {
+  clearTimeout(previewSkeletonTimer);
+  previewSkeletonTimer = null;
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  previewSkeletonEl.hidden = true;
+  previewSkeletonEl.setAttribute("aria-hidden", "true");
+  previewFrameEl.classList.remove("preview-frame--loading");
+}
 
 /** @type {number} */
 let gameHighlightIndex = 0;
@@ -516,6 +549,7 @@ function getSingleSelectedCard() {
  * @param {import("./state.js").Card} card
  */
 async function browseSelectedCard(card) {
+  schedulePreviewSkeleton();
   const game =
     gameForCard(card) ?? {
       platformId: card.platformId,
@@ -891,6 +925,7 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
+  schedulePreviewSkeleton();
   const selectedCard = getSingleSelectedCard();
   const editingSelectedCard =
     Boolean(selectedCard) &&
@@ -930,6 +965,7 @@ async function browseGameFromSearch(game) {
 
 function clearBrowse() {
   browseRequestId += 1;
+  cancelPreviewSkeleton();
   browseState = null;
   renderPreviewTypeTabs();
   syncBrowseActionButton();
@@ -1120,70 +1156,77 @@ async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
   const requestId = ++previewRequestId;
+  schedulePreviewSkeleton();
 
-  if (browseState) {
-    const snapshot = browseState;
-    const { game, imageType } = snapshot;
-    const platform = platformById[game.platformId];
-    const targetCard = snapshot.targetCardId
-      ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
-      : null;
-    const cardForRender = targetCard
-      ? {
-          ...targetCard,
-          platformId: game.platformId,
-          gameName: game.name,
-          raGameId: game.raGameId,
-          imageType,
-        }
-      : {
-          id: "browse",
-          platformId: game.platformId,
-          gameName: game.name,
-          raGameId: game.raGameId,
-          imageType,
-          ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
-          ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
-            ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
-            : {}),
-        };
-    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+  try {
+    if (browseState) {
+      const snapshot = browseState;
+      const { game, imageType } = snapshot;
+      const platform = platformById[game.platformId];
+      const targetCard = snapshot.targetCardId
+        ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
+        : null;
+      const cardForRender = targetCard
+        ? {
+            ...targetCard,
+            platformId: game.platformId,
+            gameName: game.name,
+            raGameId: game.raGameId,
+            imageType,
+          }
+        : {
+            id: "browse",
+            platformId: game.platformId,
+            gameName: game.name,
+            raGameId: game.raGameId,
+            imageType,
+            ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
+            ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
+              ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
+              : {}),
+          };
+      previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-    const canvas = await renderCard(cardForRender, getSettings().platformDefaults);
+      const canvas = await renderCard(cardForRender, getSettings().platformDefaults);
+      if (requestId !== previewRequestId) return;
+      if (browseState !== snapshot) return;
+
+      previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
+      previewImageEl.alt = `Preview: ${game.name}`;
+      syncBrowseActionButton();
+      renderPreviewTypeTabs();
+      syncPreviewArtworkControls();
+      return;
+    }
+
+    syncBrowseActionButton();
+    syncPreviewArtworkControls();
+
+    const card = getPreviewCard();
+    if (!card) {
+      if (requestId !== previewRequestId) return;
+      previewImageEl.src = PLACEHOLDER_SVG;
+      previewImageEl.alt = "Preview placeholder";
+      previewMetaEl.textContent = "Search for a game to preview artwork.";
+      renderPreviewTypeTabs();
+      return;
+    }
+
+    const platform = platformById[card.platformId];
+    previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
+
+    const canvas = await renderCard(card, getSettings().platformDefaults);
     if (requestId !== previewRequestId) return;
-    if (browseState !== snapshot) return;
+    if (browseState) return;
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
-    previewImageEl.alt = `Preview: ${game.name}`;
-    syncBrowseActionButton();
+    previewImageEl.alt = `Preview: ${card.gameName}`;
     renderPreviewTypeTabs();
-    syncPreviewArtworkControls();
-    return;
+  } finally {
+    if (requestId === previewRequestId) {
+      cancelPreviewSkeleton();
+    }
   }
-
-  syncBrowseActionButton();
-  syncPreviewArtworkControls();
-
-  const card = getPreviewCard();
-  if (!card) {
-    if (requestId !== previewRequestId) return;
-    previewImageEl.src = PLACEHOLDER_SVG;
-    previewImageEl.alt = "Preview placeholder";
-    previewMetaEl.textContent = "Search for a game to preview artwork.";
-    renderPreviewTypeTabs();
-    return;
-  }
-
-  const platform = platformById[card.platformId];
-  previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
-
-  const canvas = await renderCard(card, getSettings().platformDefaults);
-  if (requestId !== previewRequestId) return;
-  if (browseState) return;
-
-  previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
-  previewImageEl.alt = `Preview: ${card.gameName}`;
-  renderPreviewTypeTabs();
 }
 
 function bindEvents() {
@@ -1392,6 +1435,8 @@ export async function initUI() {
   );
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+  previewFrameEl = document.getElementById("preview-frame");
+  previewSkeletonEl = document.getElementById("preview-skeleton");
   previewMetaEl = document.getElementById("preview-meta");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")

@@ -700,6 +700,7 @@ body {
 }
 
 .preview-frame {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -713,6 +714,40 @@ body {
   box-shadow: var(--shadow);
 }
 
+.preview-skeleton {
+  position: absolute;
+  width: min(100%, calc(52mm * var(--preview-calibration-scale, 1)));
+  aspect-ratio: 52 / 84;
+  max-height: calc(84mm * var(--preview-calibration-scale, 1));
+  border-radius: 4px;
+  background: linear-gradient(
+    110deg,
+    var(--surface-2) 0%,
+    color-mix(in srgb, var(--surface-2) 70%, var(--text-muted)) 45%,
+    var(--surface-2) 90%
+  );
+  background-size: 200% 100%;
+  animation: preview-skeleton-pulse 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.preview-frame--loading .preview-image {
+  opacity: 0;
+}
+
+@keyframes preview-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    background-position: 200% 0;
+  }
+
+  50% {
+    opacity: 0.9;
+    background-position: 0% 0;
+  }
+}
+
 .preview-image {
   display: block;
   width: min(100%, calc(52mm * var(--preview-calibration-scale, 1)));
@@ -722,6 +757,7 @@ body {
   object-fit: contain;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.03);
+  transition: opacity 0.15s ease;
 }
 
 .preview-layout {

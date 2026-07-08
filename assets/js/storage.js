@@ -7,7 +7,7 @@ import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
 } from "./platformDefaults.js";
-import { defaultArtworkDisplay, normalizeArtworkDisplay } from "./artworkDisplay.js";
+import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
@@ -15,7 +15,6 @@ export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
-    artworkDisplay: defaultArtworkDisplay(),
   };
 }
 
@@ -28,6 +27,34 @@ function serializeCard(card) {
     raGameId: card.raGameId,
     imageType: card.imageType,
     ...(card.imageFailed ? { imageFailed: true } : {}),
+    ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
+  };
+}
+
+/** @param {unknown} card */
+function normalizeCard(card) {
+  if (!card || typeof card !== "object") return null;
+  const entry = /** @type {Record<string, unknown>} */ (card);
+  if (
+    typeof entry.id !== "string" ||
+    typeof entry.platformId !== "string" ||
+    typeof entry.gameName !== "string" ||
+    typeof entry.raGameId !== "number" ||
+    typeof entry.imageType !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: entry.id,
+    platformId: entry.platformId,
+    gameName: entry.gameName,
+    raGameId: entry.raGameId,
+    imageType: entry.imageType,
+    ...(entry.imageFailed ? { imageFailed: true } : {}),
+    ...(entry.artworkDisplay
+      ? { artworkDisplay: normalizeArtworkDisplay(entry.artworkDisplay) }
+      : {}),
   };
 }
 
@@ -38,7 +65,6 @@ export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
-    artworkDisplay: settings.artworkDisplay,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -52,9 +78,12 @@ export function loadSettings() {
     const defaults = defaultSettings();
 
     return {
-      platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
+      platformDefaults: normalizePlatformDefaults(
+        parsed.platformDefaults,
+        parsed.platformColors,
+        parsed.artworkDisplay,
+      ),
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
-      artworkDisplay: normalizeArtworkDisplay(parsed.artworkDisplay),
     };
   } catch {
     return defaultSettings();
@@ -78,8 +107,8 @@ export function loadCollection() {
     if (!Array.isArray(parsed)) return [];
     return parsed.map((card) => {
       const { imageUrl: _removed, ...rest } = card;
-      return rest;
-    });
+      return normalizeCard(rest) ?? rest;
+    }).filter(Boolean);
   } catch {
     return [];
   }
@@ -104,7 +133,6 @@ export function buildProjectData(settings, collection) {
     version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
-    artworkDisplay: settings.artworkDisplay,
     cards: collection.map(serializeCard),
   };
 }
@@ -153,11 +181,14 @@ export function importProjectFile() {
             : [];
         resolve({
           settings: {
-            platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
+            platformDefaults: normalizePlatformDefaults(
+              parsed.platformDefaults,
+              parsed.platformColors,
+              parsed.artworkDisplay,
+            ),
             selectedPlatformId: parsed.selectedPlatformId,
-            artworkDisplay: normalizeArtworkDisplay(parsed.artworkDisplay),
           },
-          cards,
+          cards: cards.map((card) => normalizeCard(card)).filter(Boolean),
         });
       } catch (err) {
         reject(err);

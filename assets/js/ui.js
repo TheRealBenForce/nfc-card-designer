@@ -37,7 +37,10 @@ import {
   setPlatformColor,
   setPlatformImageRotation,
   setPlatformImageTypePriority,
-  setArtworkDisplay,
+  setPlatformArtworkDisplay,
+  setCardArtworkDisplay,
+  clearCardArtworkDisplay,
+  getEffectiveArtworkDisplay,
   addCard,
   updateCard,
   removeCards,
@@ -94,15 +97,29 @@ let previewTypeTabsEl = null;
 /** @type {HTMLButtonElement|null} */
 let addBrowsedGameBtn = null;
 /** @type {HTMLElement|null} */
-let artworkAlignmentGridEl = null;
+let platformArtworkAlignmentGridEl = null;
 /** @type {HTMLSelectElement|null} */
-let artworkBackgroundModeEl = null;
+let platformArtworkBackgroundModeEl = null;
 /** @type {HTMLInputElement|null} */
-let artworkBackgroundColorEl = null;
+let platformArtworkBackgroundColorEl = null;
 /** @type {HTMLElement|null} */
-let artworkBackgroundColorFieldEl = null;
+let platformArtworkBackgroundColorFieldEl = null;
 /** @type {HTMLButtonElement|null} */
-let artworkEyedropperBtn = null;
+let platformArtworkEyedropperBtn = null;
+/** @type {HTMLElement|null} */
+let previewArtworkControlsEl = null;
+/** @type {HTMLElement|null} */
+let previewArtworkAlignmentGridEl = null;
+/** @type {HTMLSelectElement|null} */
+let previewArtworkBackgroundModeEl = null;
+/** @type {HTMLInputElement|null} */
+let previewArtworkBackgroundColorEl = null;
+/** @type {HTMLElement|null} */
+let previewArtworkBackgroundColorFieldEl = null;
+/** @type {HTMLButtonElement|null} */
+let previewArtworkEyedropperBtn = null;
+/** @type {HTMLButtonElement|null} */
+let previewArtworkResetBtn = null;
 
 /** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[] } | null} */
 let browseState = null;
@@ -164,45 +181,50 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
   }
 }
 
-function syncArtworkDisplayControls() {
-  const { artworkDisplay } = getSettings();
+const ALIGNMENT_SYMBOLS = {
+  "top-left": "↖",
+  "top-center": "↑",
+  "top-right": "↗",
+  "center-left": "←",
+  center: "●",
+  "center-right": "→",
+  "bottom-left": "↙",
+  "bottom-center": "↓",
+  "bottom-right": "↘",
+};
 
-  if (artworkAlignmentGridEl) {
-    for (const btn of artworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
-      const alignment = /** @type {HTMLElement} */ (btn).dataset.alignment;
-      btn.classList.toggle("alignment-grid__btn--active", alignment === artworkDisplay.alignment);
-      btn.setAttribute("aria-checked", alignment === artworkDisplay.alignment ? "true" : "false");
-    }
-  }
+/**
+ * @param {HTMLElement | null} gridEl
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ */
+function syncArtworkAlignmentGrid(gridEl, artworkDisplay) {
+  if (!gridEl) return;
 
-  if (artworkBackgroundModeEl) {
-    artworkBackgroundModeEl.value = artworkDisplay.backgroundMode;
-  }
-
-  if (artworkBackgroundColorEl) {
-    artworkBackgroundColorEl.value = artworkDisplay.backgroundColor;
-  }
-
-  if (artworkBackgroundColorFieldEl) {
-    artworkBackgroundColorFieldEl.hidden = artworkDisplay.backgroundMode !== "select";
+  for (const btn of gridEl.querySelectorAll("[data-alignment]")) {
+    const alignment = /** @type {HTMLElement} */ (btn).dataset.alignment;
+    btn.classList.toggle("alignment-grid__btn--active", alignment === artworkDisplay.alignment);
+    btn.setAttribute("aria-checked", alignment === artworkDisplay.alignment ? "true" : "false");
   }
 }
 
-function mountArtworkAlignmentGrid() {
-  if (!artworkAlignmentGridEl) return;
-  artworkAlignmentGridEl.innerHTML = "";
+/**
+ * @param {HTMLSelectElement | null} modeEl
+ * @param {HTMLInputElement | null} colorEl
+ * @param {HTMLElement | null} colorFieldEl
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ */
+function syncArtworkBackgroundControls(modeEl, colorEl, colorFieldEl, artworkDisplay) {
+  if (modeEl) modeEl.value = artworkDisplay.backgroundMode;
+  if (colorEl) colorEl.value = artworkDisplay.backgroundColor;
+  if (colorFieldEl) colorFieldEl.hidden = artworkDisplay.backgroundMode !== "select";
+}
 
-  const symbols = {
-    "top-left": "↖",
-    "top-center": "↑",
-    "top-right": "↗",
-    "center-left": "←",
-    center: "●",
-    "center-right": "→",
-    "bottom-left": "↙",
-    "bottom-center": "↓",
-    "bottom-right": "↘",
-  };
+/**
+ * @param {HTMLElement} gridEl
+ * @param {(alignment: string) => void} onSelect
+ */
+function mountArtworkAlignmentGrid(gridEl, onSelect) {
+  gridEl.innerHTML = "";
 
   for (const alignment of ARTWORK_ALIGNMENT_ORDER) {
     const btn = document.createElement("button");
@@ -211,26 +233,61 @@ function mountArtworkAlignmentGrid() {
     btn.dataset.alignment = alignment;
     btn.setAttribute("role", "radio");
     btn.title = ARTWORK_ALIGNMENTS[alignment].label;
-    btn.textContent = symbols[alignment] ?? "·";
-    btn.addEventListener("click", () => {
-      setArtworkDisplay({ alignment });
-      saveSettings(getSettings());
-      syncArtworkDisplayControls();
-      refreshPreview();
-    });
-    artworkAlignmentGridEl.appendChild(btn);
+    btn.textContent = ALIGNMENT_SYMBOLS[alignment] ?? "·";
+    btn.addEventListener("click", () => onSelect(alignment));
+    gridEl.appendChild(btn);
   }
 }
 
-function mountArtworkBackgroundModeSelect() {
-  if (!artworkBackgroundModeEl) return;
-  artworkBackgroundModeEl.innerHTML = "";
+/**
+ * @param {HTMLSelectElement} selectEl
+ */
+function mountArtworkBackgroundModeSelect(selectEl) {
+  selectEl.innerHTML = "";
 
   for (const mode of ARTWORK_BACKGROUND_MODE_ORDER) {
     const option = document.createElement("option");
     option.value = mode;
     option.textContent = ARTWORK_BACKGROUND_MODES[mode].label;
-    artworkBackgroundModeEl.appendChild(option);
+    selectEl.appendChild(option);
+  }
+}
+
+function syncPlatformArtworkDisplayControls() {
+  const settings = getSettings();
+  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  if (!platformDefaults) return;
+
+  syncArtworkAlignmentGrid(platformArtworkAlignmentGridEl, platformDefaults.artworkDisplay);
+  syncArtworkBackgroundControls(
+    platformArtworkBackgroundModeEl,
+    platformArtworkBackgroundColorEl,
+    platformArtworkBackgroundColorFieldEl,
+    platformDefaults.artworkDisplay,
+  );
+}
+
+function syncPreviewArtworkControls() {
+  const previewCard = getPreviewCard();
+  const showControls = Boolean(previewCard) && !browseState;
+
+  if (previewArtworkControlsEl) {
+    previewArtworkControlsEl.hidden = !showControls;
+  }
+
+  if (!showControls || !previewCard) return;
+
+  const effectiveDisplay = getEffectiveArtworkDisplay(previewCard);
+  syncArtworkAlignmentGrid(previewArtworkAlignmentGridEl, effectiveDisplay);
+  syncArtworkBackgroundControls(
+    previewArtworkBackgroundModeEl,
+    previewArtworkBackgroundColorEl,
+    previewArtworkBackgroundColorFieldEl,
+    effectiveDisplay,
+  );
+
+  if (previewArtworkResetBtn) {
+    previewArtworkResetBtn.disabled = !previewCard.artworkDisplay;
   }
 }
 
@@ -446,6 +503,7 @@ function syncPlatformControls() {
   renderPlatformResults();
   renderPlatformImagePriorityList();
   renderPlatformRotationFields();
+  syncPlatformArtworkDisplayControls();
   filterGames(gameSearchInput?.value ?? "");
 }
 
@@ -706,8 +764,11 @@ function renderCollection() {
 
         row.addEventListener("click", () => {
           toggleCardSelection(card.id);
+          setPreviewCardId(card.id);
           renderCollection();
           updateCollectionActions();
+          syncPreviewArtworkControls();
+          refreshPreview();
         });
 
         row.appendChild(mark);
@@ -764,18 +825,19 @@ async function refreshPreview() {
         imageType,
       },
       getSettings().platformDefaults,
-      getSettings().artworkDisplay,
     );
     if (browseState !== snapshot) return;
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
+    syncPreviewArtworkControls();
     return;
   }
 
   renderPreviewTypeTabs();
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
+  syncPreviewArtworkControls();
 
   const card = getPreviewCard();
   if (!card) {
@@ -787,7 +849,7 @@ async function refreshPreview() {
   const platform = platformById[card.platformId];
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-  const canvas = await renderCard(card, getSettings().platformDefaults, getSettings().artworkDisplay);
+  const canvas = await renderCard(card, getSettings().platformDefaults);
   previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
 }
@@ -827,21 +889,28 @@ function bindEvents() {
     refreshPreview();
   });
 
-  artworkBackgroundModeEl?.addEventListener("change", (e) => {
-    const mode = /** @type {HTMLSelectElement} */ (e.target).value;
-    setArtworkDisplay({ backgroundMode: mode });
+  platformArtworkBackgroundModeEl?.addEventListener("change", (e) => {
+    const settings = getSettings();
+    setPlatformArtworkDisplay(
+      settings.selectedPlatformId,
+      { backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value },
+    );
     saveSettings(getSettings());
-    syncArtworkDisplayControls();
+    syncPlatformArtworkDisplayControls();
     refreshPreview();
   });
 
-  artworkBackgroundColorEl?.addEventListener("input", (e) => {
-    setArtworkDisplay({ backgroundColor: /** @type {HTMLInputElement} */ (e.target).value });
+  platformArtworkBackgroundColorEl?.addEventListener("input", (e) => {
+    const settings = getSettings();
+    setPlatformArtworkDisplay(
+      settings.selectedPlatformId,
+      { backgroundColor: /** @type {HTMLInputElement} */ (e.target).value },
+    );
     saveSettings(getSettings());
     refreshPreview();
   });
 
-  artworkEyedropperBtn?.addEventListener("click", async () => {
+  platformArtworkEyedropperBtn?.addEventListener("click", async () => {
     if (!("EyeDropper" in window)) {
       logStatus("Eyedropper is not supported in this browser.", true);
       return;
@@ -849,13 +918,65 @@ function bindEvents() {
     try {
       const dropper = new EyeDropper();
       const { sRGBHex } = await dropper.open();
-      setArtworkDisplay({ backgroundColor: sRGBHex, backgroundMode: "select" });
+      const settings = getSettings();
+      setPlatformArtworkDisplay(settings.selectedPlatformId, {
+        backgroundColor: sRGBHex,
+        backgroundMode: "select",
+      });
       saveSettings(getSettings());
-      syncArtworkDisplayControls();
+      syncPlatformArtworkDisplayControls();
       refreshPreview();
     } catch {
       // user cancelled
     }
+  });
+
+  previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    setCardArtworkDisplay(previewCard.id, {
+      backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
+    });
+    syncPreviewArtworkControls();
+    refreshPreview();
+  });
+
+  previewArtworkBackgroundColorEl?.addEventListener("input", (e) => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    setCardArtworkDisplay(previewCard.id, {
+      backgroundColor: /** @type {HTMLInputElement} */ (e.target).value,
+    });
+    refreshPreview();
+  });
+
+  previewArtworkEyedropperBtn?.addEventListener("click", async () => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    if (!("EyeDropper" in window)) {
+      logStatus("Eyedropper is not supported in this browser.", true);
+      return;
+    }
+    try {
+      const dropper = new EyeDropper();
+      const { sRGBHex } = await dropper.open();
+      setCardArtworkDisplay(previewCard.id, {
+        backgroundColor: sRGBHex,
+        backgroundMode: "select",
+      });
+      syncPreviewArtworkControls();
+      refreshPreview();
+    } catch {
+      // user cancelled
+    }
+  });
+
+  previewArtworkResetBtn?.addEventListener("click", () => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    clearCardArtworkDisplay(previewCard.id);
+    syncPreviewArtworkControls();
+    refreshPreview();
   });
 
   addBrowsedGameBtn?.addEventListener("click", () => {
@@ -881,7 +1002,6 @@ function bindEvents() {
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
-        artworkDisplay: imported.settings.artworkDisplay ?? defaultSettings().artworkDisplay,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -892,7 +1012,7 @@ function bindEvents() {
       }
       clearBrowse();
       syncPlatformControls();
-      syncArtworkDisplayControls();
+      syncPreviewArtworkControls();
       renderCollection();
       await refreshPreview();
       logStatus(`Imported project with ${imported.cards.length} card(s).`);
@@ -917,7 +1037,7 @@ function bindEvents() {
     saveCollection(getCollection());
     clearBrowse();
     syncPlatformControls();
-    syncArtworkDisplayControls();
+    syncPreviewArtworkControls();
     renderCollection();
     refreshPreview();
     logStatus("Project cleared.");
@@ -942,7 +1062,7 @@ function bindEvents() {
     }
     logStatus("Generating PDF…");
     try {
-      await exportLetterPdf(selected, getSettings().platformDefaults, getSettings().artworkDisplay);
+      await exportLetterPdf(selected, getSettings().platformDefaults);
       logStatus(`Printed ${selected.length} card(s) to PDF.`);
     } catch (err) {
       logStatus("PDF export failed.", true);
@@ -977,21 +1097,62 @@ export async function initUI() {
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("add-browsed-game")
   );
-  artworkAlignmentGridEl = document.getElementById("artwork-alignment-grid");
-  artworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
-    document.getElementById("artwork-background-mode")
+  platformArtworkAlignmentGridEl = document.getElementById("platform-artwork-alignment-grid");
+  platformArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById("platform-artwork-background-mode")
   );
-  artworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("artwork-background-color")
+  platformArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("platform-artwork-background-color")
   );
-  artworkBackgroundColorFieldEl = document.getElementById("artwork-background-color-field");
-  artworkEyedropperBtn = /** @type {HTMLButtonElement|null} */ (
-    document.getElementById("artwork-eyedropper")
+  platformArtworkBackgroundColorFieldEl = document.getElementById("platform-artwork-background-color-field");
+  platformArtworkEyedropperBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("platform-artwork-eyedropper")
+  );
+  previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
+  previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
+  previewArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById("preview-artwork-background-mode")
+  );
+  previewArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-artwork-background-color")
+  );
+  previewArtworkBackgroundColorFieldEl = document.getElementById("preview-artwork-background-color-field");
+  previewArtworkEyedropperBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-eyedropper")
+  );
+  previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-reset")
   );
 
-  mountArtworkAlignmentGrid();
-  mountArtworkBackgroundModeSelect();
-  syncArtworkDisplayControls();
+  if (platformArtworkAlignmentGridEl) {
+    mountArtworkAlignmentGrid(platformArtworkAlignmentGridEl, (alignment) => {
+      const settings = getSettings();
+      setPlatformArtworkDisplay(settings.selectedPlatformId, { alignment });
+      saveSettings(getSettings());
+      syncPlatformArtworkDisplayControls();
+      refreshPreview();
+    });
+  }
+
+  if (previewArtworkAlignmentGridEl) {
+    mountArtworkAlignmentGrid(previewArtworkAlignmentGridEl, (alignment) => {
+      const previewCard = getPreviewCard();
+      if (!previewCard) return;
+      setCardArtworkDisplay(previewCard.id, { alignment });
+      syncPreviewArtworkControls();
+      refreshPreview();
+    });
+  }
+
+  if (platformArtworkBackgroundModeEl) {
+    mountArtworkBackgroundModeSelect(platformArtworkBackgroundModeEl);
+  }
+  if (previewArtworkBackgroundModeEl) {
+    mountArtworkBackgroundModeSelect(previewArtworkBackgroundModeEl);
+  }
+
+  syncPlatformArtworkDisplayControls();
+  syncPreviewArtworkControls();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
@@ -1012,6 +1173,8 @@ export async function initUI() {
     if (event === "selection") {
       renderCollection();
       updateCollectionActions();
+      syncPreviewArtworkControls();
+      refreshPreview();
     }
   });
 }

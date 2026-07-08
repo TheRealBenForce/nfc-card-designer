@@ -12,9 +12,8 @@ import {
 import {
   BLURRED_BACKGROUND_IMAGE_TYPES,
   DEFAULT_ARTWORK_BACKGROUND_COLOR,
-  defaultArtworkDisplay,
   getAlignmentFractions,
-  normalizeArtworkDisplay,
+  resolveArtworkDisplay,
 } from "./artworkDisplay.js";
 
 const ALPHA_THRESHOLD = 16;
@@ -302,17 +301,16 @@ async function drawArtBackground(
 /**
  * @param {import('./state.js').Card} card
  * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
- * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} [artworkDisplay]
  * @returns {Promise<HTMLCanvasElement>}
  */
-export async function renderCard(card, platformDefaults, artworkDisplay = defaultArtworkDisplay()) {
+export async function renderCard(card, platformDefaults) {
   const canvas = document.createElement("canvas");
   canvas.width = CARD_RENDER_WIDTH_PX;
   canvas.height = CARD_RENDER_HEIGHT_PX;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  const normalizedDisplay = normalizeArtworkDisplay(artworkDisplay);
+  const normalizedDisplay = resolveArtworkDisplay(card, platformDefaults);
   const align = getAlignmentFractions(normalizedDisplay);
 
   const platform = platformById[card.platformId];

@@ -139,3 +139,17 @@ export function getAlignmentFractions(artworkDisplay) {
   const alignment = normalizeArtworkAlignment(artworkDisplay?.alignment);
   return ARTWORK_ALIGNMENTS[alignment];
 }
+
+/**
+ * Effective artwork display for a card: card override, then platform default.
+ *
+ * @param {import('./state.js').Card} card
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
+ * @returns {ArtworkDisplaySettings}
+ */
+export function resolveArtworkDisplay(card, platformDefaults) {
+  if (card.artworkDisplay) {
+    return normalizeArtworkDisplay(card.artworkDisplay);
+  }
+  return normalizeArtworkDisplay(platformDefaults[card.platformId]?.artworkDisplay);
+}

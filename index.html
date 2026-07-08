@@ -23,31 +23,7 @@
       <aside class="panel panel--controls">
         <details class="collapsible">
           <summary class="collapsible__summary">Global Settings</summary>
-          <div class="collapsible__body">
-            <p class="field__label">Artwork alignment</p>
-            <div
-              id="artwork-alignment-grid"
-              class="alignment-grid"
-              role="radiogroup"
-              aria-label="Artwork alignment"
-            ></div>
-            <p class="field-hint">Default is top center — artwork at the top, centered on the long edge.</p>
-
-            <label class="field">
-              <span class="field__label">Artwork background</span>
-              <select id="artwork-background-mode" class="input"></select>
-            </label>
-
-            <div id="artwork-background-color-field" class="field artwork-color-field">
-              <span class="field__label">Background color</span>
-              <div class="artwork-color-field__controls">
-                <input id="artwork-background-color" class="input input--color" type="color" value="#000000" />
-                <button id="artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
-                  Eyedropper
-                </button>
-              </div>
-            </div>
-          </div>
+          <div class="collapsible__body"></div>
         </details>
 
         <details class="collapsible">
@@ -62,6 +38,30 @@
             <p class="field-hint">Preview defaults to the top artwork type in this list.</p>
             <p class="field__label platform-artwork-heading">Artwork rotation</p>
             <div id="platform-rotation-fields" class="rotation-fields" aria-label="Artwork rotation defaults"></div>
+
+            <p class="field__label platform-artwork-heading">Artwork alignment</p>
+            <div
+              id="platform-artwork-alignment-grid"
+              class="alignment-grid"
+              role="radiogroup"
+              aria-label="Platform artwork alignment"
+            ></div>
+            <p class="field-hint">Default is top center — artwork at the top, centered on the long edge.</p>
+
+            <label class="field">
+              <span class="field__label">Artwork background</span>
+              <select id="platform-artwork-background-mode" class="input"></select>
+            </label>
+
+            <div id="platform-artwork-background-color-field" class="field artwork-color-field">
+              <span class="field__label">Background color</span>
+              <div class="artwork-color-field__controls">
+                <input id="platform-artwork-background-color" class="input input--color" type="color" value="#000000" />
+                <button id="platform-artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
+                  Eyedropper
+                </button>
+              </div>
+            </div>
           </div>
         </details>
 
@@ -99,6 +99,31 @@
         <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
         <div class="preview-frame">
           <img id="preview-image" class="preview-image" alt="" />
+        </div>
+        <div id="preview-artwork-controls" class="preview-artwork-controls" hidden>
+          <p class="field__label">Card artwork override</p>
+          <div
+            id="preview-artwork-alignment-grid"
+            class="alignment-grid"
+            role="radiogroup"
+            aria-label="Card artwork alignment override"
+          ></div>
+          <label class="field">
+            <span class="field__label">Background</span>
+            <select id="preview-artwork-background-mode" class="input"></select>
+          </label>
+          <div id="preview-artwork-background-color-field" class="field artwork-color-field">
+            <span class="field__label">Background color</span>
+            <div class="artwork-color-field__controls">
+              <input id="preview-artwork-background-color" class="input input--color" type="color" value="#000000" />
+              <button id="preview-artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
+                Eyedropper
+              </button>
+            </div>
+          </div>
+          <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
+            Use platform defaults
+          </button>
         </div>
         <label for="preview-calibration-input" class="preview-calibration">
           <span class="preview-calibration__label">Screen calibration</span>

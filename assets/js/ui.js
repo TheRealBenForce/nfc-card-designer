@@ -17,7 +17,13 @@ import {
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
-import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
+import { getEffectiveImageTypePriority, getPlatformArtworkDisplay, ROTATION_OPTIONS } from "./platformDefaults.js";
+import {
+  ARTWORK_ALIGNMENT_ORDER,
+  ARTWORK_ALIGNMENTS,
+  ARTWORK_BACKGROUND_MODE_ORDER,
+  ARTWORK_BACKGROUND_MODES,
+} from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
 import {
@@ -31,6 +37,10 @@ import {
   setPlatformColor,
   setPlatformImageRotation,
   setPlatformImageTypePriority,
+  setPlatformArtworkDisplay,
+  setCardArtworkDisplay,
+  clearCardArtworkDisplay,
+  getEffectiveArtworkDisplay,
   addCard,
   updateCard,
   removeCards,
@@ -86,9 +96,35 @@ let platformPriorityListEl = null;
 let previewTypeTabsEl = null;
 /** @type {HTMLButtonElement|null} */
 let addBrowsedGameBtn = null;
+/** @type {HTMLElement|null} */
+let platformArtworkAlignmentGridEl = null;
+/** @type {HTMLSelectElement|null} */
+let platformArtworkBackgroundModeEl = null;
+/** @type {HTMLInputElement|null} */
+let platformArtworkBackgroundColorEl = null;
+/** @type {HTMLButtonElement|null} */
+let platformArtworkColorToolBtn = null;
+/** @type {HTMLElement|null} */
+let previewArtworkControlsEl = null;
+/** @type {HTMLElement|null} */
+let previewArtworkAlignmentGridEl = null;
+/** @type {HTMLSelectElement|null} */
+let previewArtworkBackgroundModeEl = null;
+/** @type {HTMLInputElement|null} */
+let previewArtworkBackgroundColorEl = null;
+/** @type {HTMLButtonElement|null} */
+let previewArtworkColorToolBtn = null;
+/** @type {HTMLButtonElement|null} */
+let previewArtworkResetBtn = null;
+/** @type {HTMLElement|null} */
+let previewArtworkControlsTitleEl = null;
 
-/** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[] } | null} */
+/** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[], usesPlaceholder?: boolean } | null} */
 let browseState = null;
+
+/** Monotonic tokens so stale async browse/preview work cannot overwrite newer UI state. */
+let browseRequestId = 0;
+let previewRequestId = 0;
 
 /** @type {number} */
 let gameHighlightIndex = 0;
@@ -145,6 +181,214 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
       // no-op when storage is unavailable
     }
   }
+}
+
+const ALIGNMENT_SYMBOLS = {
+  "top-left": "↖",
+  "top-center": "↑",
+  "top-right": "↗",
+  "center-left": "←",
+  center: "●",
+  "center-right": "→",
+  "bottom-left": "↙",
+  "bottom-center": "↓",
+  "bottom-right": "↘",
+};
+
+/**
+ * @param {HTMLElement | null} gridEl
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ */
+function syncArtworkAlignmentGrid(gridEl, artworkDisplay) {
+  if (!gridEl) return;
+
+  for (const btn of gridEl.querySelectorAll("[data-alignment]")) {
+    const alignment = /** @type {HTMLElement} */ (btn).dataset.alignment;
+    btn.classList.toggle("alignment-grid__btn--active", alignment === artworkDisplay.alignment);
+    btn.setAttribute("aria-checked", alignment === artworkDisplay.alignment ? "true" : "false");
+  }
+}
+
+/**
+ * @param {HTMLSelectElement | null} modeEl
+ * @param {HTMLInputElement | null} colorEl
+ * @param {HTMLButtonElement | null} colorToolBtn
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ */
+function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDisplay) {
+  const selectToolActive = artworkDisplay.backgroundMode === "select";
+  if (modeEl) modeEl.value = artworkDisplay.backgroundMode;
+  if (colorEl) colorEl.value = artworkDisplay.backgroundColor;
+  if (colorToolBtn) {
+    colorToolBtn.disabled = !selectToolActive;
+    colorToolBtn.style.setProperty("--swatch-color", artworkDisplay.backgroundColor);
+  }
+}
+
+/**
+ * @param {HTMLButtonElement} toolBtn
+ * @param {HTMLInputElement} colorInput
+ * @param {(color: string) => void} onColor
+ */
+function bindColorToolButton(toolBtn, colorInput, onColor) {
+  toolBtn.addEventListener("click", async () => {
+    if (toolBtn.disabled) return;
+
+    if ("EyeDropper" in window) {
+      try {
+        const dropper = new EyeDropper();
+        const { sRGBHex } = await dropper.open();
+        onColor(sRGBHex);
+        return;
+      } catch (err) {
+        if (err && typeof err === "object" && "name" in err && err.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    colorInput.click();
+  });
+
+  colorInput.addEventListener("input", () => {
+    if (toolBtn.disabled) return;
+    onColor(colorInput.value);
+  });
+}
+
+/**
+ * @param {HTMLElement} gridEl
+ * @param {(alignment: string) => void} onSelect
+ */
+function mountArtworkAlignmentGrid(gridEl, onSelect) {
+  gridEl.innerHTML = "";
+
+  for (const alignment of ARTWORK_ALIGNMENT_ORDER) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "alignment-grid__btn";
+    btn.dataset.alignment = alignment;
+    btn.setAttribute("role", "radio");
+    btn.title = ARTWORK_ALIGNMENTS[alignment].label;
+    btn.textContent = ALIGNMENT_SYMBOLS[alignment] ?? "·";
+    btn.addEventListener("click", () => onSelect(alignment));
+    gridEl.appendChild(btn);
+  }
+}
+
+/**
+ * @param {HTMLSelectElement} selectEl
+ */
+function mountArtworkBackgroundModeSelect(selectEl) {
+  selectEl.innerHTML = "";
+
+  for (const mode of ARTWORK_BACKGROUND_MODE_ORDER) {
+    const option = document.createElement("option");
+    option.value = mode;
+    option.textContent = ARTWORK_BACKGROUND_MODES[mode].label;
+    selectEl.appendChild(option);
+  }
+}
+
+function syncPlatformArtworkDisplayControls() {
+  const settings = getSettings();
+  const platformDefaults = settings.platformDefaults[settings.selectedPlatformId];
+  if (!platformDefaults) return;
+
+  syncArtworkAlignmentGrid(platformArtworkAlignmentGridEl, platformDefaults.artworkDisplay);
+  syncArtworkBackgroundControls(
+    platformArtworkBackgroundModeEl,
+    platformArtworkBackgroundColorEl,
+    platformArtworkColorToolBtn,
+    platformDefaults.artworkDisplay,
+  );
+}
+
+function syncPreviewArtworkControls() {
+  const context = getPreviewArtworkControlContext();
+  const showControls = Boolean(context);
+
+  if (previewArtworkControlsEl) {
+    previewArtworkControlsEl.hidden = !showControls;
+  }
+
+  if (!context) return;
+
+  if (previewArtworkControlsTitleEl) {
+    previewArtworkControlsTitleEl.textContent =
+      context.mode === "platform" ? "Artwork display" : "Card artwork override";
+  }
+
+  if (previewArtworkResetBtn) {
+    previewArtworkResetBtn.hidden = context.mode === "platform";
+    previewArtworkResetBtn.disabled = context.mode === "card" && !context.hasOverride;
+  }
+
+  syncArtworkAlignmentGrid(previewArtworkAlignmentGridEl, context.display);
+  syncArtworkBackgroundControls(
+    previewArtworkBackgroundModeEl,
+    previewArtworkBackgroundColorEl,
+    previewArtworkColorToolBtn,
+    context.display,
+  );
+}
+
+/**
+ * @returns {{
+ *   mode: "platform" | "card",
+ *   platformId?: string,
+ *   cardId?: string,
+ *   display: import("./artworkDisplay.js").ArtworkDisplaySettings,
+ *   hasOverride?: boolean,
+ * } | null}
+ */
+function getPreviewArtworkControlContext() {
+  if (browseState) {
+    return {
+      mode: "platform",
+      platformId: browseState.game.platformId,
+      display: getPlatformArtworkDisplay(getSettings().platformDefaults, browseState.game.platformId),
+    };
+  }
+
+  const previewCard = getPreviewCard();
+  if (!previewCard) return null;
+
+  return {
+    mode: "card",
+    cardId: previewCard.id,
+    display: getEffectiveArtworkDisplay(previewCard),
+    hasOverride: Boolean(previewCard.artworkDisplay),
+  };
+}
+
+/**
+ * @param {Partial<import("./artworkDisplay.js").ArtworkDisplaySettings>} patch
+ */
+function applyPreviewArtworkPatch(patch) {
+  const context = getPreviewArtworkControlContext();
+  if (!context) return;
+
+  if (context.mode === "platform" && context.platformId) {
+    setPlatformArtworkDisplay(context.platformId, patch);
+    saveSettings(getSettings());
+    syncPlatformArtworkDisplayControls();
+  } else if (context.mode === "card" && context.cardId) {
+    setCardArtworkDisplay(context.cardId, patch);
+  }
+
+  syncPreviewArtworkControls();
+  refreshPreview();
+}
+
+/**
+ * @param {import('./gameCatalog.js').Game} game
+ * @param {string[]} priority
+ * @param {string[]} availableTypes
+ */
+function browseTypesForGame(game, priority, availableTypes) {
+  void game;
+  return availableTypes.length > 0 ? availableTypes : [...priority];
 }
 
 function getArtworkPriorityForPlatform(platformId) {
@@ -359,6 +603,7 @@ function syncPlatformControls() {
   renderPlatformResults();
   renderPlatformImagePriorityList();
   renderPlatformRotationFields();
+  syncPlatformArtworkDisplayControls();
   filterGames(gameSearchInput?.value ?? "");
 }
 
@@ -437,18 +682,20 @@ async function applyPlatformPriorityToBrowse() {
 
   const priority = getArtworkPriorityForPlatform(browseState.game.platformId);
   const availableTypes = await getAvailableImageTypes(browseState.game, priority);
-  if (availableTypes.length === 0) {
-    clearBrowse();
-    await refreshPreview();
-    return;
-  }
+  const typesForBrowse = browseTypesForGame(browseState.game, priority, availableTypes);
 
-  const imageType = availableTypes.includes(browseState.imageType)
+  const imageType = typesForBrowse.includes(browseState.imageType)
     ? browseState.imageType
-    : availableTypes[0];
+    : typesForBrowse[0];
 
-  browseState = { ...browseState, availableTypes, imageType };
+  browseState = {
+    ...browseState,
+    availableTypes: typesForBrowse,
+    imageType,
+    usesPlaceholder: availableTypes.length === 0,
+  };
   renderPreviewTypeTabs();
+  syncPreviewArtworkControls();
   await refreshPreview();
 }
 
@@ -470,29 +717,39 @@ function pickGameFromSearch() {
 }
 
 async function browseGameFromSearch(game) {
+  const requestId = ++browseRequestId;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
   const availableTypes = await getAvailableImageTypes(game, priority);
-  if (availableTypes.length === 0) {
-    logStatus(`No artwork available for ${game.name}.`, true);
-    return;
-  }
+  if (requestId !== browseRequestId) return;
+
+  const typesForBrowse = browseTypesForGame(game, priority, availableTypes);
+  const usesPlaceholder = availableTypes.length === 0;
 
   browseState = {
     game,
-    imageType: availableTypes[0],
-    availableTypes,
+    imageType: typesForBrowse[0],
+    availableTypes: typesForBrowse,
+    usesPlaceholder,
   };
 
   renderPreviewTypeTabs();
+  syncPreviewArtworkControls();
   await refreshPreview();
-  logStatus(`Previewing ${game.name}.`);
+  if (requestId !== browseRequestId) return;
+  logStatus(
+    usesPlaceholder
+      ? `Previewing ${game.name} with placeholder artwork.`
+      : `Previewing ${game.name}.`,
+  );
 }
 
 function clearBrowse() {
+  browseRequestId += 1;
   browseState = null;
   renderPreviewTypeTabs();
+  syncPreviewArtworkControls();
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
 }
 
@@ -508,13 +765,14 @@ function resetGameSearch({ focus = false } = {}) {
 async function addBrowsedGame() {
   if (!browseState) return;
 
-  const { game, imageType } = browseState;
+  const { game, imageType, usesPlaceholder } = browseState;
   const card = {
     id: createCardId(),
     platformId: game.platformId,
     gameName: game.name,
     raGameId: game.raGameId,
     imageType,
+    ...(usesPlaceholder ? { imageFailed: true } : {}),
   };
 
   addCard(card);
@@ -590,39 +848,53 @@ function renderCollection() {
     platformSummary.textContent = platform.name;
     platformDetails.appendChild(platformSummary);
 
-    const cardsEl = document.createElement("div");
-    cardsEl.className = "collection-cards";
+    for (const game of games) {
+      const gameDetails = document.createElement("details");
+      gameDetails.className = "collection-game";
+      gameDetails.open = true;
 
-    for (const card of cards) {
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "collection-card";
-      if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
+      const gameSummary = document.createElement("summary");
+      gameSummary.textContent = game.name;
+      gameDetails.appendChild(gameSummary);
 
-      const mark = document.createElement("span");
-      mark.className = "collection-card__mark";
-      mark.textContent = selectedIds.has(card.id) ? "✓" : "";
-      mark.setAttribute("aria-hidden", "true");
+      const cardsEl = document.createElement("div");
+      cardsEl.className = "collection-cards";
 
-      const artLabel = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
-      const label = document.createElement("span");
-      label.className = "collection-card__label";
-      label.textContent = `${card.gameName} - ${artLabel}`;
+      for (const card of game.cards) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "collection-card";
+        if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
 
-      row.addEventListener("click", () => {
-        toggleCardSelection(card.id);
-        renderCollection();
-        updateCollectionActions();
-      });
+        const mark = document.createElement("span");
+        mark.className = "collection-card__mark";
+        mark.textContent = selectedIds.has(card.id) ? "✓" : "";
+        mark.setAttribute("aria-hidden", "true");
 
-      row.appendChild(mark);
-      row.appendChild(label);
+        const label = document.createElement("span");
+        label.className = "collection-card__label";
+        label.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
 
-      if (card.imageFailed) {
-        const badge = document.createElement("span");
-        badge.className = "collection-card__badge";
-        badge.textContent = "placeholder";
-        row.appendChild(badge);
+        row.addEventListener("click", () => {
+          toggleCardSelection(card.id);
+          setPreviewCardId(card.id);
+          renderCollection();
+          updateCollectionActions();
+          syncPreviewArtworkControls();
+          refreshPreview();
+        });
+
+        row.appendChild(mark);
+        row.appendChild(label);
+
+        if (card.imageFailed) {
+          const badge = document.createElement("span");
+          badge.className = "collection-card__badge";
+          badge.textContent = "placeholder";
+          row.appendChild(badge);
+        }
+
+        cardsEl.appendChild(row);
       }
 
       cardsEl.appendChild(row);
@@ -651,6 +923,8 @@ async function refreshCollectionImageStatus() {
 async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
+  const requestId = ++previewRequestId;
+
   if (browseState) {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
@@ -667,21 +941,26 @@ async function refreshPreview() {
       },
       getSettings().platformDefaults,
     );
+    if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
+    renderPreviewTypeTabs();
+    syncPreviewArtworkControls();
     return;
   }
 
-  renderPreviewTypeTabs();
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
+  syncPreviewArtworkControls();
 
   const card = getPreviewCard();
   if (!card) {
+    if (requestId !== previewRequestId) return;
     previewImageEl.removeAttribute("src");
     previewMetaEl.textContent = "Search for a game to preview artwork.";
+    renderPreviewTypeTabs();
     return;
   }
 
@@ -689,8 +968,12 @@ async function refreshPreview() {
   previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
   const canvas = await renderCard(card, getSettings().platformDefaults);
+  if (requestId !== previewRequestId) return;
+  if (browseState) return;
+
   previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
+  renderPreviewTypeTabs();
 }
 
 function bindEvents() {
@@ -728,6 +1011,31 @@ function bindEvents() {
     refreshPreview();
   });
 
+  platformArtworkBackgroundModeEl?.addEventListener("change", (e) => {
+    const settings = getSettings();
+    setPlatformArtworkDisplay(
+      settings.selectedPlatformId,
+      { backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value },
+    );
+    saveSettings(getSettings());
+    syncPlatformArtworkDisplayControls();
+    refreshPreview();
+  });
+
+  previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
+    applyPreviewArtworkPatch({
+      backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
+    });
+  });
+
+  previewArtworkResetBtn?.addEventListener("click", () => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    clearCardArtworkDisplay(previewCard.id);
+    syncPreviewArtworkControls();
+    refreshPreview();
+  });
+
   addBrowsedGameBtn?.addEventListener("click", () => {
     addBrowsedGame();
   });
@@ -761,6 +1069,7 @@ function bindEvents() {
       }
       clearBrowse();
       syncPlatformControls();
+      syncPreviewArtworkControls();
       renderCollection();
       await refreshPreview();
       logStatus(`Imported project with ${imported.cards.length} card(s).`);
@@ -785,6 +1094,7 @@ function bindEvents() {
     saveCollection(getCollection());
     clearBrowse();
     syncPlatformControls();
+    syncPreviewArtworkControls();
     renderCollection();
     refreshPreview();
     logStatus("Project cleared.");
@@ -844,7 +1154,79 @@ export async function initUI() {
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("add-browsed-game")
   );
+  platformArtworkAlignmentGridEl = document.getElementById("platform-artwork-alignment-grid");
+  platformArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById("platform-artwork-background-mode")
+  );
+  platformArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("platform-artwork-background-color")
+  );
+  platformArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("platform-artwork-color-tool")
+  );
+  previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
+  previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
+  previewArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById("preview-artwork-background-mode")
+  );
+  previewArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-artwork-background-color")
+  );
+  previewArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-color-tool")
+  );
+  previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-reset")
+  );
+  previewArtworkControlsTitleEl = document.getElementById("preview-artwork-controls-title");
 
+  if (platformArtworkAlignmentGridEl) {
+    mountArtworkAlignmentGrid(platformArtworkAlignmentGridEl, (alignment) => {
+      const settings = getSettings();
+      setPlatformArtworkDisplay(settings.selectedPlatformId, { alignment });
+      saveSettings(getSettings());
+      syncPlatformArtworkDisplayControls();
+      refreshPreview();
+    });
+  }
+
+  if (previewArtworkAlignmentGridEl) {
+    mountArtworkAlignmentGrid(previewArtworkAlignmentGridEl, (alignment) => {
+      applyPreviewArtworkPatch({ alignment });
+    });
+  }
+
+  if (platformArtworkBackgroundModeEl) {
+    mountArtworkBackgroundModeSelect(platformArtworkBackgroundModeEl);
+  }
+  if (previewArtworkBackgroundModeEl) {
+    mountArtworkBackgroundModeSelect(previewArtworkBackgroundModeEl);
+  }
+
+  if (platformArtworkColorToolBtn && platformArtworkBackgroundColorEl) {
+    bindColorToolButton(platformArtworkColorToolBtn, platformArtworkBackgroundColorEl, (color) => {
+      const settings = getSettings();
+      setPlatformArtworkDisplay(settings.selectedPlatformId, {
+        backgroundColor: color,
+        backgroundMode: "select",
+      });
+      saveSettings(getSettings());
+      syncPlatformArtworkDisplayControls();
+      refreshPreview();
+    });
+  }
+
+  if (previewArtworkColorToolBtn && previewArtworkBackgroundColorEl) {
+    bindColorToolButton(previewArtworkColorToolBtn, previewArtworkBackgroundColorEl, (color) => {
+      applyPreviewArtworkPatch({
+        backgroundColor: color,
+        backgroundMode: "select",
+      });
+    });
+  }
+
+  syncPlatformArtworkDisplayControls();
+  syncPreviewArtworkControls();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
@@ -865,6 +1247,8 @@ export async function initUI() {
     if (event === "selection") {
       renderCollection();
       updateCollectionActions();
+      syncPreviewArtworkControls();
+      refreshPreview();
     }
   });
 }

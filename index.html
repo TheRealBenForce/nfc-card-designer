@@ -38,6 +38,29 @@
             <p class="field-hint">Preview defaults to the top artwork type in this list.</p>
             <p class="field__label platform-artwork-heading">Artwork rotation</p>
             <div id="platform-rotation-fields" class="rotation-fields" aria-label="Artwork rotation defaults"></div>
+
+            <p class="field__label platform-artwork-heading">Artwork alignment</p>
+            <div
+              id="platform-artwork-alignment-grid"
+              class="alignment-grid"
+              role="radiogroup"
+              aria-label="Platform artwork alignment"
+            ></div>
+            <p class="field-hint">Default is top center — artwork at the top, centered on the long edge.</p>
+
+            <label class="field">
+              <span class="field__label">Artwork background</span>
+              <select id="platform-artwork-background-mode" class="input"></select>
+            </label>
+
+            <div class="field artwork-color-field">
+              <span class="field__label">Background color</span>
+              <input id="platform-artwork-background-color" class="input input--color-hidden" type="color" value="#000000" tabindex="-1" aria-hidden="true" />
+              <button id="platform-artwork-color-tool" type="button" class="color-tool-btn" disabled>
+                <span class="color-tool-btn__swatch" aria-hidden="true"></span>
+                <span class="color-tool-btn__label">Eyedropper Tool</span>
+              </button>
+            </div>
           </div>
         </details>
 
@@ -72,27 +95,55 @@
 
       <section class="panel panel--preview">
         <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
-        <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
-        <div class="preview-frame">
-          <img id="preview-image" class="preview-image" alt="" />
+        <div class="preview-layout">
+          <div class="preview-main">
+            <div id="preview-type-tabs" class="preview-type-tabs" hidden></div>
+            <div class="preview-frame">
+              <img id="preview-image" class="preview-image" alt="" />
+            </div>
+            <label for="preview-calibration-input" class="preview-calibration">
+              <span class="preview-calibration__label">Screen calibration</span>
+              <input
+                id="preview-calibration-input"
+                class="preview-calibration__range"
+                type="range"
+                min="70"
+                max="130"
+                step="1"
+                value="100"
+              />
+              <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+            </label>
+            <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+            <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
+              Add to collection
+            </button>
+          </div>
+          <aside id="preview-artwork-controls" class="preview-artwork-controls" hidden>
+            <p id="preview-artwork-controls-title" class="field__label">Artwork display</p>
+            <div
+              id="preview-artwork-alignment-grid"
+              class="alignment-grid"
+              role="radiogroup"
+              aria-label="Card artwork alignment override"
+            ></div>
+            <label class="field">
+              <span class="field__label">Background</span>
+              <select id="preview-artwork-background-mode" class="input"></select>
+            </label>
+            <div class="field artwork-color-field">
+              <span class="field__label">Background color</span>
+              <input id="preview-artwork-background-color" class="input input--color-hidden" type="color" value="#000000" tabindex="-1" aria-hidden="true" />
+              <button id="preview-artwork-color-tool" type="button" class="color-tool-btn" disabled>
+                <span class="color-tool-btn__swatch" aria-hidden="true"></span>
+                <span class="color-tool-btn__label">Eyedropper Tool</span>
+              </button>
+            </div>
+            <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
+              Use platform defaults
+            </button>
+          </aside>
         </div>
-        <label for="preview-calibration-input" class="preview-calibration">
-          <span class="preview-calibration__label">Screen calibration</span>
-          <input
-            id="preview-calibration-input"
-            class="preview-calibration__range"
-            type="range"
-            min="70"
-            max="130"
-            step="1"
-            value="100"
-          />
-          <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-        </label>
-        <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
-        <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
-          Add to collection
-        </button>
       </section>
 
       <aside class="panel panel--collection">

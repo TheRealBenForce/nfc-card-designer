@@ -68,6 +68,66 @@ async function main() {
     }
     console.log("✓ Selecting a game opens browse preview with artwork tabs");
 
+    await page.fill("#game-search", "met");
+    await page.waitForTimeout(150);
+    const metroidOption = page.getByRole("option", { name: /Metroid/i }).first();
+    if (!(await metroidOption.count())) {
+      throw new Error("Expected Metroid in search results for browse switch test");
+    }
+    await metroidOption.click();
+    await page.waitForTimeout(500);
+
+    if (!(await addBtn.isVisible())) {
+      throw new Error("Add to collection should stay visible when switching browse games");
+    }
+    let tabsAfterSwitch = await page.locator(".preview-type-tab").count();
+    if (tabsAfterSwitch < 1) {
+      throw new Error("Artwork type tabs should remain visible when switching browse games");
+    }
+    let metaAfterSwitch = await page.locator("#preview-meta").textContent();
+    if (!metaAfterSwitch?.toLowerCase().includes("metroid")) {
+      throw new Error(`Preview meta should reflect Metroid, got: ${metaAfterSwitch}`);
+    }
+
+    await page.fill("#game-search", "mar");
+    await page.waitForTimeout(150);
+    await page.getByRole("option", { name: "Super Mario Bros.", exact: true }).click();
+    await page.waitForTimeout(500);
+
+    tabsAfterSwitch = await page.locator(".preview-type-tab").count();
+    if (tabsAfterSwitch < 1) {
+      throw new Error("Artwork type tabs should remain visible after switching back");
+    }
+    metaAfterSwitch = await page.locator("#preview-meta").textContent();
+    if (!metaAfterSwitch?.includes("Super Mario Bros.")) {
+      throw new Error(`Preview meta should reflect latest game, got: ${metaAfterSwitch}`);
+    }
+    console.log("✓ Switching browse games keeps artwork tabs and preview controls");
+
+    const artworkControls = page.locator("#preview-artwork-controls");
+    if (await artworkControls.isHidden()) {
+      throw new Error("Artwork display controls should be visible while browsing");
+    }
+    console.log("✓ Artwork display controls are visible while browsing");
+
+    await page.route("**/*.png", async (route) => route.abort());
+    await page.fill("#game-search", "met");
+    await page.waitForTimeout(150);
+    await page.getByRole("option", { name: /Metroid/i }).first().click();
+    await page.waitForTimeout(500);
+
+    const previewSrc = await page.locator("#preview-image").getAttribute("src");
+    if (!previewSrc?.startsWith("data:image/")) {
+      throw new Error("Missing artwork should still render a placeholder preview image");
+    }
+    if (await artworkControls.isHidden()) {
+      throw new Error("Artwork display controls should remain visible for placeholder previews");
+    }
+    if (!(await addBtn.isVisible())) {
+      throw new Error("Add to collection should remain available for placeholder previews");
+    }
+    console.log("✓ Games without artwork show placeholder preview and controls");
+
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
     await page.getByRole("button", { name: "SNES", exact: true }).click();

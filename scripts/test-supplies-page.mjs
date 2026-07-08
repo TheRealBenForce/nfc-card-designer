@@ -48,7 +48,7 @@ async function main() {
     console.log("✓ NFC Card Designer link navigates home");
 
     await page.locator(".header__link", { hasText: "Supplies" }).click();
-    await page.waitForURL(/\/supplies\.html$/, { timeout: 5000 });
+    await page.waitForURL((url) => /\/supplies(?:\.html)?$/.test(url.pathname), { timeout: 5000 });
     console.log("✓ Navigation from designer to supplies works");
 
     if (errors.length) {

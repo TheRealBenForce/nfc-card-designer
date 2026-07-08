@@ -25,18 +25,23 @@ let loadPromise = null;
 
 export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
+const LOCAL_GAME_CATALOG_URL = "assets/data/games-by-platform.json";
+const S3_GAME_CATALOG_URL = "https://zaparoo.therealbenforce.com/assets/data/games-by-platform.json";
+const LOCAL_IMAGE_AVAILABILITY_URL = "assets/data/image-availability.json";
+const S3_IMAGE_AVAILABILITY_URL = "https://zaparoo.therealbenforce.com/assets/data/image-availability.json";
+const S3_CATALOG_TIMEOUT_MS = 4000;
+/** @type {Record<string, Record<string, string[]>>} */
+let imageAvailabilityByPlatform = {};
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const res = await fetch("assets/data/games-by-platform.json");
-    if (!res.ok) {
-      throw new Error(`Failed to load game catalog (${res.status})`);
-    }
-
-    const data = await res.json();
+    const [data, imageAvailability] = await Promise.all([
+      loadCatalogPayload(),
+      loadImageAvailabilityPayload(),
+    ]);
     /** @type {Record<string, { name: string, raGameId: number }[]>} */
     const platforms = {};
 
@@ -46,26 +51,106 @@ export async function loadGameCatalog() {
     }
 
     byPlatform = platforms;
+    imageAvailabilityByPlatform = imageAvailability;
   })();
 
   return loadPromise;
 }
 
 /**
- * @param {string} platformId
- * @returns {Game[]}
+ * Prefer live S3 catalog for production, then fallback to bundled JSON.
+ * @returns {Promise<{ platforms?: Record<string, { name: string, raGameId: number }[]> }>}
  */
-export function gamesForPlatform(platformId) {
-  const entries = byPlatform?.[platformId] ?? [];
-  return entries.map((entry) => withImages(platformId, entry));
+async function loadCatalogPayload() {
+  if (shouldUseS3CatalogFirst()) {
+    try {
+      return await fetchJsonPayload(S3_GAME_CATALOG_URL, "game catalog", {
+        timeoutMs: S3_CATALOG_TIMEOUT_MS,
+      });
+    } catch (error) {
+      console.warn("Could not load game catalog from S3, using bundled catalog instead.", error);
+    }
+  }
+
+  return fetchJsonPayload(LOCAL_GAME_CATALOG_URL, "game catalog");
+}
+
+/**
+ * @returns {Promise<Record<string, Record<string, string[]>>>}
+ */
+async function loadImageAvailabilityPayload() {
+  const urls = shouldUseS3CatalogFirst()
+    ? [S3_IMAGE_AVAILABILITY_URL, LOCAL_IMAGE_AVAILABILITY_URL]
+    : [LOCAL_IMAGE_AVAILABILITY_URL, S3_IMAGE_AVAILABILITY_URL];
+
+  for (const url of urls) {
+    try {
+      const data = await fetchJsonPayload(url, "image availability", {
+        timeoutMs: url === S3_IMAGE_AVAILABILITY_URL ? S3_CATALOG_TIMEOUT_MS : undefined,
+      });
+      if (data && typeof data === "object" && data.platforms && typeof data.platforms === "object") {
+        return data.platforms;
+      }
+    } catch {
+      // try next source
+    }
+  }
+
+  return {};
+}
+
+/**
+ * @param {string} url
+ * @param {string} payloadLabel
+ * @param {{ timeoutMs?: number }} [options]
+ */
+async function fetchJsonPayload(url, payloadLabel, options = {}) {
+  /** @type {AbortController | null} */
+  let controller = null;
+  /** @type {number | null} */
+  let timeoutId = null;
+
+  if (options.timeoutMs && options.timeoutMs > 0 && "AbortController" in globalThis) {
+    controller = new AbortController();
+    timeoutId = globalThis.setTimeout(() => controller?.abort(), options.timeoutMs);
+  }
+
+  try {
+    const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
+    if (!res.ok) {
+      throw new Error(`Failed to load ${payloadLabel} from ${url} (${res.status})`);
+    }
+    return res.json();
+  } finally {
+    if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+  }
+}
+
+function shouldUseS3CatalogFirst() {
+  const host = globalThis.location?.hostname?.toLowerCase() ?? "";
+  return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
 }
 
 /**
  * @param {string} platformId
+ * @param {{ requireImages?: boolean }} [options]
+ * @returns {Game[]}
+ */
+export function gamesForPlatform(platformId, options = {}) {
+  const entries = byPlatform?.[platformId] ?? [];
+  const games = entries.map((entry) => withImages(platformId, entry));
+  if (!options.requireImages) return games;
+  return games.filter((game) => gameHasImage(game));
+}
+
+/**
+ * @param {string} platformId
+ * @param {{ requireImages?: boolean }} [options]
  * @returns {number}
  */
-export function gameCountForPlatform(platformId) {
-  return catalogCountForPlatform(platformId);
+export function gameCountForPlatform(platformId, options = {}) {
+  if (!options.requireImages) return catalogCountForPlatform(platformId);
+  return gamesForPlatform(platformId, options).length;
 }
 
 /**
@@ -111,7 +196,7 @@ export function gameForCard(card) {
 /**
  * @param {string} platformId
  * @param {string} query
- * @param {{ limit?: number }} [options]
+ * @param {{ limit?: number, requireImages?: boolean }} [options]
  * @returns {{ games: Game[], total: number }}
  */
 export function searchGames(platformId, query, options = {}) {
@@ -119,7 +204,7 @@ export function searchGames(platformId, query, options = {}) {
   const q = query.trim().toLowerCase();
   if (q.length < MIN_GAME_SEARCH_CHARS) return { games: [], total: 0 };
 
-  const matches = gamesForPlatform(platformId).filter((game) => {
+  const matches = gamesForPlatform(platformId, options).filter((game) => {
     return game.name.toLowerCase().includes(q);
   });
 
@@ -134,9 +219,10 @@ export function searchGames(platformId, query, options = {}) {
  * @param {string} platformId
  * @param {string} query
  * @param {number} [highlightedIndex]
+ * @param {{ requireImages?: boolean }} [options]
  */
-export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
-  const { games } = searchGames(platformId, query, { limit: 0 });
+export function pickGameFromCatalog(platformId, query, highlightedIndex = 0, options = {}) {
+  const { games } = searchGames(platformId, query, { ...options, limit: 0 });
   if (games.length === 0) return null;
 
   const lower = query.trim().toLowerCase();
@@ -177,4 +263,14 @@ function withImages(platformId, entry) {
     raGameId: entry.raGameId,
     images: imageEntry?.images ?? {},
   };
+}
+
+/**
+ * @param {Game} game
+ * @returns {boolean}
+ */
+function gameHasImage(game) {
+  const availableTypes = imageAvailabilityByPlatform?.[game.platformId]?.[String(game.raGameId)];
+  if (Array.isArray(availableTypes)) return availableTypes.length > 0;
+  return Object.values(game.images).some((value) => Boolean(value));
 }

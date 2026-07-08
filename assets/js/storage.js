@@ -16,6 +16,7 @@ export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
+    searchOnlyGamesWithImages: false,
   };
 }
 
@@ -70,6 +71,7 @@ export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -89,6 +91,10 @@ export function loadSettings() {
         parsed.artworkDisplay,
       ),
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
+      searchOnlyGamesWithImages:
+        typeof parsed.searchOnlyGamesWithImages === "boolean"
+          ? parsed.searchOnlyGamesWithImages
+          : defaults.searchOnlyGamesWithImages,
     };
   } catch {
     return defaultSettings();
@@ -138,6 +144,7 @@ export function buildProjectData(settings, collection) {
     version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     cards: collection.map(serializeCard),
   };
 }
@@ -192,6 +199,10 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
+            searchOnlyGamesWithImages:
+              typeof parsed.searchOnlyGamesWithImages === "boolean"
+                ? parsed.searchOnlyGamesWithImages
+                : undefined,
           },
           cards: cards.map((card) => normalizeCard(card)).filter(Boolean),
         });

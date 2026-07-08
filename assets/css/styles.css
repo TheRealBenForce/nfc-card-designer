@@ -650,6 +650,24 @@ body {
   margin-top: 0.75rem;
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox-field__input {
+  margin-top: 0.15rem;
+}
+
+.checkbox-field__label {
+  line-height: 1.35;
+}
+
 .field__label {
   display: block;
   margin-bottom: 0.35rem;

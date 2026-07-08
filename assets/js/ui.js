@@ -98,6 +98,8 @@ let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
 let previewCalibrationValueEl = null;
 /** @type {HTMLInputElement|null} */
+let searchOnlyGamesWithImagesInput = null;
+/** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
@@ -654,8 +656,9 @@ function mountPriorityList(listEl, priority, onChange) {
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
 
+  const requireImages = getSettings().searchOnlyGamesWithImages;
   const settings = getSettings();
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
   const catalogSize = catalogCountForPlatform(settings.selectedPlatformId);
 
   if (query.length === 0) {
@@ -663,7 +666,9 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No games available for this platform.";
+          : requireImages
+            ? "No games with artwork available for this platform."
+            : "No games available for this platform.";
     } else {
       gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog`;
     }
@@ -683,7 +688,11 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 
   if (filteredGamesTotal === 0) {
     gameSearchHintEl.textContent =
-      gameCount === 0 ? "No games on this platform yet." : `No games matching "${query}".`;
+      gameCount === 0
+        ? requireImages
+          ? "No games with artwork on this platform yet."
+          : "No games on this platform yet."
+        : `No games matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -699,7 +708,9 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 function filterGames(query) {
   const settings = getSettings();
   const q = query.trim();
-  const result = searchGames(settings.selectedPlatformId, q);
+  const result = searchGames(settings.selectedPlatformId, q, {
+    requireImages: settings.searchOnlyGamesWithImages,
+  });
   filteredGames = result.games;
   filteredGamesTotal = result.total;
   gameHighlightIndex = 0;
@@ -730,7 +741,8 @@ function renderGameResults() {
   gameResultsEl.innerHTML = "";
 
   const settings = getSettings();
-  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
+  const requireImages = settings.searchOnlyGamesWithImages;
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId, { requireImages });
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -744,7 +756,9 @@ function renderGameResults() {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     if (gameCount === 0) {
-      empty.textContent = "No games on this platform yet.";
+      empty.textContent = requireImages
+        ? "No games with artwork on this platform yet."
+        : "No games on this platform yet.";
     } else {
       empty.textContent = `No games matching "${query}".`;
     }
@@ -914,13 +928,20 @@ function pickGameFromSearch() {
   }
 
   const settings = getSettings();
-  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
+  const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex, {
+    requireImages: settings.searchOnlyGamesWithImages,
+  });
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
     return null;
   }
 
   return game;
+}
+
+function syncGlobalSettingsControls() {
+  if (!searchOnlyGamesWithImagesInput) return;
+  searchOnlyGamesWithImagesInput.checked = !getSettings().searchOnlyGamesWithImages;
 }
 
 async function browseGameFromSearch(game) {
@@ -1230,6 +1251,15 @@ async function refreshPreview() {
 }
 
 function bindEvents() {
+  searchOnlyGamesWithImagesInput?.addEventListener("change", (e) => {
+    updateSettings({
+      // Checked means "include games with no images", so require-images is the inverse.
+      searchOnlyGamesWithImages: !/** @type {HTMLInputElement} */ (e.target).checked,
+    });
+    saveSettings(getSettings());
+    filterGames(gameSearchInput?.value ?? "");
+  });
+
   gameSearchInput?.addEventListener("input", (e) => {
     filterGames(/** @type {HTMLInputElement} */ (e.target).value);
   });
@@ -1356,6 +1386,8 @@ function bindEvents() {
           imported.settings.platformDefaults ??
           defaultSettings().platformDefaults,
         selectedPlatformId: imported.settings.selectedPlatformId ?? defaults.selectedPlatformId,
+        searchOnlyGamesWithImages:
+          imported.settings.searchOnlyGamesWithImages ?? defaults.searchOnlyGamesWithImages,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -1442,6 +1474,9 @@ export async function initUI() {
     document.getElementById("preview-calibration-input")
   );
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
+  searchOnlyGamesWithImagesInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("search-only-games-with-images")
+  );
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
@@ -1539,6 +1574,7 @@ export async function initUI() {
   syncPlatformArtworkDisplayControls();
   syncPreviewArtworkControls();
   syncBrowseActionButton();
+  syncGlobalSettingsControls();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
@@ -1551,7 +1587,10 @@ export async function initUI() {
   });
 
   subscribe((event) => {
-    if (event === "settings") saveSettings(getSettings());
+    if (event === "settings") {
+      saveSettings(getSettings());
+      syncGlobalSettingsControls();
+    }
     if (event === "collection") {
       saveCollection(getCollection());
       if (browseState?.targetCardId && !getCollection().some((card) => card.id === browseState.targetCardId)) {

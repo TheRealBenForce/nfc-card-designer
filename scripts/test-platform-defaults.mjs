@@ -15,6 +15,12 @@ if (defaults.nes.color !== platformById.nes.defaultColor) {
 if (defaults.nes.imageRotation.boxArt !== 0) {
   throw new Error("Default boxArt rotation should be 0");
 }
+if (defaults.snes.imageRotation.boxArt !== 90) {
+  throw new Error("SNES default boxArt rotation should be 90");
+}
+if (defaults.n64.imageRotation.boxArt !== 90) {
+  throw new Error("Nintendo 64 default boxArt rotation should be 90");
+}
 if (defaults.nes.imageTypePriority.join(",") !== "boxArt,titleScreen,gamePicture") {
   throw new Error("Default platform imageTypePriority should match built-in default order");
 }
@@ -67,6 +73,30 @@ const invalidRotation = normalizePlatformDefaults({
 });
 if (invalidRotation.nes.imageRotation.boxArt !== 0) {
   throw new Error("Invalid rotation degrees should fall back to 0");
+}
+
+const migratedLegacySnesRotation = normalizePlatformDefaults({
+  snes: { color: "#000000", imageRotation: { boxArt: 0, titleScreen: 0, gamePicture: 0 } },
+});
+if (migratedLegacySnesRotation.snes.imageRotation.boxArt !== 90) {
+  throw new Error("Legacy all-zero SNES rotation should migrate to default 90");
+}
+
+const explicitZeroSnesRotation = normalizePlatformDefaults({
+  snes: { color: "#000000", imageRotation: { boxArt: 0, titleScreen: 90, gamePicture: 0 } },
+});
+if (explicitZeroSnesRotation.snes.imageRotation.boxArt !== 0) {
+  throw new Error("Explicit SNES boxArt rotation should be respected when other values are customized");
+}
+
+const wrappedRotation = normalizePlatformDefaults({
+  nes: { color: "#000000", imageRotation: { boxArt: 450, titleScreen: -90 } },
+});
+if (wrappedRotation.nes.imageRotation.boxArt !== 90) {
+  throw new Error("Rotation >360 should wrap to a valid quarter turn");
+}
+if (wrappedRotation.nes.imageRotation.titleScreen !== 270) {
+  throw new Error("Negative rotation should wrap to equivalent quarter turn");
 }
 
 if (defaults.nes.artworkDisplay.zoom !== 0) {

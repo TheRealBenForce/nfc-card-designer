@@ -6,6 +6,7 @@ import {
 import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
+  normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
@@ -28,6 +29,7 @@ function serializeCard(card) {
     imageType: card.imageType,
     ...(card.imageFailed ? { imageFailed: true } : {}),
     ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
+    ...(card.imageRotation ? { imageRotation: normalizeRotationDegrees(card.imageRotation) } : {}),
   };
 }
 
@@ -45,6 +47,8 @@ function normalizeCard(card) {
     return null;
   }
 
+  const normalizedRotation = normalizeRotationDegrees(entry.imageRotation);
+
   return {
     id: entry.id,
     platformId: entry.platformId,
@@ -55,6 +59,7 @@ function normalizeCard(card) {
     ...(entry.artworkDisplay
       ? { artworkDisplay: normalizeArtworkDisplay(entry.artworkDisplay) }
       : {}),
+    ...(normalizedRotation ? { imageRotation: normalizedRotation } : {}),
   };
 }
 

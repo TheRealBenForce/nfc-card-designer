@@ -1,7 +1,1586 @@
 {
   "version": 2,
-  "generatedAt": "2026-07-07T22:09:26.083Z",
+  "generatedAt": "2026-07-07T23:19:48.159Z",
   "platforms": {
+    "atari-2600": {
+      "3948": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "3959": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11191": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11439": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11465": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11611": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11684": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11685": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11686": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11687": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11688": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11690": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11694": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11696": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11699": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11716": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11718": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11725": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11778": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11779": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11783": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11791": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11793": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11799": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "11811": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12723": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12735": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12765": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12773": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12813": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12845": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12848": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12900": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12901": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12902": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12905": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12908": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12912": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12991": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12998": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "12999": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13000": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13001": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13002": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13004": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13005": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13006": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13007": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13008": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13009": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13010": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13011": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13012": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13013": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13014": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13015": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13016": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13017": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13018": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13019": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13020": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13021": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13025": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13026": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13027": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13028": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13029": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13030": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13031": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13032": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13034": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13035": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13058": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13059": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13060": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13061": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13062": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13063": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13064": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13066": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13069": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13072": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13073": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13075": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13086": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13092": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13094": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13095": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13096": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13097": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13099": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13102": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13104": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13135": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13136": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13137": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13138": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13142": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13143": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13145": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13146": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13147": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13148": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13149": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13150": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13153": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13155": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13156": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13158": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13160": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13170": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13171": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13207": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13209": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13210": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13211": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13212": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13215": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13217": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13219": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13220": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13221": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13222": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13223": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13278": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13313": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13314": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13315": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13316": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13318": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13323": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13327": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13328": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13329": [
+        "boxArt"
+      ],
+      "13330": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13331": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13332": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13333": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "13334": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13335": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13338": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13340": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13341": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13342": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13378": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13408": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "13683": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14062": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14065": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "14259": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14260": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14360": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14361": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14388": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14402": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14407": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "14499": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "15734": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16052": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16207": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16259": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16260": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16261": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16263": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16264": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16265": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16271": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16277": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16290": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16305": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16346": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16348": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16349": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16350": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16351": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16352": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16353": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16357": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16367": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16368": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16405": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16639": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16785": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16929": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16930": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16931": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16932": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16933": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16934": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16935": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16936": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16937": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16939": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "16940": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17240": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17322": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17421": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17445": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17461": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "17471": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18494": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18502": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18507": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18691": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18718": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "18768": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "20375": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "22893": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "25182": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "25284": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "25623": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "25710": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "25881": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "26028": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "26029": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "26113": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "26114": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27004": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27243": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27379": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27601": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27602": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27603": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27604": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27605": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27942": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27943": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27944": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "27945": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "28127": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "28207": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "28208": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "28209": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "28842": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "29580": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "29668": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "30136": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "30168": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "30986": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "31773": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "32814": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "32881": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "32882": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "32883": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33177": [
+        "boxArt",
+        "titleScreen"
+      ],
+      "33178": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33180": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33181": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33182": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33183": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33184": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33730": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33731": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33732": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33733": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33734": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33735": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33736": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "33737": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34071": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34072": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34074": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34075": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34076": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34077": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34110": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34111": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34112": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34113": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34114": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34115": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34116": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34117": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34118": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34156": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34157": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34158": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34159": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34160": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34161": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34162": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34163": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34164": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34165": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34406": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34407": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34408": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34409": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "34431": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "35101": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36175": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36176": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36213": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36277": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36278": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36279": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36280": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36281": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36282": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36283": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36305": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36396": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36397": [
+        "boxArt",
+        "gamePicture"
+      ],
+      "36473": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36474": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36480": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36716": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36717": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36764": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36765": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36766": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36767": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "36914": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "37200": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "38144": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "38658": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "38712": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ],
+      "40036": [
+        "boxArt",
+        "titleScreen",
+        "gamePicture"
+      ]
+    },
     "nes": {
       "1446": [
         "boxArt",

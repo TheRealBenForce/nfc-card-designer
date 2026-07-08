@@ -13292,37 +13292,67 @@ export const games = [
     "platformId": "atari-2600",
     "name": "3-D Tic-Tac-Toe",
     "raGameId": 13327,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13327/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13327/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13327/gamePicture.png"
+    },
+    "libretroName": "3-D Tic-Tac-Toe (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Acid Drop",
     "raGameId": 12902,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12902/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12902/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12902/gamePicture.png"
+    },
+    "libretroName": "Acid Drop (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Adventure",
     "raGameId": 11778,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11778/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11778/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11778/gamePicture.png"
+    },
+    "libretroName": "Adventure (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Adventures of TRON",
     "raGameId": 16929,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16929/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16929/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16929/gamePicture.png"
+    },
+    "libretroName": "Adventures of TRON (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Air Raid",
     "raGameId": 16277,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16277/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16277/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16277/gamePicture.png"
+    },
+    "libretroName": "Air Raid (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Air Raiders",
     "raGameId": 29580,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/29580/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/29580/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/29580/gamePicture.png"
+    },
+    "libretroName": "Air Raiders (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13334,133 +13364,243 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Airlock",
     "raGameId": 16930,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16930/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16930/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16930/gamePicture.png"
+    },
+    "libretroName": "Airlock (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Alien",
     "raGameId": 13017,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13017/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13017/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13017/gamePicture.png"
+    },
+    "libretroName": "Alien (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Alien's Return",
     "raGameId": 36396,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36396/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36396/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36396/gamePicture.png"
+    },
+    "libretroName": "Alien's Return (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Alpha Beam with Ernie",
     "raGameId": 13207,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13207/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13207/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13207/gamePicture.png"
+    },
+    "libretroName": "Alpha Beam with Ernie (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Amidar",
     "raGameId": 13313,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13313/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13313/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13313/gamePicture.png"
+    },
+    "libretroName": "Amidar (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Armor Ambush",
     "raGameId": 16931,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16931/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16931/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16931/gamePicture.png"
+    },
+    "libretroName": "Armor Ambush (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Artillery Duel",
     "raGameId": 16932,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16932/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16932/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16932/gamePicture.png"
+    },
+    "libretroName": "Artillery Duel (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Assault",
     "raGameId": 13018,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13018/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13018/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13018/gamePicture.png"
+    },
+    "libretroName": "Assault (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Asteroids",
     "raGameId": 11687,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11687/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11687/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11687/gamePicture.png"
+    },
+    "libretroName": "Asteroids (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Astroblast",
     "raGameId": 12998,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12998/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12998/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12998/gamePicture.png"
+    },
+    "libretroName": "Astroblast (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Atari Video Cube",
     "raGameId": 18691,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18691/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18691/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18691/gamePicture.png"
+    },
+    "libretroName": "Atari Video Cube (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Atlantis",
     "raGameId": 13016,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13016/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13016/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13016/gamePicture.png"
+    },
+    "libretroName": "Atlantis (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Atlantis II",
     "raGameId": 16933,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16933/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16933/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16933/gamePicture.png"
+    },
+    "libretroName": "Atlantis II (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bachelor Party",
     "raGameId": 38144,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/38144/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/38144/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/38144/gamePicture.png"
+    },
+    "libretroName": "Bachelor Party (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Backgammon",
     "raGameId": 16934,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16934/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16934/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16934/gamePicture.png"
+    },
+    "libretroName": "Backgammon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bank Heist",
     "raGameId": 11694,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11694/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11694/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11694/gamePicture.png"
+    },
+    "libretroName": "Bank Heist (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Barnstorming",
     "raGameId": 14407,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14407/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14407/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14407/gamePicture.png"
+    },
+    "libretroName": "Barnstorming (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Basic Math",
     "raGameId": 12905,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12905/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12905/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12905/gamePicture.png"
+    },
+    "libretroName": "Basic Math (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Basketball",
     "raGameId": 32881,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/32881/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/32881/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/32881/gamePicture.png"
+    },
+    "libretroName": "Basketball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Battlezone",
     "raGameId": 13138,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13138/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13138/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13138/gamePicture.png"
+    },
+    "libretroName": "Battlezone (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Beamrider",
     "raGameId": 3948,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/3948/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/3948/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/3948/gamePicture.png"
+    },
+    "libretroName": "Beamrider (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Beany Bopper",
     "raGameId": 17445,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17445/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17445/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17445/gamePicture.png"
+    },
+    "libretroName": "Beany Bopper (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13472,79 +13612,143 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Berenstain Bears",
     "raGameId": 16935,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16935/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16935/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16935/gamePicture.png"
+    },
+    "libretroName": "Berenstain Bears (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bermuda Triangle",
     "raGameId": 16936,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16936/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16936/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16936/gamePicture.png"
+    },
+    "libretroName": "Bermuda Triangle (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Berzerk",
     "raGameId": 12773,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12773/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12773/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12773/gamePicture.png"
+    },
+    "libretroName": "Berzerk (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Big Bird's Egg Catch",
     "raGameId": 14499,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14499/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14499/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14499/gamePicture.png"
+    },
+    "libretroName": "Big Bird's Egg Catch (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Birthday Mania",
     "raGameId": 36397,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36397/boxArt.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36397/gamePicture.png"
+    },
+    "libretroName": "Birthday Mania (USA) (Robert A. Tokar)"
   },
   {
     "platformId": "atari-2600",
     "name": "Blackjack",
     "raGameId": 13328,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13328/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13328/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13328/gamePicture.png"
+    },
+    "libretroName": "Blackjack (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Blueprint",
     "raGameId": 13342,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13342/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13342/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13342/gamePicture.png"
+    },
+    "libretroName": "Blueprint (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "BMX Air Master",
     "raGameId": 16937,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16937/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16937/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16937/gamePicture.png"
+    },
+    "libretroName": "BMX Air Master (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bobby Is Going Home",
     "raGameId": 27942,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27942/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27942/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27942/gamePicture.png"
+    },
+    "libretroName": "Bobby Is Going Home (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Boing!",
     "raGameId": 27943,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27943/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27943/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27943/gamePicture.png"
+    },
+    "libretroName": "Boing! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bowling",
     "raGameId": 12991,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12991/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12991/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12991/gamePicture.png"
+    },
+    "libretroName": "Bowling (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Boxing",
     "raGameId": 12912,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12912/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12912/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12912/gamePicture.png"
+    },
+    "libretroName": "Boxing (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Brain Games",
     "raGameId": 34408,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34408/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34408/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34408/gamePicture.png"
+    },
+    "libretroName": "Brain Games (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13556,7 +13760,12 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Bridge",
     "raGameId": 29668,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/29668/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/29668/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/29668/gamePicture.png"
+    },
+    "libretroName": "Bridge (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13568,181 +13777,328 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Bugs",
     "raGameId": 27601,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27601/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27601/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27601/gamePicture.png"
+    },
+    "libretroName": "Bugs (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bump 'n' Jump",
     "raGameId": 16939,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16939/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16939/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16939/gamePicture.png"
+    },
+    "libretroName": "Bump 'n' Jump (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Bumper Bash",
     "raGameId": 13097,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13097/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13097/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13097/gamePicture.png"
+    },
+    "libretroName": "Bumper Bash (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "BurgerTime",
     "raGameId": 13021,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13021/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13021/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13021/gamePicture.png"
+    },
+    "libretroName": "BurgerTime (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Burning Desire",
     "raGameId": 16940,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16940/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16940/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16940/gamePicture.png"
+    },
+    "libretroName": "Burning Desire (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Cakewalk",
     "raGameId": 16207,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16207/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16207/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16207/gamePicture.png"
+    },
+    "libretroName": "Cakewalk (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "California Games",
     "raGameId": 34110,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34110/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34110/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34110/gamePicture.png"
+    },
+    "libretroName": "California Games (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Canyon Bomber",
     "raGameId": 25881,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/25881/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/25881/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/25881/gamePicture.png"
+    },
+    "libretroName": "Canyon Bomber (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Carnival",
     "raGameId": 13027,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13027/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13027/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13027/gamePicture.png"
+    },
+    "libretroName": "Carnival (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Casino | Poker Plus",
     "raGameId": 32882,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/32882/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/32882/titleScreen.png"
+    },
+    "libretroName": "Casino _ Poker Plus (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Cat Trax",
     "raGameId": 16639,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16639/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16639/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16639/gamePicture.png"
+    },
+    "libretroName": "Cat Trax (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Centipede",
     "raGameId": 11799,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11799/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11799/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11799/gamePicture.png"
+    },
+    "libretroName": "Centipede (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Challenge",
     "raGameId": 27944,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27944/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27944/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27944/gamePicture.png"
+    },
+    "libretroName": "Challenge (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Championship Soccer",
     "raGameId": 33731,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33731/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33731/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33731/gamePicture.png"
+    },
+    "libretroName": "Championship Soccer (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Chase the Chuckwagon",
     "raGameId": 13329,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13329/boxArt.png"
+    },
+    "libretroName": "Chase the Chuckwagon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Checkers",
     "raGameId": 13330,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13330/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13330/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13330/gamePicture.png"
+    },
+    "libretroName": "Checkers (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "China Syndrome",
     "raGameId": 16785,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16785/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16785/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16785/gamePicture.png"
+    },
+    "libretroName": "China Syndrome (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Chopper Command",
     "raGameId": 12813,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12813/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12813/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12813/gamePicture.png"
+    },
+    "libretroName": "Chopper Command (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Circus Atari",
     "raGameId": 13058,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13058/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13058/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13058/gamePicture.png"
+    },
+    "libretroName": "Circus Atari (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Codebreaker",
     "raGameId": 34409,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34409/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34409/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34409/gamePicture.png"
+    },
+    "libretroName": "Codebreaker (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Combat",
     "raGameId": 14062,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14062/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14062/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14062/gamePicture.png"
+    },
+    "libretroName": "Combat (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Commando",
     "raGameId": 16259,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16259/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16259/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16259/gamePicture.png"
+    },
+    "libretroName": "Commando (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Communist Mutants from Space",
     "raGameId": 16265,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16265/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16265/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16265/gamePicture.png"
+    },
+    "libretroName": "Communist Mutants from Space (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Condor Attack",
     "raGameId": 13150,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13150/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13150/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13150/gamePicture.png"
+    },
+    "libretroName": "Condor Attack (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Congo Bongo",
     "raGameId": 16346,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16346/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16346/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16346/gamePicture.png"
+    },
+    "libretroName": "Congo Bongo (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Cookie Monster Munch",
     "raGameId": 17471,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17471/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17471/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17471/gamePicture.png"
+    },
+    "libretroName": "Cookie Monster Munch (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Cosmic Ark",
     "raGameId": 13220,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13220/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13220/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13220/gamePicture.png"
+    },
+    "libretroName": "Cosmic Ark (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Cosmic Swarm",
     "raGameId": 27602,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27602/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27602/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27602/gamePicture.png"
+    },
+    "libretroName": "Cosmic Swarm (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Crackpots",
     "raGameId": 13064,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13064/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13064/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13064/gamePicture.png"
+    },
+    "libretroName": "Crackpots (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Crazy Climber",
     "raGameId": 13015,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13015/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13015/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13015/gamePicture.png"
+    },
+    "libretroName": "Crazy Climber (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13754,133 +14110,243 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Cross Force",
     "raGameId": 34161,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34161/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34161/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34161/gamePicture.png"
+    },
+    "libretroName": "Cross Force (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Crypts of Chaos",
     "raGameId": 36175,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36175/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36175/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36175/gamePicture.png"
+    },
+    "libretroName": "Crypts of Chaos (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Crystal Castles",
     "raGameId": 13028,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13028/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13028/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13028/gamePicture.png"
+    },
+    "libretroName": "Crystal Castles (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dancing Plate",
     "raGameId": 27945,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27945/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27945/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27945/gamePicture.png"
+    },
+    "libretroName": "Dancing Plate (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dark Cavern",
     "raGameId": 13011,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13011/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13011/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13011/gamePicture.png"
+    },
+    "libretroName": "Dark Cavern (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dark Chambers",
     "raGameId": 11783,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11783/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11783/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11783/gamePicture.png"
+    },
+    "libretroName": "Dark Chambers (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Death Trap",
     "raGameId": 27603,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27603/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27603/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27603/gamePicture.png"
+    },
+    "libretroName": "Death Trap (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Defender",
     "raGameId": 13034,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13034/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13034/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13034/gamePicture.png"
+    },
+    "libretroName": "Defender (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Demolition Herby",
     "raGameId": 27604,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27604/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27604/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27604/gamePicture.png"
+    },
+    "libretroName": "Demolition Herby (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Demon Attack",
     "raGameId": 13221,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13221/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13221/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13221/gamePicture.png"
+    },
+    "libretroName": "Demon Attack (USA) (Rev 1)"
   },
   {
     "platformId": "atari-2600",
     "name": "Demons to Diamonds",
     "raGameId": 36277,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36277/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36277/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36277/gamePicture.png"
+    },
+    "libretroName": "Demons to Diamonds (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Desert Falcon",
     "raGameId": 11685,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11685/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11685/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11685/gamePicture.png"
+    },
+    "libretroName": "Desert Falcon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dice Puzzle",
     "raGameId": 27605,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27605/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27605/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27605/gamePicture.png"
+    },
+    "libretroName": "Dice Puzzle (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dig Dug",
     "raGameId": 12999,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12999/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12999/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12999/gamePicture.png"
+    },
+    "libretroName": "Dig Dug (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dodge 'Em",
     "raGameId": 13004,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13004/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13004/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13004/gamePicture.png"
+    },
+    "libretroName": "Dodge 'Em (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dolphin",
     "raGameId": 25710,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/25710/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/25710/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/25710/gamePicture.png"
+    },
+    "libretroName": "Dolphin (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Donkey Kong",
     "raGameId": 13095,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13095/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13095/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13095/gamePicture.png"
+    },
+    "libretroName": "Donkey Kong (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Donkey Kong Junior",
     "raGameId": 13323,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13323/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13323/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13323/gamePicture.png"
+    },
+    "libretroName": "Donkey Kong Junior (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Double Dragon",
     "raGameId": 13331,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13331/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13331/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13331/gamePicture.png"
+    },
+    "libretroName": "Double Dragon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dragonfire",
     "raGameId": 28207,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/28207/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/28207/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/28207/gamePicture.png"
+    },
+    "libretroName": "Dragonfire (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dragonstomper",
     "raGameId": 11699,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11699/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11699/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11699/gamePicture.png"
+    },
+    "libretroName": "Dragonstomper (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Dragster",
     "raGameId": 14402,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14402/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14402/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14402/gamePicture.png"
+    },
+    "libretroName": "Dragster (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -13892,127 +14358,231 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Eggomania",
     "raGameId": 13063,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13063/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13063/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13063/gamePicture.png"
+    },
+    "libretroName": "Eggomania (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Encounter at L-5",
     "raGameId": 15734,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/15734/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/15734/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/15734/gamePicture.png"
+    },
+    "libretroName": "Encounter at L-5 (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Enduro",
     "raGameId": 12900,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12900/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12900/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12900/gamePicture.png"
+    },
+    "libretroName": "Enduro (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Entombed",
     "raGameId": 14388,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14388/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14388/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14388/gamePicture.png"
+    },
+    "libretroName": "Entombed (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Escape from the Mindmaster",
     "raGameId": 13316,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13316/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13316/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13316/gamePicture.png"
+    },
+    "libretroName": "Escape from the Mindmaster (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Exocet",
     "raGameId": 34074,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34074/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34074/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34074/gamePicture.png"
+    },
+    "libretroName": "Exocet (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fantastic Voyage",
     "raGameId": 13104,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13104/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13104/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13104/gamePicture.png"
+    },
+    "libretroName": "Fantastic Voyage (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fast Food",
     "raGameId": 13102,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13102/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13102/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13102/gamePicture.png"
+    },
+    "libretroName": "Fast Food (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fatal Run",
     "raGameId": 36278,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36278/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36278/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36278/gamePicture.png"
+    },
+    "libretroName": "Fatal Run (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fathom",
     "raGameId": 34113,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34113/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34113/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34113/gamePicture.png"
+    },
+    "libretroName": "Fathom (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Final Approach",
     "raGameId": 37200,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/37200/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/37200/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/37200/gamePicture.png"
+    },
+    "libretroName": "Final Approach (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fire Fighter",
     "raGameId": 18718,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18718/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18718/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18718/gamePicture.png"
+    },
+    "libretroName": "Fire Fighter (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fire Fly",
     "raGameId": 30986,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/30986/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/30986/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/30986/gamePicture.png"
+    },
+    "libretroName": "Fire Fly (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fireball",
     "raGameId": 34159,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34159/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34159/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34159/gamePicture.png"
+    },
+    "libretroName": "Fireball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Fishing Derby",
     "raGameId": 13005,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13005/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13005/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13005/gamePicture.png"
+    },
+    "libretroName": "Fishing Derby (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Flag Capture | Capture",
     "raGameId": 33177,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33177/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33177/titleScreen.png"
+    },
+    "libretroName": "Flag Capture _ Capture (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Flash Gordon",
     "raGameId": 36279,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36279/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36279/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36279/gamePicture.png"
+    },
+    "libretroName": "Flash Gordon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Football",
     "raGameId": 32883,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/32883/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/32883/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/32883/gamePicture.png"
+    },
+    "libretroName": "Football (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Frankenstein's Monster",
     "raGameId": 13000,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13000/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13000/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13000/gamePicture.png"
+    },
+    "libretroName": "Frankenstein's Monster (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Freeway",
     "raGameId": 13006,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13006/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13006/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13006/gamePicture.png"
+    },
+    "libretroName": "Freeway (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Frogger",
     "raGameId": 17421,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17421/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17421/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17421/gamePicture.png"
+    },
+    "libretroName": "Frogger (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14024,19 +14594,34 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Frogs and Flies",
     "raGameId": 20375,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/20375/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/20375/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/20375/gamePicture.png"
+    },
+    "libretroName": "Frogs and Flies (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Front Line",
     "raGameId": 34157,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34157/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34157/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34157/gamePicture.png"
+    },
+    "libretroName": "Front Line (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Frostbite",
     "raGameId": 13378,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13378/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13378/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13378/gamePicture.png"
+    },
+    "libretroName": "Frostbite (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14048,109 +14633,198 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Galaxian",
     "raGameId": 13014,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13014/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13014/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13014/gamePicture.png"
+    },
+    "libretroName": "Galaxian (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gangster Alley",
     "raGameId": 16271,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16271/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16271/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16271/gamePicture.png"
+    },
+    "libretroName": "Gangster Alley (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gauntlet",
     "raGameId": 26113,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/26113/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/26113/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/26113/gamePicture.png"
+    },
+    "libretroName": "Gauntlet (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Ghost Manor",
     "raGameId": 16353,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16353/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16353/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16353/gamePicture.png"
+    },
+    "libretroName": "Ghost Manor (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Ghostbusters",
     "raGameId": 16305,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16305/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16305/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16305/gamePicture.png"
+    },
+    "libretroName": "Ghostbusters (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Ghostbusters II",
     "raGameId": 16368,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16368/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16368/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16368/gamePicture.png"
+    },
+    "libretroName": "Ghostbusters II (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Glacier Patrol",
     "raGameId": 26114,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/26114/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/26114/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/26114/gamePicture.png"
+    },
+    "libretroName": "Glacier Patrol (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Golf",
     "raGameId": 33730,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33730/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33730/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33730/gamePicture.png"
+    },
+    "libretroName": "Golf (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gopher",
     "raGameId": 13029,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13029/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13029/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13029/gamePicture.png"
+    },
+    "libretroName": "Gopher (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gorf",
     "raGameId": 33178,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33178/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33178/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33178/gamePicture.png"
+    },
+    "libretroName": "Gorf (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Grand Prix",
     "raGameId": 13007,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13007/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13007/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13007/gamePicture.png"
+    },
+    "libretroName": "Grand Prix (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gravitar",
     "raGameId": 18494,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18494/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18494/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18494/gamePicture.png"
+    },
+    "libretroName": "Gravitar (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gremlins",
     "raGameId": 13096,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13096/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13096/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13096/gamePicture.png"
+    },
+    "libretroName": "Gremlins (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Gyruss",
     "raGameId": 34165,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34165/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34165/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34165/gamePicture.png"
+    },
+    "libretroName": "Gyruss (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "H.E.R.O.",
     "raGameId": 11611,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11611/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11611/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11611/gamePicture.png"
+    },
+    "libretroName": "H.E.R.O. (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Halloween",
     "raGameId": 13278,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13278/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13278/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13278/gamePicture.png"
+    },
+    "libretroName": "Halloween (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Hangman",
     "raGameId": 13332,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13332/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13332/titleScreen.png"
+    },
+    "libretroName": "Hangman - Spelling (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Haunted House",
     "raGameId": 16348,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16348/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16348/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16348/gamePicture.png"
+    },
+    "libretroName": "Haunted House (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14174,157 +14848,286 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Ice Hockey",
     "raGameId": 13209,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13209/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13209/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13209/gamePicture.png"
+    },
+    "libretroName": "Ice Hockey (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Ikari Warriors",
     "raGameId": 36213,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36213/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36213/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36213/gamePicture.png"
+    },
+    "libretroName": "Ikari Warriors (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Indy 500",
     "raGameId": 13314,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13314/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13314/titleScreen.png"
+    },
+    "libretroName": "Indy 500 (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "International Soccer",
     "raGameId": 33732,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33732/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33732/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33732/gamePicture.png"
+    },
+    "libretroName": "International Soccer (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Jawbreaker",
     "raGameId": 17322,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17322/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17322/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17322/gamePicture.png"
+    },
+    "libretroName": "Jawbreaker (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Journey Escape",
     "raGameId": 33180,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33180/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33180/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33180/gamePicture.png"
+    },
+    "libretroName": "Journey Escape (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Joust",
     "raGameId": 13008,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13008/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13008/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13008/gamePicture.png"
+    },
+    "libretroName": "Joust (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Jr. Pac-Man",
     "raGameId": 11811,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11811/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11811/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11811/gamePicture.png"
+    },
+    "libretroName": "Jr. Pac-Man (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Jungle Hunt",
     "raGameId": 13210,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13210/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13210/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13210/gamePicture.png"
+    },
+    "libretroName": "Jungle Hunt (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Kaboom!",
     "raGameId": 12735,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12735/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12735/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12735/gamePicture.png"
+    },
+    "libretroName": "Kaboom! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Kangaroo",
     "raGameId": 13001,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13001/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13001/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13001/gamePicture.png"
+    },
+    "libretroName": "Kangaroo (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Karate",
     "raGameId": 17461,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17461/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17461/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17461/gamePicture.png"
+    },
+    "libretroName": "Karate (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Keystone Kapers",
     "raGameId": 13211,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13211/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13211/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13211/gamePicture.png"
+    },
+    "libretroName": "Keystone Kapers (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Killer Satellites",
     "raGameId": 36765,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36765/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36765/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36765/gamePicture.png"
+    },
+    "libretroName": "Killer Satellites (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "King Kong",
     "raGameId": 25623,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/25623/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/25623/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/25623/gamePicture.png"
+    },
+    "libretroName": "King Kong (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Klax",
     "raGameId": 13059,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13059/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13059/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13059/gamePicture.png"
+    },
+    "libretroName": "Klax (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Kool-Aid Man",
     "raGameId": 13009,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13009/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13009/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13009/gamePicture.png"
+    },
+    "libretroName": "Kool-Aid Man (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Krull",
     "raGameId": 13060,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13060/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13060/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13060/gamePicture.png"
+    },
+    "libretroName": "Krull (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Kung-Fu Master",
     "raGameId": 16352,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16352/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16352/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16352/gamePicture.png"
+    },
+    "libretroName": "Kung-Fu Master (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Laser Blast",
     "raGameId": 13010,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13010/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13010/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13010/gamePicture.png"
+    },
+    "libretroName": "Laser Blast (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Lock 'n' Chase",
     "raGameId": 13020,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13020/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13020/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13020/gamePicture.png"
+    },
+    "libretroName": "Lock 'n' Chase (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "M.A.S.H",
     "raGameId": 36305,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36305/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36305/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36305/gamePicture.png"
+    },
+    "libretroName": "M.A.S.H (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mangia'",
     "raGameId": 18768,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18768/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18768/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18768/gamePicture.png"
+    },
+    "libretroName": "Mangia' (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Marauder",
     "raGameId": 34164,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34164/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34164/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34164/gamePicture.png"
+    },
+    "libretroName": "Marauder (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mario Bros.",
     "raGameId": 11465,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11465/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11465/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11465/gamePicture.png"
+    },
+    "libretroName": "Mario Bros. (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Master Builder",
     "raGameId": 25182,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/25182/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/25182/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/25182/gamePicture.png"
+    },
+    "libretroName": "Master Builder (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14336,7 +15139,12 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Math Gran Prix",
     "raGameId": 11779,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11779/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11779/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11779/gamePicture.png"
+    },
+    "libretroName": "Math Gran Prix (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14348,37 +15156,67 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Mega Force",
     "raGameId": 26029,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/26029/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/26029/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/26029/gamePicture.png"
+    },
+    "libretroName": "Mega Force (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "MegaMania",
     "raGameId": 13222,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13222/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13222/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13222/gamePicture.png"
+    },
+    "libretroName": "MegaMania - A Space Nightmare (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Midnight Magic",
     "raGameId": 13061,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13061/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13061/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13061/gamePicture.png"
+    },
+    "libretroName": "Midnight Magic (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Millipede",
     "raGameId": 13030,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13030/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13030/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13030/gamePicture.png"
+    },
+    "libretroName": "Millipede (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Miner 2049er",
     "raGameId": 18502,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18502/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18502/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18502/gamePicture.png"
+    },
+    "libretroName": "Miner 2049er - Starring Bounty Bob (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mines of Minos",
     "raGameId": 34114,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34114/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34114/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34114/gamePicture.png"
+    },
+    "libretroName": "Mines of Minos (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14390,61 +15228,111 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Missile Command",
     "raGameId": 13170,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13170/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13170/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13170/gamePicture.png"
+    },
+    "libretroName": "Missile Command (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Montezuma's Revenge",
     "raGameId": 13341,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13341/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13341/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13341/gamePicture.png"
+    },
+    "libretroName": "Montezuma's Revenge - Featuring Panama Joe (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Moon Patrol",
     "raGameId": 11686,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11686/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11686/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11686/gamePicture.png"
+    },
+    "libretroName": "Moon Patrol (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Moonsweeper",
     "raGameId": 13212,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13212/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13212/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13212/gamePicture.png"
+    },
+    "libretroName": "Moonsweeper (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Motocross",
     "raGameId": 27379,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27379/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27379/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27379/gamePicture.png"
+    },
+    "libretroName": "Motocross (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mountain King",
     "raGameId": 36283,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36283/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36283/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36283/gamePicture.png"
+    },
+    "libretroName": "Mountain King (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mouse Trap",
     "raGameId": 11725,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11725/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11725/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11725/gamePicture.png"
+    },
+    "libretroName": "Mouse Trap (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mr. Do!",
     "raGameId": 11793,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11793/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11793/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11793/gamePicture.png"
+    },
+    "libretroName": "Mr. Do! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mr. Do!'s Castle",
     "raGameId": 11791,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11791/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11791/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11791/gamePicture.png"
+    },
+    "libretroName": "Mr. Do!'s Castle (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Mr. Postman",
     "raGameId": 34077,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34077/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34077/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34077/gamePicture.png"
+    },
+    "libretroName": "Mr. Postman (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14456,109 +15344,199 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Ms. Pac-Man",
     "raGameId": 14260,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14260/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14260/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14260/gamePicture.png"
+    },
+    "libretroName": "Ms. Pac-Man (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "My Golf",
     "raGameId": 36474,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36474/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36474/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36474/gamePicture.png"
+    },
+    "libretroName": "My Golf (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Name This Game",
     "raGameId": 35101,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/35101/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/35101/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/35101/gamePicture.png"
+    },
+    "libretroName": "Name This Game (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Night Driver",
     "raGameId": 13143,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13143/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13143/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13143/gamePicture.png"
+    },
+    "libretroName": "Night Driver (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Nightmare",
     "raGameId": 34075,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34075/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34075/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34075/gamePicture.png"
+    },
+    "libretroName": "Nightmare (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "No Escape!",
     "raGameId": 34160,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34160/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34160/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34160/gamePicture.png"
+    },
+    "libretroName": "No Escape! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Off the Wall",
     "raGameId": 13066,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13066/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13066/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13066/gamePicture.png"
+    },
+    "libretroName": "Off the Wall (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Oink!",
     "raGameId": 13032,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13032/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13032/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13032/gamePicture.png"
+    },
+    "libretroName": "Oink! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Omega Race",
     "raGameId": 34115,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34115/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34115/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34115/gamePicture.png"
+    },
+    "libretroName": "Omega Race (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Open Sesame",
     "raGameId": 34076,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34076/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34076/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34076/gamePicture.png"
+    },
+    "libretroName": "Open Sesame (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Oscar's Trash Race",
     "raGameId": 27004,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27004/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27004/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27004/gamePicture.png"
+    },
+    "libretroName": "Oscar's Trash Race (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Othello",
     "raGameId": 25284,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/25284/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/25284/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/25284/gamePicture.png"
+    },
+    "libretroName": "Othello (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Outlaw",
     "raGameId": 14259,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14259/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14259/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14259/gamePicture.png"
+    },
+    "libretroName": "Outlaw (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Pac-Man",
     "raGameId": 13094,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13094/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13094/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13094/gamePicture.png"
+    },
+    "libretroName": "Pac-Man (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Party Mix",
     "raGameId": 36766,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36766/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36766/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36766/gamePicture.png"
+    },
+    "libretroName": "Party Mix (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Pengo",
     "raGameId": 36280,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36280/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36280/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36280/gamePicture.png"
+    },
+    "libretroName": "Pengo (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Phaser Patrol",
     "raGameId": 13219,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13219/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13219/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13219/gamePicture.png"
+    },
+    "libretroName": "Phaser Patrol (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Phoenix",
     "raGameId": 16351,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16351/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16351/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16351/gamePicture.png"
+    },
+    "libretroName": "Phoenix (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14570,13 +15548,23 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Picnic",
     "raGameId": 13135,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13135/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13135/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13135/gamePicture.png"
+    },
+    "libretroName": "Picnic (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Piece o' Cake",
     "raGameId": 13160,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13160/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13160/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13160/gamePicture.png"
+    },
+    "libretroName": "Piece o' Cake (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14594,61 +15582,111 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Pitfall!",
     "raGameId": 11191,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11191/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11191/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11191/gamePicture.png"
+    },
+    "libretroName": "Pitfall! - Pitfall Harry's Jungle Adventure (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Planet Patrol",
     "raGameId": 13145,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13145/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13145/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13145/gamePicture.png"
+    },
+    "libretroName": "Planet Patrol (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Plaque Attack",
     "raGameId": 13069,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13069/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13069/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13069/gamePicture.png"
+    },
+    "libretroName": "Plaque Attack (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Polaris",
     "raGameId": 28208,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/28208/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/28208/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/28208/gamePicture.png"
+    },
+    "libretroName": "Polaris (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Pole Position",
     "raGameId": 11690,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11690/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11690/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11690/gamePicture.png"
+    },
+    "libretroName": "Pole Position (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Pooyan",
     "raGameId": 13073,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13073/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13073/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13073/gamePicture.png"
+    },
+    "libretroName": "Pooyan (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Popeye",
     "raGameId": 13012,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13012/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13012/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13012/gamePicture.png"
+    },
+    "libretroName": "Popeye (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Porky's",
     "raGameId": 33737,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33737/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33737/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33737/gamePicture.png"
+    },
+    "libretroName": "Porky's (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Pressure Cooker",
     "raGameId": 12765,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12765/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12765/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12765/gamePicture.png"
+    },
+    "libretroName": "Pressure Cooker (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Private Eye",
     "raGameId": 16260,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16260/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16260/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16260/gamePicture.png"
+    },
+    "libretroName": "Private Eye (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14666,163 +15704,298 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Quadrun",
     "raGameId": 36281,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36281/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36281/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36281/gamePicture.png"
+    },
+    "libretroName": "Quadrun (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Rabbit Transit",
     "raGameId": 13155,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13155/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13155/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13155/gamePicture.png"
+    },
+    "libretroName": "Rabbit Transit (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Racquetball",
     "raGameId": 36480,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36480/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36480/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36480/gamePicture.png"
+    },
+    "libretroName": "Racquetball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Radar",
     "raGameId": 36473,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36473/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36473/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36473/gamePicture.png"
+    },
+    "libretroName": "Radar (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Radar Lock",
     "raGameId": 16261,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16261/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16261/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16261/gamePicture.png"
+    },
+    "libretroName": "Radar Lock (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Raiders of the Lost Ark",
     "raGameId": 13223,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13223/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13223/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13223/gamePicture.png"
+    },
+    "libretroName": "Raiders of the Lost Ark (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Ram It",
     "raGameId": 34158,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34158/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34158/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34158/gamePicture.png"
+    },
+    "libretroName": "Ram It (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Rampage!",
     "raGameId": 13031,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13031/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13031/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13031/gamePicture.png"
+    },
+    "libretroName": "Rampage! (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Raumpatrouille",
     "raGameId": 31773,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/31773/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/31773/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/31773/gamePicture.png"
+    },
+    "libretroName": "Raumpatrouille (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Reactor",
     "raGameId": 17240,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/17240/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/17240/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/17240/gamePicture.png"
+    },
+    "libretroName": "Reactor (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "RealSports Baseball",
     "raGameId": 16263,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16263/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16263/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16263/gamePicture.png"
+    },
+    "libretroName": "RealSports Baseball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "RealSports Boxing",
     "raGameId": 33733,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33733/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33733/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33733/gamePicture.png"
+    },
+    "libretroName": "RealSports Boxing (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "RealSports Football",
     "raGameId": 33734,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33734/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33734/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33734/gamePicture.png"
+    },
+    "libretroName": "RealSports Football (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "RealSports Tennis",
     "raGameId": 34431,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34431/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34431/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34431/gamePicture.png"
+    },
+    "libretroName": "RealSports Tennis (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "RealSports Volleyball",
     "raGameId": 16350,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16350/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16350/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16350/gamePicture.png"
+    },
+    "libretroName": "RealSports Volleyball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Rescue Terra I",
     "raGameId": 34162,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34162/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34162/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34162/gamePicture.png"
+    },
+    "libretroName": "Rescue Terra I (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Revenge of the Beefsteak Tomatoes",
     "raGameId": 13408,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13408/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13408/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13408/gamePicture.png"
+    },
+    "libretroName": "Revenge of the Beefsteak Tomatoes (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Riddle of the Sphinx",
     "raGameId": 33181,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33181/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33181/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33181/gamePicture.png"
+    },
+    "libretroName": "Riddle of the Sphinx (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "River Patrol",
     "raGameId": 28209,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/28209/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/28209/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/28209/gamePicture.png"
+    },
+    "libretroName": "River Patrol (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "River Raid",
     "raGameId": 11688,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11688/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11688/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11688/gamePicture.png"
+    },
+    "libretroName": "River Raid (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "River Raid II",
     "raGameId": 12901,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12901/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12901/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12901/gamePicture.png"
+    },
+    "libretroName": "River Raid II (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Road Runner",
     "raGameId": 13072,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13072/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13072/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13072/gamePicture.png"
+    },
+    "libretroName": "Road Runner (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Robin Hood",
     "raGameId": 16052,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16052/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16052/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16052/gamePicture.png"
+    },
+    "libretroName": "Robin Hood (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Robot Tank",
     "raGameId": 13315,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13315/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13315/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13315/gamePicture.png"
+    },
+    "libretroName": "Robot Tank (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Roc 'n Rope",
     "raGameId": 16405,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16405/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16405/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16405/gamePicture.png"
+    },
+    "libretroName": "Roc 'n Rope (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Room of Doom",
     "raGameId": 34071,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34071/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34071/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34071/gamePicture.png"
+    },
+    "libretroName": "Room of Doom (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sea Battle",
     "raGameId": 22893,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/22893/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/22893/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/22893/gamePicture.png"
+    },
+    "libretroName": "Sea Battle (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14834,127 +16007,229 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Sea Monster",
     "raGameId": 34072,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34072/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34072/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34072/gamePicture.png"
+    },
+    "libretroName": "Sea Monster (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Seaquest",
     "raGameId": 11439,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11439/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11439/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11439/gamePicture.png"
+    },
+    "libretroName": "Seaquest (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Secret Quest",
     "raGameId": 16264,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16264/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16264/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16264/gamePicture.png"
+    },
+    "libretroName": "Secret Quest (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Shootin' Gallery",
     "raGameId": 12848,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12848/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12848/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12848/gamePicture.png"
+    },
+    "libretroName": "Shootin' Gallery (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Skate Boardin'",
     "raGameId": 16357,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16357/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16357/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16357/gamePicture.png"
+    },
+    "libretroName": "Skate Boardin' (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Skiing",
     "raGameId": 13142,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13142/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13142/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13142/gamePicture.png"
+    },
+    "libretroName": "Skiing (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sky Diver",
     "raGameId": 26028,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/26028/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/26028/titleScreen.png"
+    },
+    "libretroName": "Sky Diver - Dare Diver (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sky Jinks",
     "raGameId": 16349,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16349/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16349/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16349/gamePicture.png"
+    },
+    "libretroName": "Sky Jinks (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sky Skipper",
     "raGameId": 16290,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16290/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16290/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16290/gamePicture.png"
+    },
+    "libretroName": "Sky Skipper (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Slot Machine",
     "raGameId": 13333,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13333/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13333/titleScreen.png"
+    },
+    "libretroName": "Slot Machine - Slots (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Slot Racers",
     "raGameId": 13146,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13146/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13146/titleScreen.png"
+    },
+    "libretroName": "Slot Racers - Maze (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Smurfs Save the Day",
     "raGameId": 27243,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/27243/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/27243/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/27243/gamePicture.png"
+    },
+    "libretroName": "Smurfs Save the Day (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Snail Against Squirrel",
     "raGameId": 28842,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/28842/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/28842/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/28842/gamePicture.png"
+    },
+    "libretroName": "Snail Against Squirrel (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sneak 'n Peek",
     "raGameId": 13092,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13092/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13092/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13092/gamePicture.png"
+    },
+    "libretroName": "Sneak 'n Peek (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Snoopy and the Red Baron",
     "raGameId": 13075,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13075/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13075/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13075/gamePicture.png"
+    },
+    "libretroName": "Snoopy and the Red Baron (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Solar Fox",
     "raGameId": 13215,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13215/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13215/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13215/gamePicture.png"
+    },
+    "libretroName": "Solar Fox (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Solaris",
     "raGameId": 11716,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11716/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11716/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11716/gamePicture.png"
+    },
+    "libretroName": "Solaris (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sorcerer's Apprentice",
     "raGameId": 18507,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/18507/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/18507/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/18507/gamePicture.png"
+    },
+    "libretroName": "Sorcerer's Apprentice (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Space Cavern",
     "raGameId": 34116,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34116/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34116/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34116/gamePicture.png"
+    },
+    "libretroName": "Space Cavern (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Space Invaders",
     "raGameId": 11684,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11684/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11684/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11684/gamePicture.png"
+    },
+    "libretroName": "Space Invaders (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Space Jockey",
     "raGameId": 13156,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13156/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13156/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13156/gamePicture.png"
+    },
+    "libretroName": "Space Jockey (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -14972,61 +16247,111 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Spacechase",
     "raGameId": 36282,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36282/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36282/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36282/gamePicture.png"
+    },
+    "libretroName": "Spacechase (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Spider Fighter",
     "raGameId": 12723,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12723/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12723/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12723/gamePicture.png"
+    },
+    "libretroName": "Spider Fighter (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Spider-Man",
     "raGameId": 3959,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/3959/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/3959/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/3959/gamePicture.png"
+    },
+    "libretroName": "Spider-Man (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sprint Master",
     "raGameId": 13683,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13683/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13683/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13683/gamePicture.png"
+    },
+    "libretroName": "Sprint Master (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Spy Hunter",
     "raGameId": 13099,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13099/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13099/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13099/gamePicture.png"
+    },
+    "libretroName": "Spy Hunter (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Squeeze Box",
     "raGameId": 14361,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14361/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14361/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14361/gamePicture.png"
+    },
+    "libretroName": "Squeeze Box (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sssnake",
     "raGameId": 36176,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36176/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36176/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36176/gamePicture.png"
+    },
+    "libretroName": "Sssnake (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Stampede",
     "raGameId": 16367,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/16367/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/16367/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/16367/gamePicture.png"
+    },
+    "libretroName": "Stampede (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Star Fox",
     "raGameId": 30136,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/30136/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/30136/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/30136/gamePicture.png"
+    },
+    "libretroName": "Star Fox (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Star Raiders",
     "raGameId": 33182,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33182/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33182/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33182/gamePicture.png"
+    },
+    "libretroName": "Star Raiders (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15038,7 +16363,12 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Star Strike",
     "raGameId": 13019,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13019/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13019/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13019/gamePicture.png"
+    },
+    "libretroName": "Star Strike (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15050,7 +16380,12 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Star Voyager",
     "raGameId": 33183,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33183/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33183/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33183/gamePicture.png"
+    },
+    "libretroName": "Star Voyager (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15086,7 +16421,12 @@ export const games = [
     "platformId": "atari-2600",
     "name": "StarMaster",
     "raGameId": 30168,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/30168/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/30168/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/30168/gamePicture.png"
+    },
+    "libretroName": "StarMaster (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15098,13 +16438,23 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Stellar Track",
     "raGameId": 34406,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34406/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34406/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34406/gamePicture.png"
+    },
+    "libretroName": "Stellar Track (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Strategy X",
     "raGameId": 13148,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13148/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13148/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13148/gamePicture.png"
+    },
+    "libretroName": "Strategy X (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15122,85 +16472,154 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Submarine Commander",
     "raGameId": 34163,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34163/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34163/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34163/gamePicture.png"
+    },
+    "libretroName": "Submarine Commander (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Subterranea",
     "raGameId": 36914,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36914/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36914/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36914/gamePicture.png"
+    },
+    "libretroName": "Subterranea (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Suicide Mission",
     "raGameId": 36764,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36764/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36764/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36764/gamePicture.png"
+    },
+    "libretroName": "Suicide Mission (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Summer Games",
     "raGameId": 34111,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34111/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34111/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34111/gamePicture.png"
+    },
+    "libretroName": "Summer Games (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Super Breakout",
     "raGameId": 13002,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13002/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13002/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13002/gamePicture.png"
+    },
+    "libretroName": "Super Breakout (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Super Challenge Baseball",
     "raGameId": 33736,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33736/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33736/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33736/gamePicture.png"
+    },
+    "libretroName": "Super Challenge Baseball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Super Challenge Football",
     "raGameId": 34156,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34156/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34156/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34156/gamePicture.png"
+    },
+    "libretroName": "Super Challenge Football (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Super Football",
     "raGameId": 33735,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33735/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33735/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33735/gamePicture.png"
+    },
+    "libretroName": "Super Football (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Superman",
     "raGameId": 14360,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14360/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14360/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/14360/gamePicture.png"
+    },
+    "libretroName": "Superman (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Surround",
     "raGameId": 13086,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13086/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13086/titleScreen.png"
+    },
+    "libretroName": "Surround - Chase (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Survival Island",
     "raGameId": 36767,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36767/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36767/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36767/gamePicture.png"
+    },
+    "libretroName": "Survival Island (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Survival Run",
     "raGameId": 36716,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36716/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36716/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36716/gamePicture.png"
+    },
+    "libretroName": "Survival Run (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sweat! The Decathlon Game",
     "raGameId": 36717,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/36717/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/36717/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/36717/gamePicture.png"
+    },
+    "libretroName": "Sweat! The Decathlon Game (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Sword of Saros",
     "raGameId": 28127,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/28127/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/28127/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/28127/gamePicture.png"
+    },
+    "libretroName": "Sword of Saros (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15230,31 +16649,56 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Tapeworm",
     "raGameId": 38658,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/38658/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/38658/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/38658/gamePicture.png"
+    },
+    "libretroName": "Tapeworm (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Tapper",
     "raGameId": 12908,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12908/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12908/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12908/gamePicture.png"
+    },
+    "libretroName": "Tapper (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Tax Avoiders",
     "raGameId": 38712,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/38712/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/38712/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/38712/gamePicture.png"
+    },
+    "libretroName": "Tax Avoiders (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Taz",
     "raGameId": 11718,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11718/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11718/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11718/gamePicture.png"
+    },
+    "libretroName": "Taz (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Tennis",
     "raGameId": 13338,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13338/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13338/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13338/gamePicture.png"
+    },
+    "libretroName": "Tennis (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15284,37 +16728,67 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Thunderground",
     "raGameId": 32814,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/32814/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/32814/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/32814/gamePicture.png"
+    },
+    "libretroName": "Thunderground (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Tooth Protectors",
     "raGameId": 13318,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13318/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13318/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13318/gamePicture.png"
+    },
+    "libretroName": "Tooth Protectors (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Towering Inferno",
     "raGameId": 13147,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13147/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13147/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13147/gamePicture.png"
+    },
+    "libretroName": "Towering Inferno (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Track and Field",
     "raGameId": 12845,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/12845/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/12845/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/12845/gamePicture.png"
+    },
+    "libretroName": "Track and Field (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Treasure Below",
     "raGameId": 13153,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13153/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13153/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13153/gamePicture.png"
+    },
+    "libretroName": "Treasure Below (Europe)"
   },
   {
     "platformId": "atari-2600",
     "name": "Trick Shot",
     "raGameId": 33184,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/33184/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/33184/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/33184/gamePicture.png"
+    },
+    "libretroName": "Trick Shot (USA)"
   },
   {
     "platformId": "atari-2600",
@@ -15326,127 +16800,230 @@ export const games = [
     "platformId": "atari-2600",
     "name": "Tunnel Runner",
     "raGameId": 13340,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13340/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13340/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13340/gamePicture.png"
+    },
+    "libretroName": "Tunnel Runner (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Turmoil",
     "raGameId": 13171,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13171/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13171/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13171/gamePicture.png"
+    },
+    "libretroName": "Turmoil (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Tutankham",
     "raGameId": 34117,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34117/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34117/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34117/gamePicture.png"
+    },
+    "libretroName": "Tutankham (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Universal Chaos",
     "raGameId": 13158,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13158/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13158/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13158/gamePicture.png"
+    },
+    "libretroName": "Universal Chaos (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Up 'n Down",
     "raGameId": 34118,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34118/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34118/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34118/gamePicture.png"
+    },
+    "libretroName": "Up 'n Down (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Vanguard",
     "raGameId": 13217,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13217/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13217/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13217/gamePicture.png"
+    },
+    "libretroName": "Vanguard (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Venture",
     "raGameId": 13335,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13335/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13335/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13335/gamePicture.png"
+    },
+    "libretroName": "Venture (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Video Checkers",
     "raGameId": 34407,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34407/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34407/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34407/gamePicture.png"
+    },
+    "libretroName": "Video Checkers - Checkers (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Video Chess",
     "raGameId": 13334,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13334/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13334/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13334/gamePicture.png"
+    },
+    "libretroName": "Video Chess (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Video Olympics",
     "raGameId": 14065,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/14065/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/14065/titleScreen.png"
+    },
+    "libretroName": "Video Olympics (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Video Pinball",
     "raGameId": 13062,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13062/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13062/titleScreen.png"
+    },
+    "libretroName": "Video Pinball (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Wabbit",
     "raGameId": 13035,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13035/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13035/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13035/gamePicture.png"
+    },
+    "libretroName": "Wabbit (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Warlords",
     "raGameId": 11696,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/11696/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/11696/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/11696/gamePicture.png"
+    },
+    "libretroName": "Warlords (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Winter Games",
     "raGameId": 34112,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/34112/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/34112/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/34112/gamePicture.png"
+    },
+    "libretroName": "Winter Games (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Wizard of Wor",
     "raGameId": 13137,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13137/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13137/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13137/gamePicture.png"
+    },
+    "libretroName": "Wizard of Wor (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Worm War I",
     "raGameId": 13026,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13026/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13026/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13026/gamePicture.png"
+    },
+    "libretroName": "Worm War I (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Xenophobe",
     "raGameId": 13149,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13149/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13149/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13149/gamePicture.png"
+    },
+    "libretroName": "Xenophobe (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Yars' Revenge",
     "raGameId": 13025,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13025/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13025/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13025/gamePicture.png"
+    },
+    "libretroName": "Yars' Revenge (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Z-Tack",
     "raGameId": 13136,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13136/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13136/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13136/gamePicture.png"
+    },
+    "libretroName": "Z-Tack (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Zaxxon",
     "raGameId": 13013,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/13013/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/13013/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/13013/gamePicture.png"
+    },
+    "libretroName": "Zaxxon (USA)"
   },
   {
     "platformId": "atari-2600",
     "name": "Zoo Fun",
     "raGameId": 40036,
-    "images": {}
+    "images": {
+      "boxArt": "assets/images/platforms/atari-2600/games/40036/boxArt.png",
+      "titleScreen": "assets/images/platforms/atari-2600/games/40036/titleScreen.png",
+      "gamePicture": "assets/images/platforms/atari-2600/games/40036/gamePicture.png"
+    },
+    "libretroName": "Zoo Fun (USA)"
   },
   {
     "platformId": "dos",

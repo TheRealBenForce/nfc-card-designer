@@ -925,6 +925,7 @@ async function addBrowsedGame() {
   };
 
   addCard(card);
+  setSelectedCardIds([]);
   resetGameSearch({ focus: true });
   updateCollectionActions();
   await refreshPreview();

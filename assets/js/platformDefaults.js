@@ -1,5 +1,6 @@
 import { DEFAULT_IMAGE_TYPE_PRIORITY } from "./config.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
+import { defaultArtworkDisplay, normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { platformById, platforms } from "./data/platforms.js";
 
 export const DEFAULT_PLATFORM_COLOR = "#000000";
@@ -12,6 +13,7 @@ export const ROTATION_OPTIONS = [0, 90, 180, 270];
  * @property {string} color
  * @property {string[]} imageTypePriority
  * @property {Record<string, number>} imageRotation
+ * @property {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
 
 /** @returns {Record<string, number>} */
@@ -28,6 +30,7 @@ export function createPlatformDefaultEntry(color = DEFAULT_PLATFORM_COLOR) {
     color,
     imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     imageRotation: defaultImageRotation(),
+    artworkDisplay: defaultArtworkDisplay(),
   };
 }
 
@@ -51,10 +54,14 @@ export function normalizeRotationDegrees(degrees) {
 /**
  * @param {Record<string, PlatformDefaults> | undefined} parsed
  * @param {Record<string, string> | undefined} legacyColors
+ * @param {unknown} [legacyArtworkDisplay]
  * @returns {Record<string, PlatformDefaults>}
  */
-export function normalizePlatformDefaults(parsed, legacyColors) {
+export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDisplay) {
   const defaults = defaultPlatformDefaults();
+  const legacyDisplay = legacyArtworkDisplay
+    ? normalizeArtworkDisplay(legacyArtworkDisplay)
+    : null;
 
   if (parsed && typeof parsed === "object") {
     for (const [platformId, entry] of Object.entries(parsed)) {
@@ -77,7 +84,17 @@ export function normalizePlatformDefaults(parsed, legacyColors) {
         normalized.imageRotation = imageRotation;
       }
 
+      if (entry.artworkDisplay) {
+        normalized.artworkDisplay = normalizeArtworkDisplay(entry.artworkDisplay);
+      } else if (legacyDisplay) {
+        normalized.artworkDisplay = legacyDisplay;
+      }
+
       defaults[platformId] = normalized;
+    }
+  } else if (legacyDisplay) {
+    for (const platformId of Object.keys(defaults)) {
+      defaults[platformId] = { ...defaults[platformId], artworkDisplay: legacyDisplay };
     }
   }
 
@@ -125,4 +142,12 @@ export function getEffectiveImageTypePriority(platformDefaults, platformId) {
     return normalizeImageTypePriority(platformPriority);
   }
   return normalizeImageTypePriority(DEFAULT_IMAGE_TYPE_PRIORITY);
+}
+
+/**
+ * @param {Record<string, PlatformDefaults>} platformDefaults
+ * @param {string} platformId
+ */
+export function getPlatformArtworkDisplay(platformDefaults, platformId) {
+  return normalizeArtworkDisplay(platformDefaults[platformId]?.artworkDisplay);
 }

@@ -1,5 +1,6 @@
 import { loadSettings, loadCollection } from "./storage.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
+import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay.js";
 
 /**
  * @typedef {Object} Card
@@ -9,10 +10,15 @@ import { normalizeImageTypePriority } from "./imageSettings.js";
  * @property {number} raGameId
  * @property {string} imageType
  * @property {boolean} [imageFailed]
+ * @property {ArtworkDisplaySettings} [artworkDisplay]
  */
 
 /**
  * @typedef {import('./platformDefaults.js').PlatformDefaults} PlatformDefaults
+ */
+
+/**
+ * @typedef {import('./artworkDisplay.js').ArtworkDisplaySettings} ArtworkDisplaySettings
  */
 
 /**
@@ -146,6 +152,67 @@ export function setPlatformImageRotation(platformId, imageType, degrees) {
     },
   };
   emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ * @param {Partial<ArtworkDisplaySettings>} patch
+ */
+export function setPlatformArtworkDisplay(platformId, patch) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
+  settings = {
+    ...settings,
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: {
+        ...current,
+        artworkDisplay: normalizeArtworkDisplay({ ...current.artworkDisplay, ...patch }),
+      },
+    },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {string} cardId
+ * @param {Partial<ArtworkDisplaySettings>} patch
+ */
+export function setCardArtworkDisplay(cardId, patch) {
+  const card = collection.find((entry) => entry.id === cardId);
+  if (!card) return;
+
+  const platformDisplay = normalizeArtworkDisplay(
+    settings.platformDefaults[card.platformId]?.artworkDisplay,
+  );
+  const current = card.artworkDisplay
+    ? normalizeArtworkDisplay(card.artworkDisplay)
+    : platformDisplay;
+
+  updateCard(cardId, {
+    artworkDisplay: normalizeArtworkDisplay({ ...current, ...patch }),
+  });
+}
+
+/**
+ * @param {string} cardId
+ */
+export function clearCardArtworkDisplay(cardId) {
+  const card = collection.find((entry) => entry.id === cardId);
+  if (!card || !card.artworkDisplay) return;
+
+  const { artworkDisplay: _removed, ...rest } = card;
+  collection = collection.map((entry) => (entry.id === cardId ? /** @type {Card} */ (rest) : entry));
+  emit("collection");
+}
+
+/**
+ * @param {Card} card
+ * @returns {ArtworkDisplaySettings}
+ */
+export function getEffectiveArtworkDisplay(card) {
+  return resolveArtworkDisplay(card, settings.platformDefaults);
 }
 
 /**

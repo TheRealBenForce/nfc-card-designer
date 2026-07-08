@@ -115,13 +115,13 @@ function formatMm(value) {
 function updatePreviewDimensions() {
   if (previewActualSizeEl) {
     previewActualSizeEl.textContent =
-      `Actual Size (W × H): ${formatMm(CARD_WIDTH_MM)} × ${formatMm(CARD_HEIGHT_MM)}`;
+      `Card Actual Size: ${formatMm(CARD_WIDTH_MM)} × ${formatMm(CARD_HEIGHT_MM)}`;
   }
   if (!previewDisplaySizeEl || !previewImageEl) return;
 
   const hasImage = previewImageEl.getAttribute("src");
   if (!hasImage) {
-    previewDisplaySizeEl.textContent = "Display Size (W × H): -- mm × -- mm";
+    previewDisplaySizeEl.textContent = "Display Size: -- mm × -- mm";
     return;
   }
 
@@ -129,7 +129,7 @@ function updatePreviewDimensions() {
   const displayWmm = bounds.width / CSS_PX_PER_MM;
   const displayHmm = bounds.height / CSS_PX_PER_MM;
   previewDisplaySizeEl.textContent =
-    `Display Size (W × H): ${formatMm(displayWmm)} × ${formatMm(displayHmm)}`;
+    `Display Size: ${formatMm(displayWmm)} × ${formatMm(displayHmm)}`;
 }
 
 function getArtworkPriorityForPlatform(platformId) {

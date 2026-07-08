@@ -9,7 +9,7 @@ import {
   CARDS_PER_COL,
   PDF_CARD_GAP_MM,
   PDF_CUT_MARK_OFFSET_MM,
-} from "../assets/js/config.js";
+} from "../src/assets/js/config.js";
 import {
   cardPositionMm,
   cardRectMm,
@@ -18,7 +18,7 @@ import {
   pointInsideCard,
   horizontalGutterCenterY,
   verticalGutterCenterX,
-} from "../assets/js/pdfLayout.js";
+} from "../src/assets/js/pdfLayout.js";
 
 const { gridW, gridH, marginX, marginY } = computePdfGridLayout();
 

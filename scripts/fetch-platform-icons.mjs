@@ -41,7 +41,7 @@ const DOS_PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 
 async function main() {
   for (const [platformId, carbonFolder] of Object.entries(PLATFORM_CARBON_FOLDERS)) {
-    const destDir = path.join(root, "assets/images/platforms", platformId);
+    const destDir = path.join(root, "src/assets/images/platforms", platformId);
     const destFile = path.join(destDir, "icon.svg");
 
     const url = `${CARBON_BASE}/${carbonFolder}/art/system.svg`;
@@ -56,7 +56,7 @@ async function main() {
     console.log(`✓ ${platformId} ← ${carbonFolder}/art/system.svg`);
   }
 
-  const dosDir = path.join(root, "assets/images/platforms", "dos");
+  const dosDir = path.join(root, "src/assets/images/platforms", "dos");
   await mkdir(dosDir, { recursive: true });
   await writeFile(path.join(dosDir, "icon.svg"), DOS_PLACEHOLDER_SVG, "utf8");
   console.log("✓ dos ← bundled placeholder SVG");

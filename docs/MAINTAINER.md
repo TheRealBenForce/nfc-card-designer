@@ -5,7 +5,7 @@ Internal reference for future changes to NFC Card Designer. Read this before edi
 ## Architecture (browser)
 
 ```
-index.html
+src/index.html
   └── assets/js/main.js          # loads catalog, then initUI
         ├── gameCatalog.js       # search (games-by-platform.json)
         ├── imageAvailability.js  # runtime cache of probed image types
@@ -22,9 +22,9 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
-| `assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json` | `gameCatalog.js` | Game **names** for search (retail only by default) |
-| `assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
-| `assets/data/image-availability.json` | `scan-images`, `fetch-images` | scripts / debugging workflows | Optional generated snapshot of detected image types |
+| `src/assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json` | `gameCatalog.js` | Game **names** for search (retail only by default) |
+| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
+| `src/assets/data/image-availability.json` | `scan-images`, `fetch-images` | scripts / debugging workflows | Optional generated snapshot of detected image types |
 
 **Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
 
@@ -33,6 +33,8 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 ```
 assets/images/platforms/<platformId>/games/<raGameId>/<type>.png
 ```
+
+(Published S3/object keys omit `src/`; local checked-in files live under `src/assets/...`.)
 
 Lookups use **`platformId` + `raGameId`**, not `raGameId` alone.
 
@@ -46,7 +48,7 @@ npm run fetch-images -- --platform=game-boy
 npm start   # scan-images runs via prestart
 ```
 
-### After manually copying PNGs into `assets/images/platforms/` (local dev only)
+### After manually copying PNGs into `src/assets/images/platforms/` (local dev only)
 
 ```bash
 npm run scan-images   # optional: refresh generated image-availability snapshot
@@ -69,7 +71,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 
 ## Adding a platform
 
-1. Add entry to `assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `raConsoleId` or `catalogSource: "libretro"`, optional `searchAliases`).
+1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `raConsoleId` or `catalogSource: "libretro"`, optional `searchAliases`).
 2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
 3. `npm run fetch-platform-icons`
 4. `npm run fetch-game-list -- --platform=<id>`
@@ -105,7 +107,7 @@ Image types map to libretro folders:
 
 ## Retail-only catalog filter
 
-`fetch-game-list` excludes RA title tags: `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, `~Z~`, and `[Subset - …]`. Logic is in `assets/js/retailFilter.js` (shared with scripts).
+`fetch-game-list` excludes RA title tags: `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, `~Z~`, and `[Subset - …]`. Logic is in `src/assets/js/retailFilter.js` (shared with scripts).
 
 Pass `--include-non-retail` to opt out.
 
@@ -115,15 +117,15 @@ Replaced by AWS deploy — see `infrastructure/README.md` and `.github/workflows
 
 Commit to `main`:
 
-- [ ] `index.html`, `assets/` (JS, CSS, data JSON, platform icons)
-- [ ] `assets/data/games-by-platform.json`
+- [ ] `src/index.html`, `src/assets/` (JS, CSS, data JSON, platform icons)
+- [ ] `src/assets/data/games-by-platform.json`
 - [ ] Game PNGs are uploaded to S3 by CI (`fetch-images`), not committed to git
 
 `.env` is gitignored. The live site never calls the RA API.
 
 ## Gotchas discovered in v1
 
-1. **Don't commit test images under `assets/images/`** — use temp dirs in tests (`test-image-scan.mjs`). Real user images at the same path will block `git pull`.
+1. **Don't commit test images under `src/assets/images/`** — use temp dirs in tests (`test-image-scan.mjs`). Real user images at the same path will block `git pull`.
 2. **`games-by-platform.json` ≠ `games.js`** — UI search uses JSON; stale JSON = small catalog in the app even after `fetch-game-list`.
 3. **`scan-images` scans disk** — useful for debugging generated metadata, but search itself no longer depends on this file.
 4. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.

@@ -22,7 +22,7 @@ export function syntheticRaGameId(platformId, gameName) {
 }
 
 /**
- * @param {import("../assets/js/data/platforms.js").Platform} platform
+ * @param {import("../src/assets/js/data/platforms.js").Platform} platform
  * @param {{ retailOnly?: boolean }} [options]
  */
 export async function fetchLibretroGameCatalog(platform, options = {}) {

@@ -18,6 +18,7 @@ export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
+    ...headerSettings,
     searchOnlyGamesWithImages: false,
     ...headerSettings,
   };
@@ -86,6 +87,7 @@ export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    ...headerSettings,
     searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
   };

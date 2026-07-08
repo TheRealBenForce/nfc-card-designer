@@ -1,7 +1,6 @@
 import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
 import { platforms } from "./data/platforms.js";
 import { isRetailRelease } from "./retailFilter.js";
-import { isSearchable, searchableCount } from "./imageAvailability.js";
 
 /**
  * @typedef {Object} GameImages
@@ -66,7 +65,7 @@ export function gamesForPlatform(platformId) {
  * @returns {number}
  */
 export function gameCountForPlatform(platformId) {
-  return searchableCount(platformId);
+  return catalogCountForPlatform(platformId);
 }
 
 /**
@@ -121,8 +120,7 @@ export function searchGames(platformId, query, options = {}) {
   if (q.length < MIN_GAME_SEARCH_CHARS) return { games: [], total: 0 };
 
   const matches = gamesForPlatform(platformId).filter((game) => {
-    if (!game.name.toLowerCase().includes(q)) return false;
-    return isSearchable(platformId, game.raGameId);
+    return game.name.toLowerCase().includes(q);
   });
 
   matches.sort((a, b) => compareSearchResults(a.name, b.name, q));

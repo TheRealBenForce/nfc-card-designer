@@ -152,17 +152,17 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
 
   const settings = getSettings();
-  const searchableSize = gameCountForPlatform(settings.selectedPlatformId);
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
   const catalogSize = catalogCountForPlatform(settings.selectedPlatformId);
 
   if (query.length === 0) {
-    if (searchableSize === 0) {
+    if (gameCount === 0) {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No indexed artwork for this platform — run npm run scan-images.";
+          : "No games available for this platform.";
     } else {
-      gameSearchHintEl.textContent = `${searchableSize} game${searchableSize === 1 ? "" : "s"} with artwork — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
+      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog — type at least ${MIN_GAME_SEARCH_CHARS} characters to search.`;
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
@@ -172,17 +172,15 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     const remaining = MIN_GAME_SEARCH_CHARS - query.length;
     gameSearchHintEl.textContent =
       remaining === 1
-        ? `Type 1 more character to search ${searchableSize} games with artwork.`
-        : `Type ${remaining} more characters to search ${searchableSize} games with artwork.`;
+        ? `Type 1 more character to search ${gameCount} games.`
+        : `Type ${remaining} more characters to search ${gameCount} games.`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
 
   if (filteredGamesTotal === 0) {
     gameSearchHintEl.textContent =
-      searchableSize === 0
-        ? "No games with artwork on this platform yet."
-        : `No games with artwork matching "${query}".`;
+      gameCount === 0 ? "No games on this platform yet." : `No games matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -229,7 +227,7 @@ function renderGameResults() {
   gameResultsEl.innerHTML = "";
 
   const settings = getSettings();
-  const searchableSize = gameCountForPlatform(settings.selectedPlatformId);
+  const gameCount = gameCountForPlatform(settings.selectedPlatformId);
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -242,10 +240,10 @@ function renderGameResults() {
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
-    if (searchableSize === 0) {
-      empty.textContent = "No games with artwork on this platform yet.";
+    if (gameCount === 0) {
+      empty.textContent = "No games on this platform yet.";
     } else {
-      empty.textContent = `No games with artwork matching "${query}".`;
+      empty.textContent = `No games matching "${query}".`;
     }
     gameResultsEl.appendChild(empty);
     return;
@@ -404,7 +402,7 @@ function pickGameFromSearch() {
   const settings = getSettings();
   const game = pickGameFromCatalog(settings.selectedPlatformId, query, gameHighlightIndex);
   if (!game) {
-    logStatus(`No game with artwork matching "${query}".`, true);
+    logStatus(`No game matching "${query}".`, true);
     return null;
   }
 

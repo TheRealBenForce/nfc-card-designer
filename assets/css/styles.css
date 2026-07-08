@@ -566,6 +566,10 @@ body {
   transition: background 0.15s ease;
 }
 
+.btn[hidden] {
+  display: none !important;
+}
+
 .btn--primary {
   background: var(--accent);
   color: #fff;

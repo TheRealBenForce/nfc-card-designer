@@ -4,9 +4,9 @@
  * @property {string} name
  * @property {string} emoji
  * @property {string} defaultColor
- * @property {number} [raConsoleId] - RetroAchievements console/system ID
+ * @property {number} [raConsoleId] - Legacy RetroAchievements console/system ID (unused by current catalog pipeline)
  * @property {string} libretroPlaylist - Libretro thumbnail playlist folder name
- * @property {"ra" | "libretro"} [catalogSource] - Game list source (default ra)
+ * @property {"libretro" | "ra"} [catalogSource] - Legacy game list source override (default libretro)
  * @property {string[]} [searchAliases] - Extra terms for platform search
  */
 

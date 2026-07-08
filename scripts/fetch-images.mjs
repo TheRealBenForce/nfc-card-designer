@@ -85,7 +85,7 @@ async function main() {
   if (games.length < 100) {
     console.warn(
       `\nWarning: games.js only has ${games.length} games (starter list).\n` +
-        "Run npm run fetch-game-list first to pull the full RetroAchievements catalog.\n",
+        "Run npm run fetch-game-list first to pull the full libretro catalog.\n",
     );
   }
 

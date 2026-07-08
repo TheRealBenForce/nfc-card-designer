@@ -1,6 +1,5 @@
 /**
- * RetroAchievements marks non-retail entries in game titles.
- * @see https://docs.retroachievements.org/guidelines/content/game-info-and-hub-guidelines.html
+ * Community catalogs often mark non-retail entries directly in game titles.
  */
 
 /** @type {readonly string[]} */

@@ -71,7 +71,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 
 ## Adding a platform
 
-1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `raConsoleId` or `catalogSource: "libretro"`, optional `searchAliases`).
+1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `searchAliases`).
 2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
 3. `npm run fetch-platform-icons`
 4. `npm run fetch-game-list -- --platform=<id>`
@@ -93,7 +93,7 @@ Preview still lets users switch artwork types; the platform priority picks which
 
 ## Artwork source
 
-Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images` and uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
+Game catalogs come from libretro thumbnail listings (`fetch-game-list`) for all supported platforms. Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images` and uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
 
 `fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation; deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
 
@@ -107,7 +107,7 @@ Image types map to libretro folders:
 
 ## Retail-only catalog filter
 
-`fetch-game-list` excludes RA title tags: `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, `~Z~`, and `[Subset - …]`. Logic is in `src/assets/js/retailFilter.js` (shared with scripts).
+`fetch-game-list` excludes non-retail title tags: `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, `~Z~`, and `[Subset - …]`. Logic is in `src/assets/js/retailFilter.js` (shared with scripts).
 
 Pass `--include-non-retail` to opt out.
 
@@ -121,7 +121,7 @@ Commit to `main`:
 - [ ] `src/assets/data/games-by-platform.json`
 - [ ] Game PNGs are uploaded to S3 by CI (`fetch-images`), not committed to git
 
-`.env` is gitignored. The live site never calls the RA API.
+`.env` is gitignored. The live site never calls upstream catalog APIs directly.
 
 ## Gotchas discovered in v1
 
@@ -137,7 +137,7 @@ Commit to `main`:
 |--------|---------|
 | `npm start` | `scan-images` then static server :8000 |
 | `npm run verify` | Full pre-merge check |
-| `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
+| `npm run fetch-game-list` | libretro catalogs → `games.js` + `games-by-platform.json` |
 | `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
 | `npm run scan-images` | Optional rescan disk → `image-availability.json` snapshot |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

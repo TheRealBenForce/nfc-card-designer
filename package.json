@@ -5,7 +5,6 @@
   "scripts": {
     "prestart": "npm run scan-images",
     "start": "npx --yes serve src -l 8000",
-    "test-ra-auth": "node scripts/test-ra-auth.mjs",
     "fetch-game-list": "node scripts/fetch-game-list.mjs",
     "export-games-json": "node scripts/export-games-json.mjs",
     "scan-images": "node scripts/export-image-availability.mjs",

@@ -28,7 +28,7 @@ src/
       image-availability.json     # Optional generated image index (not required for search)
     images/platforms/             # Downloaded artwork (platform/game folders)
 scripts/
-  fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
+  fetch-game-list.mjs         # Pull libretro catalogs → games.js + games-by-platform.json
   fetch-images.mjs              # Download libretro thumbnails + update games.js + availability
   export-games-json.mjs         # Rebuild games-by-platform.json from games.js
   export-image-availability.mjs  # scan-images: index PNGs on disk
@@ -58,7 +58,7 @@ Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 Game images are **not stored in git**. `fetch-images` downloads missing thumbnails from the [libretro CDN](https://thumbnails.libretro.com/) and uploads them to your S3 bucket (`zaparoo.therealbenforce.com`).
 
 ```bash
-npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
+npm run fetch-game-list    # libretro catalogs → games.js
 npm run fetch-images       # download missing thumbnails → upload to S3
 npm run deploy             # sync src/ to S3 + CloudFront invalidation (excludes assets/images/*)
 ```
@@ -71,14 +71,7 @@ npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local im
 npm run sync-s3-sample-images          # pull a small random local cache from S3
 ```
 
-Game catalogs come from RetroAchievements for most platforms; **DOS** uses libretro thumbnail listings (RA does not support DOS).
-
-For `fetch-game-list`, add your RetroAchievements Web API key:
-
-```bash
-cp .env.example .env
-npm run test-ra-auth
-```
+Game catalogs come from libretro thumbnail listings for all supported platforms.
 
 Images are stored in S3 at:
 
@@ -94,21 +87,12 @@ Optional flags:
 
 ```bash
 npm run fetch-game-list -- --platform=nes
-npm run fetch-game-list -- --with-achievements
 npm run fetch-game-list -- --include-non-retail
 npm run fetch-images -- --platform=genesis
 npm run fetch-images -- --force
 npm run fetch-images -- --s3-only --force
 npm run sync-s3-sample-images -- --count=10
 npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
-```
-
-### API key
-
-Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
-
-```env
-RETROACHIEVEMENTS_API_KEY=your_key_here
 ```
 
 ## Deploy to AWS (S3 + CloudFront)
@@ -168,7 +152,7 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 ## Notes
 
 - See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships, deploy checklist, and gotchas.
-- `fetch-game-list` replaces the starter list with full RetroAchievements retail catalogs and writes both `games.js` and `games-by-platform.json`.
+- `fetch-game-list` replaces the starter list with full libretro retail catalogs and writes both `games.js` and `games-by-platform.json`.
 - After fetching locally, **commit both files** so deploys include the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
 - Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
 - Search uses the game catalog; artwork is resolved at preview time from S3/local image paths

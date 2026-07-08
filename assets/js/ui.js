@@ -854,7 +854,7 @@ function pickGameFromSearch() {
 
 function syncGlobalSettingsControls() {
   if (!searchOnlyGamesWithImagesInput) return;
-  searchOnlyGamesWithImagesInput.checked = getSettings().searchOnlyGamesWithImages;
+  searchOnlyGamesWithImagesInput.checked = !getSettings().searchOnlyGamesWithImages;
 }
 
 async function browseGameFromSearch(game) {
@@ -1138,7 +1138,8 @@ async function refreshPreview() {
 function bindEvents() {
   searchOnlyGamesWithImagesInput?.addEventListener("change", (e) => {
     updateSettings({
-      searchOnlyGamesWithImages: /** @type {HTMLInputElement} */ (e.target).checked,
+      // Checked means "include games with no images", so require-images is the inverse.
+      searchOnlyGamesWithImages: !/** @type {HTMLInputElement} */ (e.target).checked,
     });
     saveSettings(getSettings());
     filterGames(gameSearchInput?.value ?? "");

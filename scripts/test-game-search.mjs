@@ -56,7 +56,7 @@ async function main() {
 
     await page.locator("summary", { hasText: "Global Settings" }).click();
     const imageFilterToggle = page.locator("#search-only-games-with-images");
-    await imageFilterToggle.uncheck();
+    await imageFilterToggle.check();
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
     await page.waitForTimeout(150);
     await page.fill("#game-search", "ecco");
@@ -67,7 +67,7 @@ async function main() {
       throw new Error(`Expected both Ecco entries before filtering, got: ${JSON.stringify(eccoResults)}`);
     }
 
-    await imageFilterToggle.check();
+    await imageFilterToggle.uncheck();
     await page.waitForTimeout(150);
     eccoResults = await page.locator("#game-results .list-item").allTextContents();
     if (!eccoResults.includes("Ecco the Dolphin")) {
@@ -78,7 +78,7 @@ async function main() {
     }
     console.log("✓ Global setting filters out games with no images");
 
-    await imageFilterToggle.uncheck();
+    await imageFilterToggle.check();
     await page.getByRole("button", { name: "NES", exact: true }).click();
     await page.waitForTimeout(150);
     await page.fill("#game-search", "mar");

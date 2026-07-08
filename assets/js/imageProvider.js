@@ -1,4 +1,4 @@
-import { PLACEHOLDER_SVG } from "./config.js";
+import { IMAGE_ASSET_ORIGIN, PLACEHOLDER_SVG } from "./config.js";
 import { gameByPlatformAndRaId } from "./data/games.js";
 
 const IMAGE_FIELD_MAP = {
@@ -13,7 +13,19 @@ const IMAGE_FIELD_MAP = {
  */
 export function getGameImagePath(game, imageType) {
   const key = IMAGE_FIELD_MAP[imageType] ?? "boxArt";
-  return game.images?.[key] ?? null;
+  return toS3ImageUrl(game.images?.[key] ?? null);
+}
+
+/**
+ * Convert relative game-image paths to absolute S3 URLs.
+ * @param {string | null | undefined} value
+ */
+export function toS3ImageUrl(value) {
+  if (!value) return null;
+  if (/^(?:https?:|data:)/i.test(value)) return value;
+
+  const normalized = value.startsWith("/") ? value : `/${value.replace(/^\.?\//, "")}`;
+  return new URL(normalized, IMAGE_ASSET_ORIGIN).toString();
 }
 
 /**
@@ -23,16 +35,22 @@ export function getGameImagePath(game, imageType) {
  */
 export function candidateImagePaths(card, game, imageType) {
   const key = IMAGE_FIELD_MAP[imageType] ?? "boxArt";
+  /** @type {string[]} */
   const paths = [];
 
-  paths.push(`assets/images/platforms/${card.platformId}/games/${card.raGameId}/${key}.png`);
+  paths.push(
+    toS3ImageUrl(`assets/images/platforms/${card.platformId}/games/${card.raGameId}/${key}.png`),
+  );
 
   const fromCatalog = game?.images?.[key];
-  if (fromCatalog) paths.push(fromCatalog);
+  if (fromCatalog) {
+    const remotePath = toS3ImageUrl(fromCatalog);
+    if (remotePath) paths.push(remotePath);
+  }
 
-  paths.push(`assets/images/games/${card.raGameId}-${key}.png`);
+  paths.push(toS3ImageUrl(`assets/images/games/${card.raGameId}-${key}.png`));
 
-  return [...new Set(paths)];
+  return [...new Set(paths.filter(Boolean))];
 }
 
 /**

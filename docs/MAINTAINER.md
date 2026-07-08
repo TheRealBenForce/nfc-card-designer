@@ -28,7 +28,9 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 **Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
 
-**Image paths** always prefer:
+`games.js` stores relative image keys, but runtime lookups always resolve to S3 URLs.
+
+**Image path keys** prefer:
 
 ```
 assets/images/platforms/<platformId>/games/<raGameId>/<type>.png

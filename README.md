@@ -164,7 +164,7 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 - `fetch-game-list` replaces the starter list with full RetroAchievements retail catalogs and writes both `games.js` and `games-by-platform.json`.
 - After fetching locally, **commit both files** so GitHub Pages serves the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
 - Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
-- Search uses the game catalog; artwork is resolved at preview time from S3/local image paths
+- Search uses the game catalog; artwork is resolved at preview time from S3-hosted image paths
 - Browse box art / title screen / in-game in preview before adding to collection
 - Global artwork priority is configurable under Defaults (saved in localStorage)
 - Re-run `fetch-images` safely — it skips files that already exist.

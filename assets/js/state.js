@@ -25,6 +25,7 @@ import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string} selectedPlatformId
+ * @property {boolean} searchOnlyGamesWithImages
  */
 
 /** @type {AppSettings} */

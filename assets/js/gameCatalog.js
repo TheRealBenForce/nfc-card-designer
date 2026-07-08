@@ -53,19 +53,24 @@ export async function loadGameCatalog() {
 
 /**
  * @param {string} platformId
+ * @param {{ requireImages?: boolean }} [options]
  * @returns {Game[]}
  */
-export function gamesForPlatform(platformId) {
+export function gamesForPlatform(platformId, options = {}) {
   const entries = byPlatform?.[platformId] ?? [];
-  return entries.map((entry) => withImages(platformId, entry));
+  const games = entries.map((entry) => withImages(platformId, entry));
+  if (!options.requireImages) return games;
+  return games.filter((game) => gameHasImage(game));
 }
 
 /**
  * @param {string} platformId
+ * @param {{ requireImages?: boolean }} [options]
  * @returns {number}
  */
-export function gameCountForPlatform(platformId) {
-  return catalogCountForPlatform(platformId);
+export function gameCountForPlatform(platformId, options = {}) {
+  if (!options.requireImages) return catalogCountForPlatform(platformId);
+  return gamesForPlatform(platformId, options).length;
 }
 
 /**
@@ -111,7 +116,7 @@ export function gameForCard(card) {
 /**
  * @param {string} platformId
  * @param {string} query
- * @param {{ limit?: number }} [options]
+ * @param {{ limit?: number, requireImages?: boolean }} [options]
  * @returns {{ games: Game[], total: number }}
  */
 export function searchGames(platformId, query, options = {}) {
@@ -119,7 +124,7 @@ export function searchGames(platformId, query, options = {}) {
   const q = query.trim().toLowerCase();
   if (q.length < MIN_GAME_SEARCH_CHARS) return { games: [], total: 0 };
 
-  const matches = gamesForPlatform(platformId).filter((game) => {
+  const matches = gamesForPlatform(platformId, options).filter((game) => {
     return game.name.toLowerCase().includes(q);
   });
 
@@ -134,9 +139,10 @@ export function searchGames(platformId, query, options = {}) {
  * @param {string} platformId
  * @param {string} query
  * @param {number} [highlightedIndex]
+ * @param {{ requireImages?: boolean }} [options]
  */
-export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
-  const { games } = searchGames(platformId, query, { limit: 0 });
+export function pickGameFromCatalog(platformId, query, highlightedIndex = 0, options = {}) {
+  const { games } = searchGames(platformId, query, { ...options, limit: 0 });
   if (games.length === 0) return null;
 
   const lower = query.trim().toLowerCase();
@@ -177,4 +183,12 @@ function withImages(platformId, entry) {
     raGameId: entry.raGameId,
     images: imageEntry?.images ?? {},
   };
+}
+
+/**
+ * @param {Game} game
+ * @returns {boolean}
+ */
+function gameHasImage(game) {
+  return Object.values(game.images).some((value) => Boolean(value));
 }

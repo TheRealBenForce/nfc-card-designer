@@ -54,6 +54,36 @@ async function main() {
     }
     console.log("✓ 'mar' shows matching games");
 
+    await page.locator("summary", { hasText: "Global Settings" }).click();
+    const imageFilterToggle = page.locator("#search-only-games-with-images");
+    await imageFilterToggle.uncheck();
+    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "ecco");
+    await page.waitForTimeout(150);
+
+    let eccoResults = await page.locator("#game-results .list-item").allTextContents();
+    if (!eccoResults.includes("Ecco the Dolphin") || !eccoResults.includes("Ecco: The Tides of Time")) {
+      throw new Error(`Expected both Ecco entries before filtering, got: ${JSON.stringify(eccoResults)}`);
+    }
+
+    await imageFilterToggle.check();
+    await page.waitForTimeout(150);
+    eccoResults = await page.locator("#game-results .list-item").allTextContents();
+    if (!eccoResults.includes("Ecco the Dolphin")) {
+      throw new Error(`Expected image-backed game to remain, got: ${JSON.stringify(eccoResults)}`);
+    }
+    if (eccoResults.includes("Ecco: The Tides of Time")) {
+      throw new Error(`Expected no-image game to be filtered out, got: ${JSON.stringify(eccoResults)}`);
+    }
+    console.log("✓ Global setting filters out games with no images");
+
+    await imageFilterToggle.uncheck();
+    await page.getByRole("button", { name: "NES", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "mar");
+    await page.waitForTimeout(100);
+
     await page.getByRole("option", { name: "Super Mario Bros.", exact: true }).click();
     await page.waitForTimeout(300);
 
@@ -131,7 +161,7 @@ async function main() {
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
     await page.getByRole("button", { name: "SNES", exact: true }).click();
-    await addBtn.waitFor({ state: "hidden", timeout: 5000 });
+    await page.waitForTimeout(200);
 
     const searchAfterPlatformChange = await page.locator("#game-search").inputValue();
     if (searchAfterPlatformChange !== "") {
@@ -140,8 +170,11 @@ async function main() {
     if (!(await dropdown.isHidden())) {
       throw new Error("Game dropdown should be hidden after platform change");
     }
-    if (await addBtn.isVisible()) {
-      throw new Error("Browse preview should clear after platform change");
+    if (!(await addBtn.isVisible())) {
+      throw new Error("Add to collection should stay visible after platform change");
+    }
+    if (!(await addBtn.isDisabled())) {
+      throw new Error("Add to collection should be disabled after platform change clears browse state");
     }
     console.log("✓ Platform change clears game search and browse preview");
 

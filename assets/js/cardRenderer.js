@@ -45,15 +45,38 @@ function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = 
   const isSideways = rotationDeg % 180 !== 0;
   const boxW = isSideways ? h : w;
   const boxH = isSideways ? w : h;
+  const alignedForRotation = mapDisplayAlignmentToRotatedAlignment(align, rotationDeg);
 
   const scale = Math.min(boxW / img.width, boxH / img.height) * (1 + zoom / 100);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
-  const drawX = -boxW / 2 + (boxW - drawW) * align.x;
-  const drawY = -boxH / 2 + (boxH - drawH) * align.y;
+  const drawX = -boxW / 2 + (boxW - drawW) * alignedForRotation.x;
+  const drawY = -boxH / 2 + (boxH - drawH) * alignedForRotation.y;
 
   ctx.drawImage(img, drawX, drawY, drawW, drawH);
   ctx.restore();
+}
+
+/**
+ * Convert a display-space alignment (what the user clicked) into the
+ * pre-rotation local alignment used by the drawing transform.
+ *
+ * @param {{ x: number, y: number }} align
+ * @param {number} rotationDeg
+ * @returns {{ x: number, y: number }}
+ */
+export function mapDisplayAlignmentToRotatedAlignment(align, rotationDeg) {
+  const normalized = ((Math.round(rotationDeg) % 360) + 360) % 360;
+  if (normalized === 90) {
+    return { x: align.y, y: 1 - align.x };
+  }
+  if (normalized === 180) {
+    return { x: 1 - align.x, y: 1 - align.y };
+  }
+  if (normalized === 270) {
+    return { x: 1 - align.y, y: align.x };
+  }
+  return align;
 }
 
 /**

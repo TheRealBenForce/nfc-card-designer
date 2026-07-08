@@ -15,6 +15,7 @@ import {
   IMAGE_TYPES,
   CARD_PREVIEW_WIDTH_PX,
   PREVIEW_CALIBRATION_STORAGE_KEY,
+  PLACEHOLDER_SVG,
 } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
 import { getEffectiveImageTypePriority, getPlatformArtworkDisplay, ROTATION_OPTIONS } from "./platformDefaults.js";
@@ -129,7 +130,7 @@ let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
 let previewArtworkControlsTitleEl = null;
 
-/** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[], usesPlaceholder?: boolean } | null} */
+/** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[], resolvedTypes: string[], targetCardId: string | null } | null} */
 let browseState = null;
 
 /** Monotonic tokens so stale async browse/preview work cannot overwrite newer UI state. */
@@ -414,11 +415,103 @@ function applyPreviewArtworkPatch(patch) {
  */
 function browseTypesForGame(game, priority, availableTypes) {
   void game;
-  return availableTypes.length > 0 ? availableTypes : [...priority];
+  void availableTypes;
+  return [...priority];
 }
 
 function getArtworkPriorityForPlatform(platformId) {
   return getEffectiveImageTypePriority(getSettings().platformDefaults, platformId);
+}
+
+/**
+ * @param {string[]} availableTypes
+ * @param {string[]} resolvedTypes
+ * @param {string | null | undefined} preferredType
+ */
+function pickInitialBrowseImageType(availableTypes, resolvedTypes, preferredType) {
+  if (preferredType && availableTypes.includes(preferredType)) return preferredType;
+  return resolvedTypes[0] ?? availableTypes[0];
+}
+
+/**
+ * @param {typeof browseState} state
+ */
+function browseStateUsesPlaceholder(state) {
+  if (!state) return false;
+  return !state.resolvedTypes.includes(state.imageType);
+}
+
+function syncBrowseActionButton() {
+  if (!addBrowsedGameBtn) return;
+  addBrowsedGameBtn.hidden = false;
+  if (!browseState) {
+    addBrowsedGameBtn.textContent = "Add to collection";
+    addBrowsedGameBtn.disabled = true;
+    return;
+  }
+  addBrowsedGameBtn.textContent = browseState.targetCardId ? "Update Card" : "Add to collection";
+  addBrowsedGameBtn.disabled = false;
+}
+
+/**
+ * @returns {import("./state.js").Card | null}
+ */
+function getSingleSelectedCard() {
+  const selected = getSelectedCards();
+  return selected.length === 1 ? selected[0] : null;
+}
+
+/**
+ * @param {import("./state.js").Card} card
+ */
+async function browseSelectedCard(card) {
+  const game =
+    gameForCard(card) ?? {
+      platformId: card.platformId,
+      raGameId: card.raGameId,
+      name: card.gameName,
+      images: {},
+    };
+  const requestId = ++browseRequestId;
+  const priority = getArtworkPriorityForPlatform(game.platformId);
+  const resolvedTypes = await getAvailableImageTypes(game, priority);
+  if (requestId !== browseRequestId) return;
+
+  const availableTypes = browseTypesForGame(game, priority, resolvedTypes);
+  browseState = {
+    game,
+    imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, card.imageType),
+    availableTypes,
+    resolvedTypes,
+    targetCardId: card.id,
+  };
+  renderPreviewTypeTabs();
+  syncBrowseActionButton();
+  syncPreviewArtworkControls();
+  await refreshPreview();
+}
+
+function syncBrowseStateWithSelection() {
+  const selectedCard = getSingleSelectedCard();
+  if (!selectedCard) {
+    if (browseState?.targetCardId) {
+      clearBrowse();
+      void refreshPreview();
+    }
+    return;
+  }
+
+  if (
+    browseState?.targetCardId === selectedCard.id &&
+    browseState.game.platformId === selectedCard.platformId &&
+    browseState.game.raGameId === selectedCard.raGameId &&
+    browseState.game.name === selectedCard.gameName &&
+    browseState.imageType === selectedCard.imageType
+  ) {
+    return;
+  }
+
+  void browseSelectedCard(selectedCard);
 }
 
 /**
@@ -712,15 +805,16 @@ async function applyPlatformPriorityToBrowse() {
 
   const imageType = typesForBrowse.includes(browseState.imageType)
     ? browseState.imageType
-    : typesForBrowse[0];
+    : pickInitialBrowseImageType(typesForBrowse, availableTypes, null);
 
   browseState = {
     ...browseState,
     availableTypes: typesForBrowse,
+    resolvedTypes: availableTypes,
     imageType,
-    usesPlaceholder: availableTypes.length === 0,
   };
   renderPreviewTypeTabs();
+  syncBrowseActionButton();
   syncPreviewArtworkControls();
   await refreshPreview();
 }
@@ -744,28 +838,32 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
+  const selectedCard = getSingleSelectedCard();
+  const targetCardId = selectedCard?.id ?? null;
+  const preferredType = selectedCard?.imageType ?? null;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
-  const availableTypes = await getAvailableImageTypes(game, priority);
+  const resolvedTypes = await getAvailableImageTypes(game, priority);
   if (requestId !== browseRequestId) return;
 
-  const typesForBrowse = browseTypesForGame(game, priority, availableTypes);
-  const usesPlaceholder = availableTypes.length === 0;
+  const availableTypes = browseTypesForGame(game, priority, resolvedTypes);
 
   browseState = {
     game,
-    imageType: typesForBrowse[0],
-    availableTypes: typesForBrowse,
-    usesPlaceholder,
+    imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, preferredType),
+    availableTypes,
+    resolvedTypes,
+    targetCardId,
   };
 
   renderPreviewTypeTabs();
+  syncBrowseActionButton();
   syncPreviewArtworkControls();
   await refreshPreview();
   if (requestId !== browseRequestId) return;
   logStatus(
-    usesPlaceholder
+    browseStateUsesPlaceholder(browseState)
       ? `Previewing ${game.name} with placeholder artwork.`
       : `Previewing ${game.name}.`,
   );
@@ -775,8 +873,8 @@ function clearBrowse() {
   browseRequestId += 1;
   browseState = null;
   renderPreviewTypeTabs();
+  syncBrowseActionButton();
   syncPreviewArtworkControls();
-  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
 }
 
 function resetGameSearch({ focus = false } = {}) {
@@ -791,14 +889,35 @@ function resetGameSearch({ focus = false } = {}) {
 async function addBrowsedGame() {
   if (!browseState) return;
 
-  const { game, imageType, usesPlaceholder } = browseState;
+  const { game, imageType, targetCardId } = browseState;
+  const imageFailed = browseStateUsesPlaceholder(browseState);
+  const targetCard = targetCardId
+    ? getCollection().find((card) => card.id === targetCardId) ?? null
+    : null;
+
+  if (targetCard) {
+    updateCard(targetCard.id, {
+      platformId: game.platformId,
+      gameName: game.name,
+      raGameId: game.raGameId,
+      imageType,
+      imageFailed,
+    });
+
+    resetGameSearch({ focus: true });
+    updateCollectionActions();
+    await refreshPreview();
+    logStatus(`Updated ${game.name}.`);
+    return;
+  }
+
   const card = {
     id: createCardId(),
     platformId: game.platformId,
     gameName: game.name,
     raGameId: game.raGameId,
     imageType,
-    ...(usesPlaceholder ? { imageFailed: true } : {}),
+    ...(imageFailed ? { imageFailed: true } : {}),
   };
 
   addCard(card);
@@ -812,17 +931,15 @@ function renderPreviewTypeTabs() {
   if (!previewTypeTabsEl) return;
 
   previewTypeTabsEl.innerHTML = "";
-  if (!browseState) {
-    previewTypeTabsEl.hidden = true;
-    return;
-  }
+  const types = browseState?.availableTypes ?? getArtworkPriorityForPlatform(getSettings().selectedPlatformId);
+  previewTypeTabsEl.hidden = types.length === 0;
 
-  previewTypeTabsEl.hidden = false;
-  for (const type of browseState.availableTypes) {
+  for (const type of types) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "preview-type-tab";
-    if (type === browseState.imageType) btn.classList.add("preview-type-tab--active");
+    btn.disabled = !browseState;
+    if (type === browseState?.imageType) btn.classList.add("preview-type-tab--active");
     btn.textContent = IMAGE_TYPES[type]?.label ?? type;
     btn.addEventListener("click", async () => {
       if (!browseState) return;
@@ -961,19 +1078,20 @@ async function refreshPreview() {
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
-    if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
+    syncBrowseActionButton();
     renderPreviewTypeTabs();
     syncPreviewArtworkControls();
     return;
   }
 
-  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
+  syncBrowseActionButton();
   syncPreviewArtworkControls();
 
   const card = getPreviewCard();
   if (!card) {
     if (requestId !== previewRequestId) return;
-    previewImageEl.removeAttribute("src");
+    previewImageEl.src = PLACEHOLDER_SVG;
+    previewImageEl.alt = "Preview placeholder";
     previewMetaEl.textContent = "Search for a game to preview artwork.";
     renderPreviewTypeTabs();
     return;
@@ -1189,6 +1307,7 @@ export async function initUI() {
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("add-browsed-game")
   );
+  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
   platformArtworkAlignmentGridEl = document.getElementById("platform-artwork-alignment-grid");
   platformArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
     document.getElementById("platform-artwork-background-mode")
@@ -1270,6 +1389,7 @@ export async function initUI() {
 
   syncPlatformArtworkDisplayControls();
   syncPreviewArtworkControls();
+  syncBrowseActionButton();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
@@ -1285,9 +1405,13 @@ export async function initUI() {
     if (event === "settings") saveSettings(getSettings());
     if (event === "collection") {
       saveCollection(getCollection());
+      if (browseState?.targetCardId && !getCollection().some((card) => card.id === browseState.targetCardId)) {
+        clearBrowse();
+      }
       renderCollection();
     }
     if (event === "selection") {
+      syncBrowseStateWithSelection();
       renderCollection();
       updateCollectionActions();
       syncPreviewArtworkControls();

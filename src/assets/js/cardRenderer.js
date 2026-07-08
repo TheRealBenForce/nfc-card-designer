@@ -1,4 +1,4 @@
-import { CARD_RENDER_WIDTH_PX, CARD_RENDER_HEIGHT_PX, PLACEHOLDER_SVG } from "./config.js";
+import { PLACEHOLDER_SVG } from "./config.js";
 import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage, candidateImagePaths } from "./imageProvider.js";
@@ -16,6 +16,7 @@ import {
   getAlignmentFractions,
   resolveArtworkDisplay,
 } from "./artworkDisplay.js";
+import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
 const BLUR_RADIUS_PX = 18;
@@ -113,6 +114,21 @@ function drawPlatformLogo(ctx, icon, rect) {
   ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
   const padding = Math.round(Math.min(rect.w, rect.h) * 0.12);
   drawContainImageCentered(ctx, icon, rect, padding);
+}
+
+/**
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {number} offsetX
+ * @param {number} offsetY
+ * @returns {import('./cardLayout.js').Rect}
+ */
+function offsetRect(rect, offsetX, offsetY) {
+  return {
+    x: rect.x + offsetX,
+    y: rect.y + offsetY,
+    w: rect.w,
+    h: rect.h,
+  };
 }
 
 /**
@@ -333,11 +349,22 @@ async function drawArtBackground(
  * @returns {Promise<HTMLCanvasElement>}
  */
 export async function renderCard(card, platformDefaults, layoutSettings) {
+  const cardSizing = resolveCardSizing(layoutSettings);
+  const cardWidthPx = mmToRenderPx(cardSizing.cardWidthMm);
+  const cardHeightPx = mmToRenderPx(cardSizing.cardHeightMm);
+  const stickerInsetPx = mmToRenderPx(cardSizing.stickerInsetMm);
   const canvas = document.createElement("canvas");
-  canvas.width = CARD_RENDER_WIDTH_PX;
-  canvas.height = CARD_RENDER_HEIGHT_PX;
+  canvas.width = cardWidthPx;
+  canvas.height = cardHeightPx;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
+
+  const stickerRect = {
+    x: stickerInsetPx,
+    y: stickerInsetPx,
+    w: Math.max(1, canvas.width - stickerInsetPx * 2),
+    h: Math.max(1, canvas.height - stickerInsetPx * 2),
+  };
 
   const normalizedDisplay = resolveArtworkDisplay(card, platformDefaults);
   const align = getAlignmentFractions(normalizedDisplay);
@@ -352,15 +379,20 @@ export async function renderCard(card, platformDefaults, layoutSettings) {
     : null;
   const effectiveLayoutSettings = cardHeaderSettings ?? layoutSettings ?? undefined;
   const {
-    art,
-    logo,
-    color: colorRect,
+    art: stickerArtRect,
+    logo: stickerLogoRect,
+    color: stickerColorRect,
     showHeader,
     showPlatformColor,
-  } = computeCardLayout(canvas.width, canvas.height, effectiveLayoutSettings);
+  } = computeCardLayout(stickerRect.w, stickerRect.h, effectiveLayoutSettings);
+  const art = offsetRect(stickerArtRect, stickerRect.x, stickerRect.y);
+  const logo = offsetRect(stickerLogoRect, stickerRect.x, stickerRect.y);
+  const colorRect = offsetRect(stickerColorRect, stickerRect.x, stickerRect.y);
 
-  ctx.fillStyle = "#111";
+  ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#111";
+  ctx.fillRect(stickerRect.x, stickerRect.y, stickerRect.w, stickerRect.h);
 
   const { url: imageSrc } = await resolveCardImage(card);
   let img;

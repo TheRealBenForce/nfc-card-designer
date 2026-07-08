@@ -26,6 +26,7 @@ async function main() {
     const portrait = await page.evaluate(async () => {
       const { renderCard } = await import("/assets/js/cardRenderer.js");
       const { computeCardLayout } = await import("/assets/js/cardLayout.js");
+      const { resolveCardSizing, mmToRenderPx } = await import("/assets/js/cardSizing.js");
       const canvas = await renderCard(
         {
           id: "test",
@@ -46,6 +47,37 @@ async function main() {
       if (!ctx) throw new Error("No canvas context");
 
       const layout = computeCardLayout(canvas.width, canvas.height);
+      const sizing = resolveCardSizing();
+      const stickerInsetPx = mmToRenderPx(sizing.stickerInsetMm);
+      const stickerRect = {
+        x: stickerInsetPx,
+        y: stickerInsetPx,
+        w: canvas.width - stickerInsetPx * 2,
+        h: canvas.height - stickerInsetPx * 2,
+      };
+      const stickerLayout = computeCardLayout(stickerRect.w, stickerRect.h);
+      const insetLayout = {
+        art: {
+          ...stickerLayout.art,
+          x: stickerLayout.art.x + stickerRect.x,
+          y: stickerLayout.art.y + stickerRect.y,
+        },
+        platform: {
+          ...stickerLayout.platform,
+          x: stickerLayout.platform.x + stickerRect.x,
+          y: stickerLayout.platform.y + stickerRect.y,
+        },
+        logo: {
+          ...stickerLayout.logo,
+          x: stickerLayout.logo.x + stickerRect.x,
+          y: stickerLayout.logo.y + stickerRect.y,
+        },
+        color: {
+          ...stickerLayout.color,
+          x: stickerLayout.color.x + stickerRect.x,
+          y: stickerLayout.color.y + stickerRect.y,
+        },
+      };
 
       const sample = (x, y) => {
         const px = ctx.getImageData(x, y, 1, 1).data;
@@ -56,14 +88,17 @@ async function main() {
         width: canvas.width,
         height: canvas.height,
         layout,
+        insetLayout,
+        stickerRect,
+        cardCorner: sample(3, 3),
         art: sample(layout.art.x + 10, layout.art.y + 10),
         logoCenter: sample(
-          Math.floor(layout.logo.x + layout.logo.w / 2),
-          Math.floor(layout.logo.y + layout.logo.h / 2),
+          Math.floor(insetLayout.logo.x + insetLayout.logo.w / 2),
+          Math.floor(insetLayout.logo.y + insetLayout.logo.h / 2),
         ),
         colorCenter: sample(
-          Math.floor(layout.color.x + layout.color.w / 2),
-          Math.floor(layout.color.y + layout.color.h / 2),
+          Math.floor(insetLayout.color.x + insetLayout.color.w / 2),
+          Math.floor(insetLayout.color.y + insetLayout.color.h / 2),
         ),
       };
     });
@@ -73,21 +108,29 @@ async function main() {
     }
     console.log(`✓ Card canvas is portrait (${portrait.width}×${portrait.height})`);
 
-    if (portrait.layout.platform.y !== 0 || portrait.layout.art.y !== portrait.layout.platform.h) {
+    if (
+      portrait.insetLayout.platform.y !== portrait.stickerRect.y
+      || portrait.insetLayout.art.y !== portrait.insetLayout.platform.h + portrait.stickerRect.y
+    ) {
       throw new Error("Portrait card should place platform strip on top, artwork below");
     }
-    const expectedHeaderHeight = Math.round(portrait.height * 0.15);
-    if (portrait.layout.platform.h !== expectedHeaderHeight) {
+    const expectedHeaderHeight = Math.round(portrait.stickerRect.h * 0.15);
+    if (portrait.insetLayout.platform.h !== expectedHeaderHeight) {
       throw new Error(
-        `Portrait header should default to 15% (${expectedHeaderHeight}px), got ${portrait.layout.platform.h}px`,
+        `Portrait header should default to 15% (${expectedHeaderHeight}px), got ${portrait.insetLayout.platform.h}px`,
       );
     }
     console.log("✓ Portrait: platform strip top (15%), artwork below");
 
-    if (portrait.layout.logo.x !== portrait.layout.platform.x) {
+    if (hex(...portrait.cardCorner) !== "#ffffff") {
+      throw new Error("Card border should be white around the inset sticker");
+    }
+    console.log("✓ Card border renders as white card stock");
+
+    if (portrait.insetLayout.logo.x !== portrait.insetLayout.platform.x) {
       throw new Error("Logo should stay within the platform strip");
     }
-    if (portrait.layout.color.x <= portrait.layout.logo.x) {
+    if (portrait.insetLayout.color.x <= portrait.insetLayout.logo.x) {
       throw new Error("Portrait platform strip should split logo left, color right");
     }
     console.log("✓ Portrait platform strip: logo left, color right");

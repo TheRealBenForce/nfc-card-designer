@@ -17,6 +17,10 @@
   --radius: 10px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   --content-width: 42rem;
+  --card-width-mm: 52;
+  --card-height-mm: 84;
+  --sticker-width-mm: 48;
+  --sticker-height-mm: 80;
 }
 
 html {
@@ -698,6 +702,15 @@ body {
   margin-top: 0.75rem;
 }
 
+.dimension-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dimension-field {
+  margin-top: 0.35rem;
+}
+
 .field--checkbox {
   display: flex;
   align-items: center;
@@ -921,7 +934,7 @@ body {
   justify-content: center;
   width: 100%;
   max-width: 360px;
-  min-height: calc(84mm * var(--preview-calibration-scale, 1) + 3rem);
+  min-height: calc((var(--card-height-mm) * 1mm) * var(--preview-calibration-scale, 1) + 3rem);
   padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -929,17 +942,41 @@ body {
   box-shadow: var(--shadow);
 }
 
+.preview-card {
+  position: relative;
+  width: min(100%, calc((var(--card-width-mm) * 1mm) * var(--preview-calibration-scale, 1)));
+  aspect-ratio: var(--card-width-mm) / var(--card-height-mm);
+  max-height: calc((var(--card-height-mm) * 1mm) * var(--preview-calibration-scale, 1));
+  border-radius: 4px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.preview-sticker-base {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc((var(--sticker-width-mm) / var(--card-width-mm)) * 100%);
+  aspect-ratio: var(--sticker-width-mm) / var(--sticker-height-mm);
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 45%, var(--surface-2));
+}
+
 .preview-skeleton {
   position: absolute;
-  width: min(100%, calc(52mm * var(--preview-calibration-scale, 1)));
-  aspect-ratio: 52 / 84;
-  max-height: calc(84mm * var(--preview-calibration-scale, 1));
-  border-radius: 4px;
+  top: 50%;
+  left: 50%;
+  width: calc((var(--sticker-width-mm) / var(--card-width-mm)) * 100%);
+  aspect-ratio: var(--sticker-width-mm) / var(--sticker-height-mm);
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
   background: linear-gradient(
     110deg,
-    var(--surface-2) 0%,
-    color-mix(in srgb, var(--surface-2) 70%, var(--text-muted)) 45%,
-    var(--surface-2) 90%
+    color-mix(in srgb, var(--accent) 35%, var(--surface-2)) 0%,
+    color-mix(in srgb, var(--accent) 70%, var(--surface-2)) 45%,
+    color-mix(in srgb, var(--accent) 35%, var(--surface-2)) 90%
   );
   background-size: 200% 100%;
   animation: preview-skeleton-pulse 1.4s ease-in-out infinite;
@@ -964,14 +1001,17 @@ body {
 }
 
 .preview-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: block;
-  width: min(100%, calc(52mm * var(--preview-calibration-scale, 1)));
-  aspect-ratio: 52 / 84;
-  max-height: calc(84mm * var(--preview-calibration-scale, 1));
+  width: calc((var(--sticker-width-mm) / var(--card-width-mm)) * 100%);
+  aspect-ratio: var(--sticker-width-mm) / var(--sticker-height-mm);
+  transform: translate(-50%, -50%);
   height: auto;
   object-fit: contain;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+  background: transparent;
   transition: opacity 0.15s ease;
 }
 

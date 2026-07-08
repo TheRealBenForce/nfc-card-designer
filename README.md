@@ -8,7 +8,7 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 - **Game search** — type **3+ letters**, pick a game, **browse artwork types** in preview, then add to collection
 - **Libretro thumbnails** — box art, title screens, and in-game snapshots (hosted on S3, not in git)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
-- **Collection** — cards grouped by platform and game; multi-select, delete, or print PDF
+- **Collection** — cards grouped by platform; multi-select, delete, or print PDF
 - **Persistence** — `localStorage` plus export/import JSON (settings and all cards)
 - **PDF export** — letter-size sheet with cut marks (3×3 cards per page)
 

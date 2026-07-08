@@ -839,7 +839,7 @@ function renderCollection() {
 
   const tree = buildCollectionTree(collection);
 
-  for (const { platform, games } of tree) {
+  for (const { platform, cards } of tree) {
     const platformDetails = document.createElement("details");
     platformDetails.className = "collection-platform";
     platformDetails.open = true;
@@ -897,10 +897,10 @@ function renderCollection() {
         cardsEl.appendChild(row);
       }
 
-      gameDetails.appendChild(cardsEl);
-      platformDetails.appendChild(gameDetails);
+      cardsEl.appendChild(row);
     }
 
+    platformDetails.appendChild(cardsEl);
     collectionListEl.appendChild(platformDetails);
   }
 

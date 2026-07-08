@@ -347,13 +347,17 @@ export async function renderCard(card, platformDefaults, layoutSettings) {
   const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
   const baseRotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
   const rotation = normalizeRotationDegrees(baseRotation + (card.imageRotation ?? 0));
+  const cardHeaderSettings = card.headerSettings && typeof card.headerSettings === "object"
+    ? card.headerSettings
+    : null;
+  const effectiveLayoutSettings = cardHeaderSettings ?? layoutSettings ?? undefined;
   const {
     art,
     logo,
     color: colorRect,
     showHeader,
     showPlatformColor,
-  } = computeCardLayout(canvas.width, canvas.height, layoutSettings ?? undefined);
+  } = computeCardLayout(canvas.width, canvas.height, effectiveLayoutSettings);
 
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);

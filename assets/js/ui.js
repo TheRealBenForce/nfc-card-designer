@@ -780,6 +780,15 @@ function syncGlobalSettingsControls() {
   }
 }
 
+function currentHeaderSettingsSnapshot() {
+  const settings = getSettings();
+  return {
+    showHeader: settings.showHeader,
+    showPlatformColor: settings.showPlatformColor,
+    headerHeightPercent: settings.headerHeightPercent,
+  };
+}
+
 function syncPlatformControls() {
   syncGlobalSettingsControls();
   const settings = getSettings();
@@ -976,6 +985,7 @@ async function addBrowsedGame() {
   if (!browseState) return;
 
   const { game, imageType, targetCardId } = browseState;
+  const headerSettings = currentHeaderSettingsSnapshot();
   const imageFailed = browseStateUsesPlaceholder(browseState);
   const targetCard = targetCardId
     ? getCollection().find((card) => card.id === targetCardId) ?? null
@@ -988,6 +998,7 @@ async function addBrowsedGame() {
       raGameId: game.raGameId,
       imageType,
       imageFailed,
+      ...(targetCard.headerSettings ? {} : { headerSettings }),
     });
 
     resetGameSearch({ focus: true });
@@ -1003,6 +1014,7 @@ async function addBrowsedGame() {
     gameName: game.name,
     raGameId: game.raGameId,
     imageType,
+    headerSettings,
     ...(imageFailed ? { imageFailed: true } : {}),
     ...(browseState.artworkDisplayOverride ? { artworkDisplay: browseState.artworkDisplayOverride } : {}),
     ...((normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0)
@@ -1169,6 +1181,7 @@ async function refreshPreview() {
           gameName: game.name,
           raGameId: game.raGameId,
           imageType,
+          headerSettings: currentHeaderSettingsSnapshot(),
           ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
           ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
             ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }

@@ -4,6 +4,10 @@ import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay
 import { normalizeRotationDegrees } from "./platformDefaults.js";
 
 /**
+ * @typedef {import('./headerSettings.js').HeaderSettings} HeaderSettings
+ */
+
+/**
  * @typedef {Object} Card
  * @property {string} id
  * @property {string} platformId
@@ -13,6 +17,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {boolean} [imageFailed]
  * @property {ArtworkDisplaySettings} [artworkDisplay]
  * @property {number} [imageRotation]
+ * @property {HeaderSettings} [headerSettings]
  */
 
 /**

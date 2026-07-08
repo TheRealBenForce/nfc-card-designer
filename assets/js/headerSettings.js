@@ -1,9 +1,18 @@
 export const DEFAULT_SHOW_HEADER = true;
 export const DEFAULT_SHOW_PLATFORM_COLOR = true;
 export const DEFAULT_HEADER_HEIGHT_PERCENT = 15;
+export const LEGACY_HEADER_HEIGHT_PERCENT = 25;
 
 export const MIN_HEADER_HEIGHT_PERCENT = 5;
 export const MAX_HEADER_HEIGHT_PERCENT = 40;
+
+/**
+ * @typedef {{
+ *   showHeader: boolean,
+ *   showPlatformColor: boolean,
+ *   headerHeightPercent: number,
+ * }} HeaderSettings
+ */
 
 /**
  * @param {unknown} value
@@ -35,6 +44,15 @@ export function normalizeHeaderSettings(settings) {
       DEFAULT_SHOW_PLATFORM_COLOR,
     ),
     headerHeightPercent: normalizeHeaderHeightPercent(settings?.headerHeightPercent),
+  };
+}
+
+/** @returns {HeaderSettings} */
+export function legacyHeaderSettings() {
+  return {
+    showHeader: true,
+    showPlatformColor: true,
+    headerHeightPercent: LEGACY_HEADER_HEIGHT_PERCENT,
   };
 }
 

@@ -9,7 +9,7 @@ import {
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
-import { normalizeHeaderSettings } from "./headerSettings.js";
+import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
@@ -24,6 +24,7 @@ export function defaultSettings() {
 
 /** @param {import('./state.js').Card} card */
 function serializeCard(card) {
+  const normalizedHeaderSettings = normalizeHeaderSettings(card.headerSettings);
   return {
     id: card.id,
     platformId: card.platformId,
@@ -33,11 +34,15 @@ function serializeCard(card) {
     ...(card.imageFailed ? { imageFailed: true } : {}),
     ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
     ...(card.imageRotation ? { imageRotation: normalizeRotationDegrees(card.imageRotation) } : {}),
+    headerSettings: normalizedHeaderSettings,
   };
 }
 
-/** @param {unknown} card */
-function normalizeCard(card) {
+/**
+ * @param {unknown} card
+ * @param {{ showHeader?: unknown, showPlatformColor?: unknown, headerHeightPercent?: unknown } | null | undefined} [fallbackHeaderSettings]
+ */
+function normalizeCard(card, fallbackHeaderSettings) {
   if (!card || typeof card !== "object") return null;
   const entry = /** @type {Record<string, unknown>} */ (card);
   if (
@@ -51,6 +56,11 @@ function normalizeCard(card) {
   }
 
   const normalizedRotation = normalizeRotationDegrees(entry.imageRotation);
+  const normalizedCardHeaderSettings = normalizeHeaderSettings(
+    (entry.headerSettings && typeof entry.headerSettings === "object")
+      ? entry.headerSettings
+      : fallbackHeaderSettings ?? legacyHeaderSettings(),
+  );
 
   return {
     id: entry.id,
@@ -63,6 +73,7 @@ function normalizeCard(card) {
       ? { artworkDisplay: normalizeArtworkDisplay(entry.artworkDisplay) }
       : {}),
     ...(normalizedRotation ? { imageRotation: normalizedRotation } : {}),
+    headerSettings: normalizedCardHeaderSettings,
   };
 }
 
@@ -188,6 +199,7 @@ export function importProjectFile() {
       }
       try {
         const parsed = JSON.parse(await file.text());
+        const importedHeaderSettings = normalizeHeaderSettings(parsed);
         const cards = Array.isArray(parsed.cards)
           ? parsed.cards
           : Array.isArray(parsed.collection)
@@ -201,9 +213,9 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
-            ...normalizeHeaderSettings(parsed),
+            ...importedHeaderSettings,
           },
-          cards: cards.map((card) => normalizeCard(card)).filter(Boolean),
+          cards: cards.map((card) => normalizeCard(card, importedHeaderSettings)).filter(Boolean),
         });
       } catch (err) {
         reject(err);

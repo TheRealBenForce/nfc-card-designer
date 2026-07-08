@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { normalizeImageTypePriority, sortTypesByPriority, movePriorityItem } from "../assets/js/imageSettings.js";
+import { normalizeImageTypePriority, sortTypesByPriority, movePriorityItem } from "../src/assets/js/imageSettings.js";
 
 const priority = normalizeImageTypePriority(["gamePicture", "boxArt"]);
 if (priority[0] !== "gamePicture") {

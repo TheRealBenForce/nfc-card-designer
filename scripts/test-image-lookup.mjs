@@ -3,8 +3,8 @@
  * Ensures card artwork resolves using platform + RA game id, not RA id alone.
  */
 
-import { gameByPlatformAndRaId, gameForCard, gamesForPlatform } from "../assets/js/data/games.js";
-import { candidateImagePaths } from "../assets/js/imageProvider.js";
+import { gameByPlatformAndRaId, gameForCard, gamesForPlatform } from "../src/assets/js/data/games.js";
+import { candidateImagePaths } from "../src/assets/js/imageProvider.js";
 
 const nesGames = gamesForPlatform("nes");
 if (nesGames.length === 0) {

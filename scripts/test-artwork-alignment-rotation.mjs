@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mapDisplayAlignmentToRotatedAlignment } from "../assets/js/cardRenderer.js";
+import { mapDisplayAlignmentToRotatedAlignment } from "../src/assets/js/cardRenderer.js";
 
 /**
  * @param {{ x: number, y: number }} actual

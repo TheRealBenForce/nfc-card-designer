@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { isRetailRelease } from "../assets/js/retailFilter.js";
+import { isRetailRelease } from "../src/assets/js/retailFilter.js";
 
 const retail = [
   "Super Mario Bros.",

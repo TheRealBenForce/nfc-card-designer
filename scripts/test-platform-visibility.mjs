@@ -3,10 +3,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { platforms } from "../assets/js/data/platforms.js";
+import { platforms } from "../src/assets/js/data/platforms.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const jsonPath = path.join(root, "assets/data/games-by-platform.json");
+const jsonPath = path.join(root, "src/assets/data/games-by-platform.json");
 const data = JSON.parse(await readFile(jsonPath, "utf8"));
 
 function catalogCountForPlatform(platformId) {

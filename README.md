@@ -15,14 +15,18 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 ## Project structure
 
 ```
-index.html                 # GitHub Pages entry (must stay at repo root)
-assets/
-  css/styles.css
-  js/                      # Application modules
-  data/
-    games-by-platform.json      # Game names for search (grouped by platform)
-    image-availability.json     # Optional generated image index (not required for search)
-  images/platforms/             # Downloaded artwork (platform/game folders)
+src/
+  index.html
+  recognition.html
+  supplies.html
+  thanks.html
+  assets/
+    css/styles.css
+    js/                      # Application modules
+    data/
+      games-by-platform.json      # Game names for search (grouped by platform)
+      image-availability.json     # Optional generated image index (not required for search)
+    images/platforms/             # Downloaded artwork (platform/game folders)
 scripts/
   fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
   fetch-images.mjs              # Download libretro thumbnails + update games.js + availability
@@ -35,7 +39,7 @@ docs/
 
 ## Local development
 
-ES modules require a local server — opening `index.html` directly from disk will not work.
+ES modules require a local server — opening `src/index.html` directly from disk will not work.
 
 ```bash
 npm start
@@ -56,13 +60,13 @@ Game images are **not stored in git**. `fetch-images` downloads missing thumbnai
 ```bash
 npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
 npm run fetch-images       # download missing thumbnails → upload to S3
-npm run deploy             # sync site files to S3 + CloudFront invalidation (excludes assets/images/*)
+npm run deploy             # sync src/ to S3 + CloudFront invalidation (excludes assets/images/*)
 ```
 
 Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.
 
 ```bash
-npm run fetch-images -- --local-only   # dev: save to assets/images/ only, no S3
+npm run fetch-images -- --local-only   # dev: save to src/assets/images/ only, no S3
 npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local image files
 npm run sync-s3-sample-images          # pull a small random local cache from S3
 ```
@@ -165,7 +169,7 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 - See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships, deploy checklist, and gotchas.
 - `fetch-game-list` replaces the starter list with full RetroAchievements retail catalogs and writes both `games.js` and `games-by-platform.json`.
-- After fetching locally, **commit both files** so GitHub Pages serves the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
+- After fetching locally, **commit both files** so deploys include the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
 - Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
 - Search uses the game catalog; artwork is resolved at preview time from S3/local image paths
 - Browse box art / title screen / in-game in preview before adding to collection

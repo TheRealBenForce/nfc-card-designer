@@ -112,14 +112,14 @@ async function downloadObject(bucket, key) {
 }
 
 /**
- * @param {import("../assets/js/data/games.js").Game} game
+ * @param {import("../src/assets/js/data/games.js").Game} game
  */
 function gameHasImageMetadata(game) {
   return IMAGE_TYPES.some((type) => Boolean(game.images?.[type]));
 }
 
 /**
- * @param {import("../assets/js/data/games.js").Game} game
+ * @param {import("../src/assets/js/data/games.js").Game} game
  * @param {string} type
  */
 function objectKeyForGameType(game, type) {
@@ -132,7 +132,7 @@ function objectKeyForGameType(game, type) {
 async function main() {
   const { count, platformIds, bucket, force } = parseArgs();
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const platformsPath = path.join(root, "assets/js/data/platforms.js");
+  const platformsPath = path.join(root, "src/assets/js/data/platforms.js");
   const { platforms } = await import(pathToFileURL(platformsPath).href);
   const { games } = await import(pathToFileURL(gamesPath).href);
 
@@ -143,7 +143,7 @@ async function main() {
     throw new Error(`Unknown platform id(s): ${invalidPlatforms.join(", ")}`);
   }
 
-  /** @type {Map<string, import("../assets/js/data/games.js").Game[]>} */
+  /** @type {Map<string, import("../src/assets/js/data/games.js").Game[]>} */
   const gamesByPlatform = new Map(selectedPlatforms.map((platformId) => [platformId, []]));
   for (const game of games) {
     if (gamesByPlatform.has(game.platformId)) {

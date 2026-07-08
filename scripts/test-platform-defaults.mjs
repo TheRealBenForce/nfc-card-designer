@@ -4,9 +4,9 @@ import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
   getEffectiveImageTypePriority,
-} from "../assets/js/platformDefaults.js";
-import { normalizeArtworkDisplay } from "../assets/js/artworkDisplay.js";
-import { platformById } from "../assets/js/data/platforms.js";
+} from "../src/assets/js/platformDefaults.js";
+import { normalizeArtworkDisplay } from "../src/assets/js/artworkDisplay.js";
+import { platformById } from "../src/assets/js/data/platforms.js";
 
 const defaults = defaultPlatformDefaults();
 if (defaults.nes.color !== platformById.nes.defaultColor) {

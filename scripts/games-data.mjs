@@ -1,10 +1,10 @@
 import { writeFile, mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isRetailRelease } from "../assets/js/retailFilter.js";
+import { isRetailRelease } from "../src/assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const platformsImageRoot = path.join(root, "assets/images/platforms");
+const platformsImageRoot = path.join(root, "src/assets/images/platforms");
 
 /** @type {Record<string, string>} */
 const IMAGE_FILE_TYPES = {
@@ -13,9 +13,9 @@ const IMAGE_FILE_TYPES = {
   "gamePicture.png": "gamePicture",
 };
 
-export const gamesPath = path.join(root, "assets/js/data/games.js");
-export const gamesByPlatformPath = path.join(root, "assets/data/games-by-platform.json");
-export const imageAvailabilityPath = path.join(root, "assets/data/image-availability.json");
+export const gamesPath = path.join(root, "src/assets/js/data/games.js");
+export const gamesByPlatformPath = path.join(root, "src/assets/data/games-by-platform.json");
+export const imageAvailabilityPath = path.join(root, "src/assets/data/image-availability.json");
 
 const GAMES_HEADER = `/**
  * @typedef {Object} GameImages
@@ -55,7 +55,7 @@ export function gameByRaId(raGameId) {
 }
 `;
 
-/** @param {import("../assets/js/data/games.js").Game[]} games */
+/** @param {import("../src/assets/js/data/games.js").Game[]} games */
 export function gamesToByPlatform(games, options = {}) {
   const retailOnly = options.retailOnly !== false;
   /** @type {Record<string, { name: string, raGameId: number }[]>} */
@@ -77,7 +77,7 @@ export function gamesToByPlatform(games, options = {}) {
 }
 
 /**
- * @param {import("../assets/js/data/games.js").Game[]} games
+ * @param {import("../src/assets/js/data/games.js").Game[]} games
  * @param {{ generatedAt?: string }} [meta]
  */
 export async function writeGamesByPlatformJson(games, meta = {}) {
@@ -93,7 +93,7 @@ export async function writeGamesByPlatformJson(games, meta = {}) {
   await writeFile(gamesByPlatformPath, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
-/** @param {import("../assets/js/data/games.js").Game[]} games */
+/** @param {import("../src/assets/js/data/games.js").Game[]} games */
 export async function writeGamesJs(games) {
   await writeFile(
     gamesPath,
@@ -168,7 +168,7 @@ export function mergeImageAvailability(base, extra) {
   return merged;
 }
 
-/** @param {import("../assets/js/data/games.js").Game[]} games */
+/** @param {import("../src/assets/js/data/games.js").Game[]} games */
 export function imageAvailabilityFromGames(games) {
   /** @type {Record<string, Record<string, string[]>>} */
   const platforms = {};
@@ -186,14 +186,14 @@ export function imageAvailabilityFromGames(games) {
   return platforms;
 }
 
-/** @param {import("../assets/js/data/games.js").Game[]} [games] */
+/** @param {import("../src/assets/js/data/games.js").Game[]} [games] */
 export async function buildImageAvailability(games = []) {
   const fromGames = imageAvailabilityFromGames(games);
   const fromDisk = await scanImageAvailabilityFromDisk();
   return mergeImageAvailability(fromGames, fromDisk);
 }
 
-/** @param {import("../assets/js/data/games.js").Game[]} games */
+/** @param {import("../src/assets/js/data/games.js").Game[]} games */
 export async function writeImageAvailabilityJson(games) {
   const platforms = await buildImageAvailability(games);
 
@@ -214,7 +214,7 @@ export function gameImagePath(platformId, raGameId, type) {
 
 /** @param {string} platformId @param {number} raGameId */
 export function gameImageDir(platformId, raGameId) {
-  return path.join(root, "assets/images/platforms", platformId, "games", String(raGameId));
+  return path.join(root, "src/assets/images/platforms", platformId, "games", String(raGameId));
 }
 
 /** @param {string} filePath */

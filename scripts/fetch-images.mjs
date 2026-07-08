@@ -70,7 +70,7 @@ async function main() {
   }
 
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const platformsPath = path.join(root, "assets/js/data/platforms.js");
+  const platformsPath = path.join(root, "src/assets/js/data/platforms.js");
   const { platforms } = await import(pathToFileURL(platformsPath).href);
   const platformById = Object.fromEntries(platforms.map((p) => [p.id, p]));
 
@@ -239,7 +239,7 @@ async function main() {
       `${stats.failed} failed/missing (${stats.gamesFullySkipped} games already complete)`,
   );
   console.log(`Updated ${gamesPath}`);
-  console.log("Updated assets/data/image-availability.json");
+  console.log("Updated src/assets/data/image-availability.json");
 }
 
 main().catch((err) => {

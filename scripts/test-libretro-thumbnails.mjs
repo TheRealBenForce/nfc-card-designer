@@ -5,7 +5,7 @@ import {
   libretroThumbnailUrl,
   pickLibretroFilename,
   scoreLibretroFilename,
-} from "../assets/js/libretroThumbnails.js";
+} from "../src/assets/js/libretroThumbnails.js";
 import { resolveLibretroFilename } from "./libretro-thumbnails.mjs";
 
 const pacManCandidates = libretroFilenameCandidates("Pac-Man");

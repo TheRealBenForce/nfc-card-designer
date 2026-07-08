@@ -16,4 +16,4 @@ const gameCount = Object.values(platforms).reduce(
   0,
 );
 
-console.log(`Wrote image availability for ${gameCount} games to assets/data/image-availability.json`);
+console.log(`Wrote image availability for ${gameCount} games to src/assets/data/image-availability.json`);

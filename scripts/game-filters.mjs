@@ -1,1 +1,1 @@
-export { isRetailRelease, retailDisplayName, NON_RETAIL_TITLE_MARKERS } from "../assets/js/retailFilter.js";
+export { isRetailRelease, retailDisplayName, NON_RETAIL_TITLE_MARKERS } from "../src/assets/js/retailFilter.js";

@@ -46,7 +46,7 @@ function stopServer(server) {
 async function main() {
   console.log("→ Syntax check…");
   const jsFiles = [
-    ...(await collectJsFiles(path.join(root, "assets/js"))),
+    ...(await collectJsFiles(path.join(root, "src/assets/js"))),
     ...(await collectJsFiles(path.join(root, "scripts"))),
   ];
   for (const file of jsFiles) {
@@ -88,7 +88,7 @@ async function main() {
   await run("node", ["scripts/test-image-scan.mjs"]);
 
   console.log("→ UI smoke test (platform search)…");
-  const server = spawn("npx", ["--yes", "serve", "-l", PORT], {
+  const server = spawn("npx", ["--yes", "serve", "src", "-l", PORT], {
     cwd: root,
     stdio: "ignore",
     detached: false,

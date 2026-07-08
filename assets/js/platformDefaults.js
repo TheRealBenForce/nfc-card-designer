@@ -9,6 +9,16 @@ export const DEFAULT_PLATFORM_COLOR = "#000000";
 export const ROTATION_OPTIONS = [0, 90, 180, 270];
 
 /**
+ * Platforms whose box art is predominantly landscape in this catalog and
+ * should be rotated clockwise by default for portrait cards.
+ * @type {Readonly<Record<string, number>>}
+ */
+const SIDEWAYS_BOX_ART_DEFAULTS = Object.freeze({
+  snes: 90,
+  n64: 90,
+});
+
+/**
  * @typedef {Object} PlatformDefaults
  * @property {string} color
  * @property {string[]} imageTypePriority
@@ -22,14 +32,40 @@ export function defaultImageRotation() {
 }
 
 /**
+ * @param {string} platformId
+ */
+function defaultImageRotationForPlatform(platformId) {
+  const imageRotation = defaultImageRotation();
+  const defaultBoxArtRotation = SIDEWAYS_BOX_ART_DEFAULTS[platformId];
+  if (typeof defaultBoxArtRotation === "number") {
+    imageRotation.boxArt = normalizeRotationDegrees(defaultBoxArtRotation);
+  }
+  return imageRotation;
+}
+
+/**
+ * @param {string} platformId
+ * @param {unknown} rotationEntry
+ */
+function shouldMigrateLegacyRotation(platformId, rotationEntry) {
+  const defaultBoxArtRotation = SIDEWAYS_BOX_ART_DEFAULTS[platformId];
+  if (!defaultBoxArtRotation) return false;
+  if (!rotationEntry || typeof rotationEntry !== "object") return false;
+  return DEFAULT_IMAGE_TYPE_PRIORITY.every(
+    (type) => normalizeRotationDegrees(rotationEntry[type]) === 0,
+  );
+}
+
+/**
+ * @param {string} platformId
  * @param {string} [color]
  * @returns {PlatformDefaults}
  */
-export function createPlatformDefaultEntry(color = DEFAULT_PLATFORM_COLOR) {
+export function createPlatformDefaultEntry(platformId, color = DEFAULT_PLATFORM_COLOR) {
   return {
     color,
     imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
-    imageRotation: defaultImageRotation(),
+    imageRotation: defaultImageRotationForPlatform(platformId),
     artworkDisplay: defaultArtworkDisplay(),
   };
 }
@@ -37,7 +73,10 @@ export function createPlatformDefaultEntry(color = DEFAULT_PLATFORM_COLOR) {
 /** @returns {Record<string, PlatformDefaults>} */
 export function defaultPlatformDefaults() {
   return Object.fromEntries(
-    platforms.map((platform) => [platform.id, createPlatformDefaultEntry(platform.defaultColor)]),
+    platforms.map((platform) => [
+      platform.id,
+      createPlatformDefaultEntry(platform.id, platform.defaultColor),
+    ]),
   );
 }
 
@@ -81,6 +120,9 @@ export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDis
           if (type in entry.imageRotation) {
             imageRotation[type] = normalizeRotationDegrees(entry.imageRotation[type]);
           }
+        }
+        if (shouldMigrateLegacyRotation(platformId, entry.imageRotation)) {
+          imageRotation.boxArt = normalizeRotationDegrees(SIDEWAYS_BOX_ART_DEFAULTS[platformId]);
         }
         normalized.imageRotation = imageRotation;
       }

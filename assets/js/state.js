@@ -39,7 +39,7 @@ export let collection = loadCollection();
 export let selectedCardIds = new Set();
 
 /** @type {string|null} */
-export let previewCardId = collection.length > 0 ? collection[collection.length - 1].id : null;
+export let previewCardId = null;
 
 /** @type {Set<(event: string) => void>} */
 const listeners = new Set();

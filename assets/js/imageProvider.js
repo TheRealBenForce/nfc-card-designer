@@ -1,4 +1,5 @@
 import { PLACEHOLDER_SVG } from "./config.js";
+import { getDevImageDelayMs } from "./devTools.js";
 import { gameByPlatformAndRaId } from "./data/games.js";
 
 const IMAGE_FIELD_MAP = {
@@ -76,7 +77,12 @@ export async function resolveCardImage(card) {
  * @param {string} src
  * @returns {Promise<HTMLImageElement>}
  */
-export function loadImage(src) {
+export async function loadImage(src) {
+  const delayMs = getDevImageDelayMs();
+  if (delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     if (!src.startsWith("data:")) {

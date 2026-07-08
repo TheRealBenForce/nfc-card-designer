@@ -839,8 +839,12 @@ function pickGameFromSearch() {
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
   const selectedCard = getSingleSelectedCard();
-  const targetCardId = selectedCard?.id ?? null;
-  const preferredType = selectedCard?.imageType ?? null;
+  const editingSelectedCard =
+    Boolean(selectedCard) &&
+    selectedCard.platformId === game.platformId &&
+    selectedCard.raGameId === game.raGameId;
+  const targetCardId = editingSelectedCard && selectedCard ? selectedCard.id : null;
+  const preferredType = editingSelectedCard && selectedCard ? selectedCard.imageType : null;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 

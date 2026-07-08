@@ -4,7 +4,6 @@
  */
 
 import { spawn } from "node:child_process";
-import { access, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,26 +22,13 @@ function run(cmd, args) {
 }
 
 /**
- * Return top-level route directories that contain an index.html file.
- * Uploading each index file to an extensionless object key allows
- * CloudFront+S3 origins to resolve URLs like /supplies and /thanks.
- * @returns {Promise<string[]>}
+ * Return static route names backed by root-level HTML files.
+ * Uploading each file as a route index document allows CloudFront+S3 origins
+ * to resolve URLs like /supplies and /thanks.
+ * @returns {string[]}
  */
-async function getExtensionlessRouteAliases() {
-  const entries = await readdir(root, { withFileTypes: true });
-  const aliases = [];
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name.startsWith(".") || entry.name === "assets" || entry.name === "scripts") continue;
-    const indexPath = path.join(root, entry.name, "index.html");
-    try {
-      await access(indexPath);
-      aliases.push(entry.name);
-    } catch {
-      // Not a static route directory.
-    }
-  }
-  return aliases.sort();
+function getExtensionlessRouteAliases() {
+  return ["recognition", "supplies", "thanks"];
 }
 
 async function main() {
@@ -81,14 +67,23 @@ async function main() {
   console.log(`→ Syncing site to s3://${bucket}/`);
   await run("aws", ["s3", "sync", ".", `s3://${bucket}`, "--delete", ...excludes]);
 
-  const extensionlessAliases = await getExtensionlessRouteAliases();
+  const extensionlessAliases = getExtensionlessRouteAliases();
   if (extensionlessAliases.length > 0) {
     console.log(`→ Publishing extensionless route aliases: ${extensionlessAliases.join(", ")}`);
     for (const route of extensionlessAliases) {
+      const source = `${route}.html`;
       await run("aws", [
         "s3",
         "cp",
-        `${route}/index.html`,
+        source,
+        `s3://${bucket}/${route}/index.html`,
+        "--content-type",
+        "text/html; charset=utf-8",
+      ]);
+      await run("aws", [
+        "s3",
+        "cp",
+        source,
         `s3://${bucket}/${route}`,
         "--content-type",
         "text/html; charset=utf-8",

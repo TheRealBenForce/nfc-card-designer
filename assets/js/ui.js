@@ -43,6 +43,8 @@ import {
   setPlatformArtworkDisplay,
   setCardArtworkDisplay,
   clearCardArtworkDisplay,
+  setCardImageRotation,
+  clearCardImageRotation,
   getEffectiveArtworkDisplay,
   addCard,
   updateCard,
@@ -129,6 +131,8 @@ let previewArtworkZoomValueEl = null;
 let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
 let previewArtworkControlsTitleEl = null;
+/** @type {HTMLButtonElement|null} */
+let previewArtworkRotateBtn = null;
 
 /** @type {{ game: import('./gameCatalog.js').Game, imageType: string, availableTypes: string[], resolvedTypes: string[], targetCardId: string | null } | null} */
 let browseState = null;
@@ -350,6 +354,16 @@ function syncPreviewArtworkControls() {
     previewArtworkResetBtn.disabled = context.mode === "card" && !context.hasOverride;
   }
 
+  if (previewArtworkRotateBtn) {
+    const isCardMode = context.mode === "card";
+    previewArtworkRotateBtn.hidden = !isCardMode;
+    previewArtworkRotateBtn.disabled = !isCardMode;
+    if (isCardMode) {
+      const rotation = context.cardRotation ?? 0;
+      previewArtworkRotateBtn.title = `Rotate artwork 90° (current ${rotation}°)`;
+    }
+  }
+
   syncArtworkAlignmentGrid(previewArtworkAlignmentGridEl, context.display);
   syncArtworkBackgroundControls(
     previewArtworkBackgroundModeEl,
@@ -365,6 +379,7 @@ function syncPreviewArtworkControls() {
  *   mode: "platform" | "card",
  *   platformId?: string,
  *   cardId?: string,
+ *   cardRotation?: number,
  *   display: import("./artworkDisplay.js").ArtworkDisplaySettings,
  *   hasOverride?: boolean,
  * } | null}
@@ -384,8 +399,9 @@ function getPreviewArtworkControlContext() {
   return {
     mode: "card",
     cardId: previewCard.id,
+    cardRotation: previewCard.imageRotation ?? 0,
     display: getEffectiveArtworkDisplay(previewCard),
-    hasOverride: Boolean(previewCard.artworkDisplay),
+    hasOverride: Boolean(previewCard.artworkDisplay) || (previewCard.imageRotation ?? 0) !== 0,
   };
 }
 
@@ -1190,6 +1206,15 @@ function bindEvents() {
     const previewCard = getPreviewCard();
     if (!previewCard) return;
     clearCardArtworkDisplay(previewCard.id);
+    clearCardImageRotation(previewCard.id);
+    syncPreviewArtworkControls();
+    refreshPreview();
+  });
+
+  previewArtworkRotateBtn?.addEventListener("click", () => {
+    const previewCard = getPreviewCard();
+    if (!previewCard) return;
+    setCardImageRotation(previewCard.id, (previewCard.imageRotation ?? 0) + 90);
     syncPreviewArtworkControls();
     refreshPreview();
   });
@@ -1346,6 +1371,9 @@ export async function initUI() {
     document.getElementById("preview-artwork-reset")
   );
   previewArtworkControlsTitleEl = document.getElementById("preview-artwork-controls-title");
+  previewArtworkRotateBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("preview-artwork-rotate")
+  );
 
   if (platformArtworkAlignmentGridEl) {
     mountArtworkAlignmentGrid(platformArtworkAlignmentGridEl, (alignment) => {

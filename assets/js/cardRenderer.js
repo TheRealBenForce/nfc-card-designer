@@ -8,6 +8,7 @@ import {
   DEFAULT_PLATFORM_COLOR,
   getImageRotation,
   getPlatformColor,
+  normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import {
   BLURRED_BACKGROUND_IMAGE_TYPES,
@@ -316,7 +317,8 @@ export async function renderCard(card, platformDefaults) {
 
   const platform = platformById[card.platformId];
   const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
-  const rotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
+  const baseRotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
+  const rotation = normalizeRotationDegrees(baseRotation + (card.imageRotation ?? 0));
   const { art, logo, color: colorRect } = computeCardLayout(canvas.width, canvas.height);
 
   ctx.fillStyle = "#111";

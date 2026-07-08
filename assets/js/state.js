@@ -1,6 +1,7 @@
 import { loadSettings, loadCollection } from "./storage.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
 import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay.js";
+import { normalizeRotationDegrees } from "./platformDefaults.js";
 
 /**
  * @typedef {Object} Card
@@ -11,6 +12,7 @@ import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay
  * @property {string} imageType
  * @property {boolean} [imageFailed]
  * @property {ArtworkDisplaySettings} [artworkDisplay]
+ * @property {number} [imageRotation]
  */
 
 /**
@@ -205,6 +207,34 @@ export function clearCardArtworkDisplay(cardId) {
   const { artworkDisplay: _removed, ...rest } = card;
   collection = collection.map((entry) => (entry.id === cardId ? /** @type {Card} */ (rest) : entry));
   emit("collection");
+}
+
+/**
+ * @param {string} cardId
+ * @param {number} degrees
+ */
+export function setCardImageRotation(cardId, degrees) {
+  const card = collection.find((entry) => entry.id === cardId);
+  if (!card) return;
+
+  const normalized = normalizeRotationDegrees(degrees);
+  if (normalized === 0) {
+    if (typeof card.imageRotation !== "number") return;
+    const { imageRotation: _removed, ...rest } = card;
+    collection = collection.map((entry) => (entry.id === cardId ? /** @type {Card} */ (rest) : entry));
+    emit("collection");
+    return;
+  }
+
+  if (card.imageRotation === normalized) return;
+  updateCard(cardId, { imageRotation: normalized });
+}
+
+/**
+ * @param {string} cardId
+ */
+export function clearCardImageRotation(cardId) {
+  setCardImageRotation(cardId, 0);
 }
 
 /**

@@ -48,7 +48,8 @@ export function defaultPlatformDefaults() {
 export function normalizeRotationDegrees(degrees) {
   if (typeof degrees !== "number" || !Number.isFinite(degrees)) return 0;
   const rounded = Math.round(degrees);
-  return ROTATION_OPTIONS.includes(rounded) ? rounded : 0;
+  const normalized = ((rounded % 360) + 360) % 360;
+  return ROTATION_OPTIONS.includes(normalized) ? normalized : 0;
 }
 
 /**

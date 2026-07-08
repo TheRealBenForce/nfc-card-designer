@@ -69,6 +69,16 @@ if (invalidRotation.nes.imageRotation.boxArt !== 0) {
   throw new Error("Invalid rotation degrees should fall back to 0");
 }
 
+const wrappedRotation = normalizePlatformDefaults({
+  nes: { color: "#000000", imageRotation: { boxArt: 450, titleScreen: -90 } },
+});
+if (wrappedRotation.nes.imageRotation.boxArt !== 90) {
+  throw new Error("Rotation >360 should wrap to a valid quarter turn");
+}
+if (wrappedRotation.nes.imageRotation.titleScreen !== 270) {
+  throw new Error("Negative rotation should wrap to equivalent quarter turn");
+}
+
 if (defaults.nes.artworkDisplay.zoom !== 0) {
   throw new Error("Default artwork zoom should be 0");
 }

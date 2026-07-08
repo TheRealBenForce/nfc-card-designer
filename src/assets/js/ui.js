@@ -18,6 +18,7 @@ import {
 import {
   getCardPreviewWidthPx,
   maxStickerInsetMm,
+  mmToRenderPx,
   normalizeCardHeightMm,
   normalizeCardWidthMm,
   normalizeStickerInsetMm,
@@ -917,6 +918,39 @@ function syncGlobalSettingsControls() {
   applyCardSizingCssVariables(settings);
 }
 
+/**
+ * Render output is full card size for print; preview overlay needs sticker-only.
+ * @param {HTMLCanvasElement} cardCanvas
+ * @param {import("./state.js").AppSettings} settings
+ */
+function stickerCanvasToDataUrl(cardCanvas, settings) {
+  const sizing = resolveCardSizing(settings);
+  const insetPx = mmToRenderPx(sizing.stickerInsetMm);
+  const stickerWidthPx = Math.max(1, cardCanvas.width - insetPx * 2);
+  const stickerHeightPx = Math.max(1, cardCanvas.height - insetPx * 2);
+  const stickerCanvas = document.createElement("canvas");
+  stickerCanvas.width = stickerWidthPx;
+  stickerCanvas.height = stickerHeightPx;
+  const ctx = stickerCanvas.getContext("2d");
+  if (!ctx) return cardCanvas.toDataURL("image/png");
+  ctx.drawImage(
+    cardCanvas,
+    insetPx,
+    insetPx,
+    stickerWidthPx,
+    stickerHeightPx,
+    0,
+    0,
+    stickerWidthPx,
+    stickerHeightPx,
+  );
+  const stickerPreviewWidthPx = Math.max(
+    1,
+    Math.round(getCardPreviewWidthPx(settings) * (sizing.stickerWidthMm / sizing.cardWidthMm)),
+  );
+  return canvasToDataUrl(stickerCanvas, stickerPreviewWidthPx);
+}
+
 function currentHeaderSettingsSnapshot() {
   const settings = getSettings();
   return {
@@ -1343,7 +1377,7 @@ async function refreshPreview() {
 
   const requestId = ++previewRequestId;
   schedulePreviewSkeleton();
-  const previewWidthPx = getCardPreviewWidthPx(getSettings());
+  const settings = getSettings();
 
   try {
     if (browseState) {
@@ -1375,12 +1409,12 @@ async function refreshPreview() {
           };
       previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-      const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
+      const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
       if (requestId !== previewRequestId) return;
       if (browseState !== snapshot) return;
 
       previewImageEl.hidden = false;
-      previewImageEl.src = canvasToDataUrl(canvas, previewWidthPx);
+      previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
       previewImageEl.alt = `Preview: ${game.name}`;
       syncBrowseActionButton();
       renderPreviewTypeTabs();
@@ -1405,12 +1439,12 @@ async function refreshPreview() {
     const platform = platformById[card.platformId];
     previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-    const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
+    const canvas = await renderCard(card, settings.platformDefaults, settings);
     if (requestId !== previewRequestId) return;
     if (browseState) return;
 
     previewImageEl.hidden = false;
-    previewImageEl.src = canvasToDataUrl(canvas, previewWidthPx);
+    previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
     previewImageEl.alt = `Preview: ${card.gameName}`;
     renderPreviewTypeTabs();
   } finally {

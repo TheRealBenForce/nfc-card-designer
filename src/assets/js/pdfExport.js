@@ -1,5 +1,6 @@
 import { renderCard } from "./cardRenderer.js";
-import { CARD_WIDTH_MM, CARD_HEIGHT_MM, CARDS_PER_ROW, CARDS_PER_COL } from "./config.js";
+import { CARDS_PER_ROW, CARDS_PER_COL } from "./config.js";
+import { resolveCardSizing } from "./cardSizing.js";
 import { cardPositionMm, drawSheetCutMarks } from "./pdfLayout.js";
 
 /**
@@ -13,6 +14,7 @@ import { cardPositionMm, drawSheetCutMarks } from "./pdfLayout.js";
  */
 export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
   const { jsPDF } = await import("https://esm.sh/jspdf@2.5.2");
+  const cardSizing = resolveCardSizing(layoutSettings);
 
   const cardsPerSheet = CARDS_PER_ROW * CARDS_PER_COL;
   const sheetCount = Math.max(1, Math.ceil(deck.length / cardsPerSheet));
@@ -32,14 +34,14 @@ export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
 
       const col = slot % CARDS_PER_ROW;
       const row = Math.floor(slot / CARDS_PER_ROW);
-      const { x, y } = cardPositionMm(col, row);
+      const { x, y } = cardPositionMm(col, row, layoutSettings);
 
       const canvas = await renderCard(deck[cardIndex], platformDefaults, layoutSettings);
       const dataUrl = canvas.toDataURL("image/png");
-      pdf.addImage(dataUrl, "PNG", x, y, CARD_WIDTH_MM, CARD_HEIGHT_MM);
+      pdf.addImage(dataUrl, "PNG", x, y, cardSizing.cardWidthMm, cardSizing.cardHeightMm);
     }
 
-    drawSheetCutMarks(pdf);
+    drawSheetCutMarks(pdf, layoutSettings);
   }
 
   pdf.save("nfc-card-labels.pdf");

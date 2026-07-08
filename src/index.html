@@ -53,6 +53,44 @@
               />
               <span id="global-header-height-value" class="artwork-zoom-field__value">15%</span>
             </label>
+            <div class="dimension-grid" role="group" aria-label="Card and sticker sizing">
+              <label class="field dimension-field">
+                <span class="field__label">Card Width (mm)</span>
+                <input
+                  id="global-card-width"
+                  class="input"
+                  type="number"
+                  min="20"
+                  max="120"
+                  step="0.1"
+                  value="52"
+                />
+              </label>
+              <label class="field dimension-field">
+                <span class="field__label">Card Height (mm)</span>
+                <input
+                  id="global-card-height"
+                  class="input"
+                  type="number"
+                  min="20"
+                  max="180"
+                  step="0.1"
+                  value="84"
+                />
+              </label>
+              <label class="field dimension-field">
+                <span class="field__label">Sticker Inset (mm)</span>
+                <input
+                  id="global-sticker-inset"
+                  class="input"
+                  type="number"
+                  min="0"
+                  max="20"
+                  step="0.1"
+                  value="2"
+                />
+              </label>
+            </div>
           </div>
         </details>
 
@@ -143,8 +181,11 @@
           <div class="preview-main">
             <div id="preview-type-tabs" class="preview-type-tabs"></div>
             <div id="preview-frame" class="preview-frame">
-              <div id="preview-skeleton" class="preview-skeleton" hidden aria-hidden="true"></div>
-              <img id="preview-image" class="preview-image" alt="" />
+              <div id="preview-card" class="preview-card">
+                <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
+                <div id="preview-skeleton" class="preview-skeleton" hidden aria-hidden="true"></div>
+                <img id="preview-image" class="preview-image" alt="" hidden />
+              </div>
             </div>
             <label for="preview-calibration-input" class="preview-calibration">
               <span class="preview-calibration__label">Screen calibration</span>

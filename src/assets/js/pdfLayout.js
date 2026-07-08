@@ -1,6 +1,4 @@
 import {
-  CARD_WIDTH_MM,
-  CARD_HEIGHT_MM,
   LETTER_WIDTH_MM,
   LETTER_HEIGHT_MM,
   CARDS_PER_ROW,
@@ -9,26 +7,39 @@ import {
   PDF_CUT_MARK_LENGTH_MM,
   PDF_CUT_MARK_OFFSET_MM,
 } from "./config.js";
+import { resolveCardSizing } from "./cardSizing.js";
+
+/**
+ * @param {{ cardWidthMm?: unknown, cardHeightMm?: unknown, stickerInsetMm?: unknown } | null | undefined} layoutSettings
+ */
+function resolvePdfCardDimensions(layoutSettings) {
+  const sizing = resolveCardSizing(layoutSettings);
+  return {
+    cardWidthMm: sizing.cardWidthMm,
+    cardHeightMm: sizing.cardHeightMm,
+  };
+}
 
 /** Layout math for the letter-size PDF grid (exported for tests). */
-export function computePdfGridLayout() {
-  const gridW = CARDS_PER_ROW * CARD_WIDTH_MM + (CARDS_PER_ROW - 1) * PDF_CARD_GAP_MM;
-  const gridH = CARDS_PER_COL * CARD_HEIGHT_MM + (CARDS_PER_COL - 1) * PDF_CARD_GAP_MM;
+export function computePdfGridLayout(layoutSettings) {
+  const { cardWidthMm, cardHeightMm } = resolvePdfCardDimensions(layoutSettings);
+  const gridW = CARDS_PER_ROW * cardWidthMm + (CARDS_PER_ROW - 1) * PDF_CARD_GAP_MM;
+  const gridH = CARDS_PER_COL * cardHeightMm + (CARDS_PER_COL - 1) * PDF_CARD_GAP_MM;
   const marginX = (LETTER_WIDTH_MM - gridW) / 2;
   const marginY = (LETTER_HEIGHT_MM - gridH) / 2;
 
-  return { gridW, gridH, marginX, marginY, gap: PDF_CARD_GAP_MM };
+  return { gridW, gridH, marginX, marginY, gap: PDF_CARD_GAP_MM, cardWidthMm, cardHeightMm };
 }
 
 /**
  * @param {number} col
  * @param {number} row
  */
-export function cardPositionMm(col, row) {
-  const { marginX, marginY, gap } = computePdfGridLayout();
+export function cardPositionMm(col, row, layoutSettings) {
+  const { marginX, marginY, gap, cardWidthMm, cardHeightMm } = computePdfGridLayout(layoutSettings);
   return {
-    x: marginX + col * (CARD_WIDTH_MM + gap),
-    y: marginY + row * (CARD_HEIGHT_MM + gap),
+    x: marginX + col * (cardWidthMm + gap),
+    y: marginY + row * (cardHeightMm + gap),
   };
 }
 
@@ -36,9 +47,10 @@ export function cardPositionMm(col, row) {
  * @param {number} col
  * @param {number} row
  */
-export function cardRectMm(col, row) {
-  const { x, y } = cardPositionMm(col, row);
-  return { x, y, w: CARD_WIDTH_MM, h: CARD_HEIGHT_MM };
+export function cardRectMm(col, row, layoutSettings) {
+  const { x, y } = cardPositionMm(col, row, layoutSettings);
+  const { cardWidthMm, cardHeightMm } = computePdfGridLayout(layoutSettings);
+  return { x, y, w: cardWidthMm, h: cardHeightMm };
 }
 
 /**
@@ -76,18 +88,18 @@ export function drawPerimeterCutMarks(pdf, x, y, w, h) {
  * X coordinate at the center of the vertical gutter between two columns.
  * @param {number} col Left column index (0 or 1 for a 3-column grid).
  */
-export function verticalGutterCenterX(col) {
-  const { marginX, gap } = computePdfGridLayout();
-  return marginX + (col + 1) * CARD_WIDTH_MM + col * gap + gap / 2;
+export function verticalGutterCenterX(col, layoutSettings) {
+  const { marginX, gap, cardWidthMm } = computePdfGridLayout(layoutSettings);
+  return marginX + (col + 1) * cardWidthMm + col * gap + gap / 2;
 }
 
 /**
  * Y coordinate at the center of the horizontal gutter between two rows.
  * @param {number} row Top row index (0 or 1 for a 3-row grid).
  */
-export function horizontalGutterCenterY(row) {
-  const { marginY, gap } = computePdfGridLayout();
-  return marginY + (row + 1) * CARD_HEIGHT_MM + row * gap + gap / 2;
+export function horizontalGutterCenterY(row, layoutSettings) {
+  const { marginY, gap, cardHeightMm } = computePdfGridLayout(layoutSettings);
+  return marginY + (row + 1) * cardHeightMm + row * gap + gap / 2;
 }
 
 /**
@@ -123,8 +135,8 @@ function drawVerticalTick(pdf, cx, cy, m) {
  *
  * @param {import("jspdf").jsPDF} pdf
  */
-export function drawInternalCutMarks(pdf) {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
+export function drawInternalCutMarks(pdf, layoutSettings) {
+  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
 
@@ -132,60 +144,60 @@ export function drawInternalCutMarks(pdf) {
   pdf.setLineWidth(0.15);
 
   for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const cutX = verticalGutterCenterX(col);
+    const cutX = verticalGutterCenterX(col, layoutSettings);
     drawHorizontalTick(pdf, cutX, marginY - o, m);
     drawHorizontalTick(pdf, cutX, marginY + gridH + o, m);
     for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-      drawHorizontalTick(pdf, cutX, horizontalGutterCenterY(row), m);
+      drawHorizontalTick(pdf, cutX, horizontalGutterCenterY(row, layoutSettings), m);
     }
   }
 
   for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const cutY = horizontalGutterCenterY(row);
+    const cutY = horizontalGutterCenterY(row, layoutSettings);
     drawVerticalTick(pdf, marginX - o, cutY, m);
     drawVerticalTick(pdf, marginX + gridW + o, cutY, m);
     for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-      drawVerticalTick(pdf, verticalGutterCenterX(col), cutY, m);
+      drawVerticalTick(pdf, verticalGutterCenterX(col, layoutSettings), cutY, m);
     }
   }
 }
 
 /** @param {import("jspdf").jsPDF} pdf */
-export function drawSheetCutMarks(pdf) {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
+export function drawSheetCutMarks(pdf, layoutSettings) {
+  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
   drawPerimeterCutMarks(pdf, marginX, marginY, gridW, gridH);
-  drawInternalCutMarks(pdf);
+  drawInternalCutMarks(pdf, layoutSettings);
 }
 
 /**
  * Internal cut mark endpoints for tests.
  * @returns {{ x1: number, y1: number, x2: number, y2: number }[]}
  */
-export function internalCutMarkSegments() {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout();
+export function internalCutMarkSegments(layoutSettings) {
+  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
   /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */
   const segments = [];
 
   for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const cutX = verticalGutterCenterX(col);
+    const cutX = verticalGutterCenterX(col, layoutSettings);
     for (const cy of [marginY - o, marginY + gridH + o]) {
       segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
     }
     for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-      const cy = horizontalGutterCenterY(row);
+      const cy = horizontalGutterCenterY(row, layoutSettings);
       segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
     }
   }
 
   for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const cutY = horizontalGutterCenterY(row);
+    const cutY = horizontalGutterCenterY(row, layoutSettings);
     for (const cx of [marginX - o, marginX + gridW + o]) {
       segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
     }
     for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-      const cx = verticalGutterCenterX(col);
+      const cx = verticalGutterCenterX(col, layoutSettings);
       segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
     }
   }

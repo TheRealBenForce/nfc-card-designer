@@ -1,6 +1,7 @@
 /** Card and print dimensions (millimeters). */
 export const CARD_WIDTH_MM = 52;
 export const CARD_HEIGHT_MM = 84;
+export const DEFAULT_STICKER_INSET_MM = 2;
 /** CSS reference pixel density used by browsers for absolute units. */
 export const CSS_PX_PER_MM = 96 / 25.4;
 /** Maximum on-screen preview size for a life-size 52×84 mm card. */

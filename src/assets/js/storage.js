@@ -10,14 +10,17 @@ import {
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
+import { resolveCardSizing } from "./cardSizing.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
   const headerSettings = normalizeHeaderSettings();
+  const cardSizing = resolveCardSizing();
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: "",
     ...headerSettings,
+    ...cardSizing,
     searchOnlyGamesWithImages: false,
     ...headerSettings,
   };
@@ -83,10 +86,12 @@ function normalizeCard(card, fallbackHeaderSettings) {
  */
 export function saveSettings(settings) {
   const headerSettings = normalizeHeaderSettings(settings);
+  const cardSizing = resolveCardSizing(settings);
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     ...headerSettings,
+    ...cardSizing,
     searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
   };
@@ -101,6 +106,7 @@ export function loadSettings() {
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
     const headerSettings = normalizeHeaderSettings(parsed);
+    const cardSizing = resolveCardSizing(parsed);
 
     return {
       platformDefaults: normalizePlatformDefaults(
@@ -116,6 +122,7 @@ export function loadSettings() {
         typeof parsed.searchOnlyGamesWithImages === "boolean"
           ? parsed.searchOnlyGamesWithImages
           : defaults.searchOnlyGamesWithImages,
+      ...cardSizing,
       ...headerSettings,
     };
   } catch {
@@ -163,10 +170,12 @@ export function loadDeck() {
  */
 export function buildProjectData(settings, collection) {
   const headerSettings = normalizeHeaderSettings(settings);
+  const cardSizing = resolveCardSizing(settings);
   return {
-    version: 4,
+    version: 5,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    ...cardSizing,
     searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
     cards: collection.map(serializeCard),
@@ -224,6 +233,7 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
+            ...resolveCardSizing(parsed),
             searchOnlyGamesWithImages:
               typeof parsed.searchOnlyGamesWithImages === "boolean"
                 ? parsed.searchOnlyGamesWithImages

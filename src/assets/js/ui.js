@@ -13,10 +13,17 @@ import {
 import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
-  CARD_PREVIEW_WIDTH_PX,
   PREVIEW_CALIBRATION_STORAGE_KEY,
-  PLACEHOLDER_SVG,
 } from "./config.js";
+import {
+  getCardPreviewWidthPx,
+  maxStickerInsetMm,
+  mmToRenderPx,
+  normalizeCardHeightMm,
+  normalizeCardWidthMm,
+  normalizeStickerInsetMm,
+  resolveCardSizing,
+} from "./cardSizing.js";
 import { movePriorityItem } from "./imageSettings.js";
 import {
   getEffectiveImageTypePriority,
@@ -118,6 +125,12 @@ let globalShowPlatformColorInput = null;
 let globalHeaderHeightInput = null;
 /** @type {HTMLElement|null} */
 let globalHeaderHeightValueEl = null;
+/** @type {HTMLInputElement|null} */
+let globalCardWidthInput = null;
+/** @type {HTMLInputElement|null} */
+let globalCardHeightInput = null;
+/** @type {HTMLInputElement|null} */
+let globalStickerInsetInput = null;
 /** @type {HTMLElement|null} */
 let platformRotationFieldsEl = null;
 /** @type {HTMLOListElement|null} */
@@ -862,8 +875,20 @@ function selectPlatform(platformId) {
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
+/**
+ * @param {import("./state.js").AppSettings} settings
+ */
+function applyCardSizingCssVariables(settings) {
+  const sizing = resolveCardSizing(settings);
+  document.documentElement.style.setProperty("--card-width-mm", String(sizing.cardWidthMm));
+  document.documentElement.style.setProperty("--card-height-mm", String(sizing.cardHeightMm));
+  document.documentElement.style.setProperty("--sticker-width-mm", String(sizing.stickerWidthMm));
+  document.documentElement.style.setProperty("--sticker-height-mm", String(sizing.stickerHeightMm));
+}
+
 function syncGlobalSettingsControls() {
   const settings = getSettings();
+  const sizing = resolveCardSizing(settings);
   if (searchOnlyGamesWithImagesInput) {
     searchOnlyGamesWithImagesInput.checked = !settings.searchOnlyGamesWithImages;
   }
@@ -880,6 +905,50 @@ function syncGlobalSettingsControls() {
   if (globalHeaderHeightValueEl) {
     globalHeaderHeightValueEl.textContent = `${settings.headerHeightPercent}%`;
   }
+  if (globalCardWidthInput) {
+    globalCardWidthInput.value = String(sizing.cardWidthMm);
+  }
+  if (globalCardHeightInput) {
+    globalCardHeightInput.value = String(sizing.cardHeightMm);
+  }
+  if (globalStickerInsetInput) {
+    globalStickerInsetInput.value = String(sizing.stickerInsetMm);
+    globalStickerInsetInput.max = String(maxStickerInsetMm(sizing.cardWidthMm, sizing.cardHeightMm));
+  }
+  applyCardSizingCssVariables(settings);
+}
+
+/**
+ * Render output is full card size for print; preview overlay needs sticker-only.
+ * @param {HTMLCanvasElement} cardCanvas
+ * @param {import("./state.js").AppSettings} settings
+ */
+function stickerCanvasToDataUrl(cardCanvas, settings) {
+  const sizing = resolveCardSizing(settings);
+  const insetPx = mmToRenderPx(sizing.stickerInsetMm);
+  const stickerWidthPx = Math.max(1, cardCanvas.width - insetPx * 2);
+  const stickerHeightPx = Math.max(1, cardCanvas.height - insetPx * 2);
+  const stickerCanvas = document.createElement("canvas");
+  stickerCanvas.width = stickerWidthPx;
+  stickerCanvas.height = stickerHeightPx;
+  const ctx = stickerCanvas.getContext("2d");
+  if (!ctx) return cardCanvas.toDataURL("image/png");
+  ctx.drawImage(
+    cardCanvas,
+    insetPx,
+    insetPx,
+    stickerWidthPx,
+    stickerHeightPx,
+    0,
+    0,
+    stickerWidthPx,
+    stickerHeightPx,
+  );
+  const stickerPreviewWidthPx = Math.max(
+    1,
+    Math.round(getCardPreviewWidthPx(settings) * (sizing.stickerWidthMm / sizing.cardWidthMm)),
+  );
+  return canvasToDataUrl(stickerCanvas, stickerPreviewWidthPx);
 }
 
 function currentHeaderSettingsSnapshot() {
@@ -1308,6 +1377,7 @@ async function refreshPreview() {
 
   const requestId = ++previewRequestId;
   schedulePreviewSkeleton();
+  const settings = getSettings();
 
   try {
     if (browseState) {
@@ -1339,11 +1409,12 @@ async function refreshPreview() {
           };
       previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-      const canvas = await renderCard(cardForRender, getSettings().platformDefaults, getSettings());
+      const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
       if (requestId !== previewRequestId) return;
       if (browseState !== snapshot) return;
 
-      previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
+      previewImageEl.hidden = false;
+      previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
       previewImageEl.alt = `Preview: ${game.name}`;
       syncBrowseActionButton();
       renderPreviewTypeTabs();
@@ -1357,8 +1428,9 @@ async function refreshPreview() {
     const card = getPreviewCard();
     if (!card) {
       if (requestId !== previewRequestId) return;
-      previewImageEl.src = PLACEHOLDER_SVG;
-      previewImageEl.alt = "Preview placeholder";
+      previewImageEl.hidden = true;
+      previewImageEl.src = "";
+      previewImageEl.alt = "";
       previewMetaEl.textContent = "Search for a game to preview artwork.";
       renderPreviewTypeTabs();
       return;
@@ -1367,11 +1439,12 @@ async function refreshPreview() {
     const platform = platformById[card.platformId];
     previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
 
-    const canvas = await renderCard(card, getSettings().platformDefaults, getSettings());
+    const canvas = await renderCard(card, settings.platformDefaults, settings);
     if (requestId !== previewRequestId) return;
     if (browseState) return;
 
-    previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
+    previewImageEl.hidden = false;
+    previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
     previewImageEl.alt = `Preview: ${card.gameName}`;
     renderPreviewTypeTabs();
   } finally {
@@ -1442,6 +1515,59 @@ function bindEvents() {
       Number(/** @type {HTMLInputElement} */ (e.target).value),
     );
     updateSettings({ headerHeightPercent });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalCardWidthInput?.addEventListener("change", (e) => {
+    const settings = getSettings();
+    const rawWidth = Number(/** @type {HTMLInputElement} */ (e.target).value);
+    const cardWidthMm = Number.isFinite(rawWidth)
+      ? normalizeCardWidthMm(rawWidth)
+      : settings.cardWidthMm;
+    updateSettings({
+      cardWidthMm,
+      stickerInsetMm: normalizeStickerInsetMm(
+        settings.stickerInsetMm,
+        cardWidthMm,
+        settings.cardHeightMm,
+      ),
+    });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalCardHeightInput?.addEventListener("change", (e) => {
+    const settings = getSettings();
+    const rawHeight = Number(/** @type {HTMLInputElement} */ (e.target).value);
+    const cardHeightMm = Number.isFinite(rawHeight)
+      ? normalizeCardHeightMm(rawHeight)
+      : settings.cardHeightMm;
+    updateSettings({
+      cardHeightMm,
+      stickerInsetMm: normalizeStickerInsetMm(
+        settings.stickerInsetMm,
+        settings.cardWidthMm,
+        cardHeightMm,
+      ),
+    });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    refreshPreview();
+  });
+
+  globalStickerInsetInput?.addEventListener("change", (e) => {
+    const settings = getSettings();
+    const rawInset = Number(/** @type {HTMLInputElement} */ (e.target).value);
+    updateSettings({
+      stickerInsetMm: normalizeStickerInsetMm(
+        Number.isFinite(rawInset) ? rawInset : settings.stickerInsetMm,
+        settings.cardWidthMm,
+        settings.cardHeightMm,
+      ),
+    });
     saveSettings(getSettings());
     syncGlobalSettingsControls();
     refreshPreview();
@@ -1552,6 +1678,9 @@ function bindEvents() {
           typeof imported.settings.selectedPlatformId === "string"
             ? imported.settings.selectedPlatformId
             : defaults.selectedPlatformId,
+        cardWidthMm: imported.settings.cardWidthMm ?? defaults.cardWidthMm,
+        cardHeightMm: imported.settings.cardHeightMm ?? defaults.cardHeightMm,
+        stickerInsetMm: imported.settings.stickerInsetMm ?? defaults.stickerInsetMm,
         showHeader: imported.settings.showHeader ?? defaults.showHeader,
         showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
         headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
@@ -1648,6 +1777,7 @@ export async function initUI() {
   selectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("select-all"));
   deselectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("deselect-all"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+  if (previewImageEl) previewImageEl.hidden = true;
   previewFrameEl = document.getElementById("preview-frame");
   previewSkeletonEl = document.getElementById("preview-skeleton");
   previewMetaEl = document.getElementById("preview-meta");
@@ -1670,6 +1800,15 @@ export async function initUI() {
     document.getElementById("global-header-height")
   );
   globalHeaderHeightValueEl = document.getElementById("global-header-height-value");
+  globalCardWidthInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-card-width")
+  );
+  globalCardHeightInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-card-height")
+  );
+  globalStickerInsetInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("global-sticker-inset")
+  );
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
   platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
   platformPriorityListEl = /** @type {HTMLOListElement|null} */ (

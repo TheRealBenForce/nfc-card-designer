@@ -35,6 +35,9 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {boolean} showHeader
  * @property {boolean} showPlatformColor
  * @property {number} headerHeightPercent
+ * @property {number} cardWidthMm
+ * @property {number} cardHeightMm
+ * @property {number} stickerInsetMm
  * @property {boolean} searchOnlyGamesWithImages
  */
 

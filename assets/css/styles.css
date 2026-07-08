@@ -250,8 +250,7 @@ body {
   margin-top: 0.25rem;
 }
 
-.collection-platform,
-.collection-game {
+.collection-platform {
   margin-bottom: 0.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -259,8 +258,7 @@ body {
   overflow: hidden;
 }
 
-.collection-platform > summary,
-.collection-game > summary {
+.collection-platform > summary {
   cursor: pointer;
   padding: 0.55rem 0.65rem;
   font-size: 0.85rem;
@@ -271,27 +269,18 @@ body {
   gap: 0.45rem;
 }
 
-.collection-platform > summary::-webkit-details-marker,
-.collection-game > summary::-webkit-details-marker {
+.collection-platform > summary::-webkit-details-marker {
   display: none;
 }
 
-.collection-platform > summary::before,
-.collection-game > summary::before {
+.collection-platform > summary::before {
   content: "▸";
   font-size: 0.75rem;
   color: var(--text-muted);
 }
 
-.collection-platform[open] > summary::before,
-.collection-game[open] > summary::before {
+.collection-platform[open] > summary::before {
   content: "▾";
-}
-
-.collection-game > summary {
-  font-weight: 500;
-  padding-left: 1.25rem;
-  background: rgba(0, 0, 0, 0.12);
 }
 
 .collection-cards {

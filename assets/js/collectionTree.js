@@ -1,29 +1,30 @@
+import { DEFAULT_IMAGE_TYPE_PRIORITY } from "./config.js";
 import { platforms } from "./data/platforms.js";
 
 /**
  * @param {import('./state.js').Card[]} cards
  */
 export function buildCollectionTree(cards) {
-  /** @type {Map<string, Map<number, { raGameId: number, name: string, cards: import('./state.js').Card[] }>>} */
+  /** @type {Map<string, import('./state.js').Card[]>} */
   const byPlatform = new Map();
 
   for (const card of cards) {
     if (!byPlatform.has(card.platformId)) {
-      byPlatform.set(card.platformId, new Map());
+      byPlatform.set(card.platformId, []);
     }
-    const games = byPlatform.get(card.platformId);
-    if (!games.has(card.raGameId)) {
-      games.set(card.raGameId, { raGameId: card.raGameId, name: card.gameName, cards: [] });
-    }
-    games.get(card.raGameId).cards.push(card);
+    byPlatform.get(card.platformId).push(card);
   }
+
+  const artTypeOrder = new Map(DEFAULT_IMAGE_TYPE_PRIORITY.map((type, index) => [type, index]));
 
   return platforms
     .filter((platform) => byPlatform.has(platform.id))
     .map((platform) => ({
       platform,
-      games: [...byPlatform.get(platform.id).values()].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-      ),
+      cards: byPlatform.get(platform.id).sort((a, b) => {
+        const byName = a.gameName.localeCompare(b.gameName, undefined, { sensitivity: "base" });
+        if (byName !== 0) return byName;
+        return (artTypeOrder.get(a.imageType) ?? 99) - (artTypeOrder.get(b.imageType) ?? 99);
+      }),
     }));
 }

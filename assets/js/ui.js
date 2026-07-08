@@ -581,7 +581,7 @@ function renderCollection() {
 
   const tree = buildCollectionTree(collection);
 
-  for (const { platform, games } of tree) {
+  for (const { platform, cards } of tree) {
     const platformDetails = document.createElement("details");
     platformDetails.className = "collection-platform";
     platformDetails.open = true;
@@ -590,56 +590,45 @@ function renderCollection() {
     platformSummary.textContent = platform.name;
     platformDetails.appendChild(platformSummary);
 
-    for (const game of games) {
-      const gameDetails = document.createElement("details");
-      gameDetails.className = "collection-game";
-      gameDetails.open = true;
+    const cardsEl = document.createElement("div");
+    cardsEl.className = "collection-cards";
 
-      const gameSummary = document.createElement("summary");
-      gameSummary.textContent = game.name;
-      gameDetails.appendChild(gameSummary);
+    for (const card of cards) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "collection-card";
+      if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
 
-      const cardsEl = document.createElement("div");
-      cardsEl.className = "collection-cards";
+      const mark = document.createElement("span");
+      mark.className = "collection-card__mark";
+      mark.textContent = selectedIds.has(card.id) ? "✓" : "";
+      mark.setAttribute("aria-hidden", "true");
 
-      for (const card of game.cards) {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = "collection-card";
-        if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
+      const artLabel = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
+      const label = document.createElement("span");
+      label.className = "collection-card__label";
+      label.textContent = `${card.gameName} - ${artLabel}`;
 
-        const mark = document.createElement("span");
-        mark.className = "collection-card__mark";
-        mark.textContent = selectedIds.has(card.id) ? "✓" : "";
-        mark.setAttribute("aria-hidden", "true");
+      row.addEventListener("click", () => {
+        toggleCardSelection(card.id);
+        renderCollection();
+        updateCollectionActions();
+      });
 
-        const label = document.createElement("span");
-        label.className = "collection-card__label";
-        label.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
+      row.appendChild(mark);
+      row.appendChild(label);
 
-        row.addEventListener("click", () => {
-          toggleCardSelection(card.id);
-          renderCollection();
-          updateCollectionActions();
-        });
-
-        row.appendChild(mark);
-        row.appendChild(label);
-
-        if (card.imageFailed) {
-          const badge = document.createElement("span");
-          badge.className = "collection-card__badge";
-          badge.textContent = "placeholder";
-          row.appendChild(badge);
-        }
-
-        cardsEl.appendChild(row);
+      if (card.imageFailed) {
+        const badge = document.createElement("span");
+        badge.className = "collection-card__badge";
+        badge.textContent = "placeholder";
+        row.appendChild(badge);
       }
 
-      gameDetails.appendChild(cardsEl);
-      platformDetails.appendChild(gameDetails);
+      cardsEl.appendChild(row);
     }
 
+    platformDetails.appendChild(cardsEl);
     collectionListEl.appendChild(platformDetails);
   }
 

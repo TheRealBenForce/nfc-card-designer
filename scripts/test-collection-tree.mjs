@@ -17,16 +17,21 @@ if (tree.length !== 2) {
 }
 
 const nes = tree.find((group) => group.platform.id === "nes");
-if (!nes || nes.games.length !== 2) {
-  console.error("FAILED: NES should have 2 games");
+if (!nes || nes.cards.length !== 3) {
+  console.error("FAILED: NES should have 3 cards");
   process.exit(1);
 }
 
-const mario = nes.games.find((game) => game.name === "Mario");
-if (!mario || mario.cards.length !== 2) {
+const marioCards = nes.cards.filter((card) => card.gameName === "Mario");
+if (marioCards.length !== 2) {
   console.error("FAILED: Mario should have 2 configured cards");
   process.exit(1);
 }
 
-console.log("✓ Collection tree groups by platform and game");
+if (nes.cards[0].gameName !== "Mario" || nes.cards[0].imageType !== "boxArt") {
+  console.error("FAILED: Cards should be sorted by game name, then art type");
+  process.exit(1);
+}
+
+console.log("✓ Collection tree groups by platform with flat card list");
 console.log("\nAll collection tree tests passed.");

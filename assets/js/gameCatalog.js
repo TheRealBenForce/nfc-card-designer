@@ -25,18 +25,16 @@ let loadPromise = null;
 
 export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
+const LOCAL_GAME_CATALOG_URL = "assets/data/games-by-platform.json";
+const S3_GAME_CATALOG_URL = "https://zaparoo.therealbenforce.com/assets/data/games-by-platform.json";
+const S3_CATALOG_TIMEOUT_MS = 4000;
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const res = await fetch("assets/data/games-by-platform.json");
-    if (!res.ok) {
-      throw new Error(`Failed to load game catalog (${res.status})`);
-    }
-
-    const data = await res.json();
+    const data = await loadCatalogPayload();
     /** @type {Record<string, { name: string, raGameId: number }[]>} */
     const platforms = {};
 
@@ -49,6 +47,53 @@ export async function loadGameCatalog() {
   })();
 
   return loadPromise;
+}
+
+/**
+ * Prefer live S3 catalog for production, then fallback to bundled JSON.
+ * @returns {Promise<{ platforms?: Record<string, { name: string, raGameId: number }[]> }>}
+ */
+async function loadCatalogPayload() {
+  if (shouldUseS3CatalogFirst()) {
+    try {
+      return await fetchCatalogPayload(S3_GAME_CATALOG_URL, { timeoutMs: S3_CATALOG_TIMEOUT_MS });
+    } catch (error) {
+      console.warn("Could not load game catalog from S3, using bundled catalog instead.", error);
+    }
+  }
+
+  return fetchCatalogPayload(LOCAL_GAME_CATALOG_URL);
+}
+
+/**
+ * @param {string} url
+ * @param {{ timeoutMs?: number }} [options]
+ */
+async function fetchCatalogPayload(url, options = {}) {
+  /** @type {AbortController | null} */
+  let controller = null;
+  /** @type {number | null} */
+  let timeoutId = null;
+
+  if (options.timeoutMs && options.timeoutMs > 0 && "AbortController" in globalThis) {
+    controller = new AbortController();
+    timeoutId = globalThis.setTimeout(() => controller?.abort(), options.timeoutMs);
+  }
+
+  try {
+    const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
+    if (!res.ok) {
+      throw new Error(`Failed to load game catalog from ${url} (${res.status})`);
+    }
+    return res.json();
+  } finally {
+    if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+  }
+}
+
+function shouldUseS3CatalogFirst() {
+  const host = globalThis.location?.hostname?.toLowerCase() ?? "";
+  return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
 }
 
 /**

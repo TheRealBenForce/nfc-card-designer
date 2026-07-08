@@ -27,14 +27,21 @@ export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
 const LOCAL_GAME_CATALOG_URL = "assets/data/games-by-platform.json";
 const S3_GAME_CATALOG_URL = "https://zaparoo.therealbenforce.com/assets/data/games-by-platform.json";
+const LOCAL_IMAGE_AVAILABILITY_URL = "assets/data/image-availability.json";
+const S3_IMAGE_AVAILABILITY_URL = "https://zaparoo.therealbenforce.com/assets/data/image-availability.json";
 const S3_CATALOG_TIMEOUT_MS = 4000;
+/** @type {Record<string, Record<string, string[]>>} */
+let imageAvailabilityByPlatform = {};
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const data = await loadCatalogPayload();
+    const [data, imageAvailability] = await Promise.all([
+      loadCatalogPayload(),
+      loadImageAvailabilityPayload(),
+    ]);
     /** @type {Record<string, { name: string, raGameId: number }[]>} */
     const platforms = {};
 
@@ -44,6 +51,7 @@ export async function loadGameCatalog() {
     }
 
     byPlatform = platforms;
+    imageAvailabilityByPlatform = imageAvailability;
   })();
 
   return loadPromise;
@@ -56,20 +64,47 @@ export async function loadGameCatalog() {
 async function loadCatalogPayload() {
   if (shouldUseS3CatalogFirst()) {
     try {
-      return await fetchCatalogPayload(S3_GAME_CATALOG_URL, { timeoutMs: S3_CATALOG_TIMEOUT_MS });
+      return await fetchJsonPayload(S3_GAME_CATALOG_URL, "game catalog", {
+        timeoutMs: S3_CATALOG_TIMEOUT_MS,
+      });
     } catch (error) {
       console.warn("Could not load game catalog from S3, using bundled catalog instead.", error);
     }
   }
 
-  return fetchCatalogPayload(LOCAL_GAME_CATALOG_URL);
+  return fetchJsonPayload(LOCAL_GAME_CATALOG_URL, "game catalog");
+}
+
+/**
+ * @returns {Promise<Record<string, Record<string, string[]>>>}
+ */
+async function loadImageAvailabilityPayload() {
+  const urls = shouldUseS3CatalogFirst()
+    ? [S3_IMAGE_AVAILABILITY_URL, LOCAL_IMAGE_AVAILABILITY_URL]
+    : [LOCAL_IMAGE_AVAILABILITY_URL, S3_IMAGE_AVAILABILITY_URL];
+
+  for (const url of urls) {
+    try {
+      const data = await fetchJsonPayload(url, "image availability", {
+        timeoutMs: url === S3_IMAGE_AVAILABILITY_URL ? S3_CATALOG_TIMEOUT_MS : undefined,
+      });
+      if (data && typeof data === "object" && data.platforms && typeof data.platforms === "object") {
+        return data.platforms;
+      }
+    } catch {
+      // try next source
+    }
+  }
+
+  return {};
 }
 
 /**
  * @param {string} url
+ * @param {string} payloadLabel
  * @param {{ timeoutMs?: number }} [options]
  */
-async function fetchCatalogPayload(url, options = {}) {
+async function fetchJsonPayload(url, payloadLabel, options = {}) {
   /** @type {AbortController | null} */
   let controller = null;
   /** @type {number | null} */
@@ -83,7 +118,7 @@ async function fetchCatalogPayload(url, options = {}) {
   try {
     const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
     if (!res.ok) {
-      throw new Error(`Failed to load game catalog from ${url} (${res.status})`);
+      throw new Error(`Failed to load ${payloadLabel} from ${url} (${res.status})`);
     }
     return res.json();
   } finally {
@@ -235,5 +270,7 @@ function withImages(platformId, entry) {
  * @returns {boolean}
  */
 function gameHasImage(game) {
+  const availableTypes = imageAvailabilityByPlatform?.[game.platformId]?.[String(game.raGameId)];
+  if (Array.isArray(availableTypes)) return availableTypes.length > 0;
   return Object.values(game.images).some((value) => Boolean(value));
 }

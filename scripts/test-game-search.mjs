@@ -78,6 +78,18 @@ async function main() {
     }
     console.log("✓ Global setting filters out games with no images");
 
+    await page.getByRole("button", { name: "Atari 2600", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "china");
+    await page.waitForTimeout(150);
+    const chinaResults = await page.locator("#game-results .list-item").allTextContents();
+    if (!chinaResults.includes("China Syndrome")) {
+      throw new Error(
+        `Expected image-availability indexed game in filtered results, got: ${JSON.stringify(chinaResults)}`,
+      );
+    }
+    console.log("✓ Image-only filter respects disk availability index");
+
     await imageFilterToggle.check();
     await page.getByRole("button", { name: "NES", exact: true }).click();
     await page.waitForTimeout(150);

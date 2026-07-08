@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Colors · NFC Card Designer</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="alternate icon" href="/favicon.svg?v=2" />
+    <link rel="shortcut icon" href="/favicon.svg?v=2" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <style>
+      .colors-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+      }
+
+      .colors-page__lead {
+        margin: 0 0 1.5rem;
+        color: var(--text-muted);
+      }
+
+      .swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .swatch-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.85rem;
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .swatch-card__chip {
+        border-radius: 10px;
+        height: 84px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+
+      .swatch-card__name {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .swatch-card__meta {
+        margin: 0;
+        font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="colors-page">
+      <h1>Secret Color Swatches</h1>
+      <p class="colors-page__lead">
+        Accent color plus platform defaults from the current palette configuration.
+      </p>
+      <section id="swatch-grid" class="swatch-grid" aria-label="Accent and platform color swatches"></section>
+    </main>
+
+    <script type="module">
+      import { platforms } from "./assets/js/data/platforms.js";
+
+      const fallbackAccent = "#6c8cff";
+      const accent =
+        getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || fallbackAccent;
+
+      const swatches = [
+        { id: "accent", name: "Accent", color: accent },
+        ...platforms.map((platform) => ({
+          id: platform.id,
+          name: platform.name,
+          color: platform.defaultColor,
+        })),
+      ];
+
+      const grid = document.getElementById("swatch-grid");
+
+      for (const swatch of swatches) {
+        const card = document.createElement("article");
+        card.className = "swatch-card";
+
+        const chip = document.createElement("div");
+        chip.className = "swatch-card__chip";
+        chip.style.backgroundColor = swatch.color;
+        chip.title = `${swatch.name}: ${swatch.color}`;
+        chip.setAttribute("aria-label", `${swatch.name} color sample`);
+
+        const name = document.createElement("h2");
+        name.className = "swatch-card__name";
+        name.textContent = swatch.name;
+
+        const meta = document.createElement("p");
+        meta.className = "swatch-card__meta";
+        meta.textContent = swatch.color;
+
+        card.append(chip, name, meta);
+        grid.append(card);
+      }
+    </script>
+  </body>
+</html>

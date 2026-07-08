@@ -220,7 +220,6 @@ export function getEffectiveArtworkDisplay(card) {
  */
 export function addCard(card) {
   collection = [...collection, card];
-  selectedCardIds = new Set([card.id]);
   previewCardId = card.id;
   emit("collection");
 }

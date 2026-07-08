@@ -385,7 +385,11 @@ function syncPreviewArtworkControls() {
  * } | null}
  */
 function getPreviewArtworkControlContext() {
-  if (browseState) {
+  const browseTargetCard = browseState?.targetCardId
+    ? getCollection().find((card) => card.id === browseState.targetCardId) ?? null
+    : null;
+
+  if (browseState && !browseTargetCard) {
     return {
       mode: "platform",
       platformId: browseState.game.platformId,
@@ -393,7 +397,7 @@ function getPreviewArtworkControlContext() {
     };
   }
 
-  const previewCard = getPreviewCard();
+  const previewCard = browseTargetCard ?? getPreviewCard();
   if (!previewCard) return null;
 
   return {
@@ -1082,18 +1086,27 @@ async function refreshPreview() {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
     const platform = platformById[game.platformId];
+    const targetCard = snapshot.targetCardId
+      ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
+      : null;
+    const cardForRender = targetCard
+      ? {
+          ...targetCard,
+          platformId: game.platformId,
+          gameName: game.name,
+          raGameId: game.raGameId,
+          imageType,
+        }
+      : {
+          id: "browse",
+          platformId: game.platformId,
+          gameName: game.name,
+          raGameId: game.raGameId,
+          imageType,
+        };
     previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-    const canvas = await renderCard(
-      {
-        id: "browse",
-        platformId: game.platformId,
-        gameName: game.name,
-        raGameId: game.raGameId,
-        imageType,
-      },
-      getSettings().platformDefaults,
-    );
+    const canvas = await renderCard(cardForRender, getSettings().platformDefaults);
     if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
 
@@ -1203,18 +1216,18 @@ function bindEvents() {
   });
 
   previewArtworkResetBtn?.addEventListener("click", () => {
-    const previewCard = getPreviewCard();
-    if (!previewCard) return;
-    clearCardArtworkDisplay(previewCard.id);
-    clearCardImageRotation(previewCard.id);
+    const context = getPreviewArtworkControlContext();
+    if (!context || context.mode !== "card" || !context.cardId) return;
+    clearCardArtworkDisplay(context.cardId);
+    clearCardImageRotation(context.cardId);
     syncPreviewArtworkControls();
     refreshPreview();
   });
 
   previewArtworkRotateBtn?.addEventListener("click", () => {
-    const previewCard = getPreviewCard();
-    if (!previewCard) return;
-    setCardImageRotation(previewCard.id, (previewCard.imageRotation ?? 0) + 90);
+    const context = getPreviewArtworkControlContext();
+    if (!context || context.mode !== "card" || !context.cardId) return;
+    setCardImageRotation(context.cardId, (context.cardRotation ?? 0) + 90);
     syncPreviewArtworkControls();
     refreshPreview();
   });

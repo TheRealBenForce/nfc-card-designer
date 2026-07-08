@@ -14,9 +14,6 @@ import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
   CARD_PREVIEW_WIDTH_PX,
-  CARD_WIDTH_MM,
-  CARD_HEIGHT_MM,
-  CSS_PX_PER_MM,
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
@@ -71,10 +68,6 @@ let printSelectedBtn = null;
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewMetaEl = null;
-/** @type {HTMLElement|null} */
-let previewDisplaySizeEl = null;
-/** @type {HTMLElement|null} */
-let previewActualSizeEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
@@ -103,20 +96,10 @@ let gameHighlightIndex = 0;
 let filteredGames = [];
 /** @type {number} */
 let filteredGamesTotal = 0;
-/** @type {number} */
-let previewCalibrationScale = 1;
 
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
   else console.log(message);
-}
-
-/**
- * @param {number} value
- * @returns {string}
- */
-function formatMm(value) {
-  return `${Math.round(value)} mm`;
 }
 
 /**
@@ -144,7 +127,6 @@ function loadPreviewCalibrationScale() {
  */
 function applyPreviewCalibrationScale(nextScale, options = {}) {
   const scale = clampPreviewCalibrationScale(nextScale);
-  previewCalibrationScale = scale;
 
   document.documentElement.style.setProperty("--preview-calibration-scale", String(scale));
 
@@ -163,30 +145,6 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
       // no-op when storage is unavailable
     }
   }
-
-  updatePreviewDimensions();
-}
-
-function updatePreviewDimensions() {
-  if (previewActualSizeEl) {
-    previewActualSizeEl.textContent =
-      `Card Actual Size: ${formatMm(CARD_WIDTH_MM)} × ${formatMm(CARD_HEIGHT_MM)}`;
-  }
-  if (!previewDisplaySizeEl || !previewImageEl) return;
-
-  const hasImage = previewImageEl.getAttribute("src");
-  if (!hasImage) {
-    previewDisplaySizeEl.textContent = "Display Size: -- mm × -- mm";
-    return;
-  }
-
-  const bounds = previewImageEl.getBoundingClientRect();
-  const cssWmm = bounds.width / CSS_PX_PER_MM;
-  const cssHmm = bounds.height / CSS_PX_PER_MM;
-  const displayWmm = cssWmm / previewCalibrationScale;
-  const displayHmm = cssHmm / previewCalibrationScale;
-  previewDisplaySizeEl.textContent =
-    `Display Size: ${formatMm(displayWmm)} × ${formatMm(displayHmm)}`;
 }
 
 function getArtworkPriorityForPlatform(platformId) {
@@ -724,7 +682,6 @@ async function refreshPreview() {
 
     previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
     previewImageEl.alt = `Preview: ${game.name}`;
-    updatePreviewDimensions();
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
     return;
   }
@@ -736,7 +693,6 @@ async function refreshPreview() {
   if (!card) {
     previewImageEl.removeAttribute("src");
     previewMetaEl.textContent = "Search for a game to preview artwork.";
-    updatePreviewDimensions();
     return;
   }
 
@@ -746,7 +702,6 @@ async function refreshPreview() {
   const canvas = await renderCard(card, getSettings().platformDefaults);
   previewImageEl.src = canvasToDataUrl(canvas, CARD_PREVIEW_WIDTH_PX);
   previewImageEl.alt = `Preview: ${card.gameName}`;
-  updatePreviewDimensions();
 }
 
 function bindEvents() {
@@ -885,8 +840,6 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   previewMetaEl = document.getElementById("preview-meta");
-  previewDisplaySizeEl = document.getElementById("preview-display-size");
-  previewActualSizeEl = document.getElementById("preview-actual-size");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
@@ -905,9 +858,6 @@ export async function initUI() {
 
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
-  previewImageEl?.addEventListener("load", updatePreviewDimensions);
-  window.addEventListener("resize", updatePreviewDimensions);
-  updatePreviewDimensions();
   syncPlatformControls();
   if (gameResultsEl) gameResultsEl.hidden = true;
   updateGameSearchHint();

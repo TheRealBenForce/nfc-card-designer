@@ -7,10 +7,22 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.TEST_BASE_URL ?? "http://localhost:8000";
+const PNG_1X1 = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  await page.route("**/*.png", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: PNG_1X1,
+    });
+  });
 
   const errors = [];
   page.on("pageerror", (err) => errors.push(err.message));
@@ -42,7 +54,7 @@ async function main() {
     }
     console.log("✓ 'mar' shows matching games");
 
-    await page.locator("#game-results .list-item", { hasText: "Super Mario Bros." }).click();
+    await page.getByRole("option", { name: "Super Mario Bros.", exact: true }).click();
     await page.waitForTimeout(300);
 
     const addBtn = page.locator("#add-browsed-game");
@@ -55,6 +67,30 @@ async function main() {
       throw new Error("Browse preview should show artwork type tabs");
     }
     console.log("✓ Selecting a game opens browse preview with artwork tabs");
+
+    await addBtn.waitFor({ state: "visible", timeout: 5000 });
+
+    await page.getByRole("button", { name: "SNES", exact: true }).click();
+    await addBtn.waitFor({ state: "hidden", timeout: 5000 });
+
+    const searchAfterPlatformChange = await page.locator("#game-search").inputValue();
+    if (searchAfterPlatformChange !== "") {
+      throw new Error(`Game search should clear on platform change, got: "${searchAfterPlatformChange}"`);
+    }
+    if (!(await dropdown.isHidden())) {
+      throw new Error("Game dropdown should be hidden after platform change");
+    }
+    if (await addBtn.isVisible()) {
+      throw new Error("Browse preview should clear after platform change");
+    }
+    console.log("✓ Platform change clears game search and browse preview");
+
+    await page.getByRole("button", { name: "NES", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "mar");
+    await page.waitForTimeout(100);
+    await page.getByRole("option", { name: "Super Mario Bros.", exact: true }).click();
+    await page.waitForTimeout(300);
 
     await addBtn.click();
     await page.waitForTimeout(300);

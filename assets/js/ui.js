@@ -272,8 +272,15 @@ function renderGameResults() {
 }
 
 function selectPlatform(platformId) {
+  const previousPlatformId = getSettings().selectedPlatformId;
   updateSettings({ selectedPlatformId: platformId });
   saveSettings(getSettings());
+
+  if (platformId !== previousPlatformId) {
+    resetGameSearch();
+    void refreshPreview();
+  }
+
   syncPlatformControls();
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
@@ -436,6 +443,15 @@ function clearBrowse() {
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = true;
 }
 
+function resetGameSearch({ focus = false } = {}) {
+  clearBrowse();
+  if (gameSearchInput) {
+    gameSearchInput.value = "";
+    if (focus) gameSearchInput.focus();
+  }
+  filterGames("");
+}
+
 async function addBrowsedGame() {
   if (!browseState) return;
 
@@ -449,14 +465,7 @@ async function addBrowsedGame() {
   };
 
   addCard(card);
-  clearBrowse();
-
-  if (gameSearchInput) {
-    gameSearchInput.value = "";
-    gameSearchInput.focus();
-  }
-
-  filterGames("");
+  resetGameSearch({ focus: true });
   updateCollectionActions();
   await refreshPreview();
   logStatus(`Added ${game.name} to collection.`);
@@ -601,7 +610,8 @@ async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
   if (browseState) {
-    const { game, imageType } = browseState;
+    const snapshot = browseState;
+    const { game, imageType } = snapshot;
     const platform = platformById[game.platformId];
     previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
@@ -615,6 +625,8 @@ async function refreshPreview() {
       },
       getSettings().platformDefaults,
     );
+    if (browseState !== snapshot) return;
+
     previewImageEl.src = canvasToDataUrl(canvas, 400);
     previewImageEl.alt = `Preview: ${game.name}`;
     if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;

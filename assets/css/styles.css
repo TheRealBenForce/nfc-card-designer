@@ -746,6 +746,24 @@ body {
   margin-top: 0.5rem;
 }
 
+.artwork-zoom-field {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  color: var(--text-muted);
+}
+
+.artwork-zoom-field__label,
+.artwork-zoom-field__value {
+  font-size: 0.75rem;
+}
+
+.artwork-zoom-field__range {
+  width: 100%;
+}
+
 .preview-calibration {
   display: grid;
   grid-template-columns: auto minmax(150px, 220px) auto;

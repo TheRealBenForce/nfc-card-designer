@@ -109,8 +109,7 @@ function logStatus(message, isError = false) {
  * @returns {string}
  */
 function formatMm(value) {
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? `${rounded} mm` : `${rounded.toFixed(1)} mm`;
+  return `${Math.round(value)} mm`;
 }
 
 function updatePreviewDimensions() {

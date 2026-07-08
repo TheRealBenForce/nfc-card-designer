@@ -389,6 +389,58 @@ body {
   border-top: 1px solid var(--border);
 }
 
+.alignment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  max-width: 9rem;
+}
+
+.alignment-grid__btn {
+  aspect-ratio: 1;
+  min-height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.alignment-grid__btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.alignment-grid__btn--active {
+  border-color: var(--accent);
+  background: rgba(108, 140, 255, 0.15);
+  color: var(--accent);
+}
+
+.artwork-color-field__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.artwork-color-field__controls .input--color {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn--icon {
+  flex-shrink: 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.artwork-color-field[hidden] {
+  display: none;
+}
+
 .rotation-fields {
   display: grid;
   gap: 0.65rem;

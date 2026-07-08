@@ -7,6 +7,7 @@ import {
   defaultPlatformDefaults,
   normalizePlatformDefaults,
 } from "./platformDefaults.js";
+import { defaultArtworkDisplay, normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { firstPlatformWithCatalogGames } from "./gameCatalog.js";
 
 /** @returns {import('./state.js').AppSettings} */
@@ -14,6 +15,7 @@ export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: firstPlatformWithCatalogGames(),
+    artworkDisplay: defaultArtworkDisplay(),
   };
 }
 
@@ -36,6 +38,7 @@ export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    artworkDisplay: settings.artworkDisplay,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -51,6 +54,7 @@ export function loadSettings() {
     return {
       platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
       selectedPlatformId: parsed.selectedPlatformId ?? defaults.selectedPlatformId,
+      artworkDisplay: normalizeArtworkDisplay(parsed.artworkDisplay),
     };
   } catch {
     return defaultSettings();
@@ -97,9 +101,10 @@ export function loadDeck() {
  */
 export function buildProjectData(settings, collection) {
   return {
-    version: 3,
+    version: 4,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    artworkDisplay: settings.artworkDisplay,
     cards: collection.map(serializeCard),
   };
 }
@@ -150,6 +155,7 @@ export function importProjectFile() {
           settings: {
             platformDefaults: normalizePlatformDefaults(parsed.platformDefaults, parsed.platformColors),
             selectedPlatformId: parsed.selectedPlatformId,
+            artworkDisplay: normalizeArtworkDisplay(parsed.artworkDisplay),
           },
           cards,
         });

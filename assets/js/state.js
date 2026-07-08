@@ -1,5 +1,6 @@
 import { loadSettings, loadCollection } from "./storage.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
+import { defaultArtworkDisplay, normalizeArtworkDisplay } from "./artworkDisplay.js";
 
 /**
  * @typedef {Object} Card
@@ -16,9 +17,14 @@ import { normalizeImageTypePriority } from "./imageSettings.js";
  */
 
 /**
+ * @typedef {import('./artworkDisplay.js').ArtworkDisplaySettings} ArtworkDisplaySettings
+ */
+
+/**
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string} selectedPlatformId
+ * @property {ArtworkDisplaySettings} artworkDisplay
  */
 
 /** @type {AppSettings} */
@@ -144,6 +150,17 @@ export function setPlatformImageRotation(platformId, imageType, degrees) {
         },
       },
     },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {Partial<ArtworkDisplaySettings>} patch
+ */
+export function setArtworkDisplay(patch) {
+  settings = {
+    ...settings,
+    artworkDisplay: normalizeArtworkDisplay({ ...settings.artworkDisplay, ...patch }),
   };
   emit("settings");
 }

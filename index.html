@@ -23,7 +23,31 @@
       <aside class="panel panel--controls">
         <details class="collapsible">
           <summary class="collapsible__summary">Global Settings</summary>
-          <div class="collapsible__body"></div>
+          <div class="collapsible__body">
+            <p class="field__label">Artwork alignment</p>
+            <div
+              id="artwork-alignment-grid"
+              class="alignment-grid"
+              role="radiogroup"
+              aria-label="Artwork alignment"
+            ></div>
+            <p class="field-hint">Default is top center — artwork at the top, centered on the long edge.</p>
+
+            <label class="field">
+              <span class="field__label">Artwork background</span>
+              <select id="artwork-background-mode" class="input"></select>
+            </label>
+
+            <div id="artwork-background-color-field" class="field artwork-color-field">
+              <span class="field__label">Background color</span>
+              <div class="artwork-color-field__controls">
+                <input id="artwork-background-color" class="input input--color" type="color" value="#000000" />
+                <button id="artwork-eyedropper" type="button" class="btn btn--secondary btn--icon" title="Pick color from screen">
+                  Eyedropper
+                </button>
+              </div>
+            </div>
+          </div>
         </details>
 
         <details class="collapsible">

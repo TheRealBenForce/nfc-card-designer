@@ -5,8 +5,9 @@ import { cardPositionMm, drawSheetCutMarks } from "./pdfLayout.js";
 /**
  * @param {import('./state.js').Card[]} deck
  * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} [artworkDisplay]
  */
-export async function exportLetterPdf(deck, platformDefaults) {
+export async function exportLetterPdf(deck, platformDefaults, artworkDisplay) {
   const { jsPDF } = await import("https://esm.sh/jspdf@2.5.2");
 
   const cardsPerSheet = CARDS_PER_ROW * CARDS_PER_COL;
@@ -29,7 +30,7 @@ export async function exportLetterPdf(deck, platformDefaults) {
       const row = Math.floor(slot / CARDS_PER_ROW);
       const { x, y } = cardPositionMm(col, row);
 
-      const canvas = await renderCard(deck[cardIndex], platformDefaults);
+      const canvas = await renderCard(deck[cardIndex], platformDefaults, artworkDisplay);
       const dataUrl = canvas.toDataURL("image/png");
       pdf.addImage(dataUrl, "PNG", x, y, CARD_WIDTH_MM, CARD_HEIGHT_MM);
     }

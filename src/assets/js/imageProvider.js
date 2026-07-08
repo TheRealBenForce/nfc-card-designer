@@ -2,11 +2,80 @@ import { PLACEHOLDER_SVG } from "./config.js";
 import { getDevImageDelayMs } from "./devTools.js";
 import { gameByPlatformAndRaId } from "./data/games.js";
 
+const S3_ASSET_BASE_URL = "https://zaparoo.therealbenforce.com/";
 const IMAGE_FIELD_MAP = {
   boxArt: "boxArt",
   titleScreen: "titleScreen",
   gamePicture: "gamePicture",
 };
+/** @type {Map<string, string|null>} */
+const resolvedImageCache = new Map();
+
+/**
+ * @param {string} platformId
+ * @param {number} raGameId
+ * @param {string} imageType
+ */
+function imageCacheKey(platformId, raGameId, imageType) {
+  return `${platformId}:${raGameId}:${imageType}`;
+}
+
+/**
+ * @param {string[]} paths
+ * @param {string | null | undefined} rawPath
+ */
+function addPathVariants(paths, rawPath) {
+  if (typeof rawPath !== "string") return;
+  const path = rawPath.trim();
+  if (!path) return;
+
+  paths.push(path);
+  if (path.startsWith("data:")) return;
+  if (/^https?:\/\//i.test(path)) return;
+
+  if (path.startsWith("/")) {
+    const withoutSlash = path.slice(1);
+    if (withoutSlash) {
+      paths.push(withoutSlash);
+      paths.push(`${S3_ASSET_BASE_URL}${withoutSlash}`);
+    }
+    return;
+  }
+
+  paths.push(`/${path}`);
+  paths.push(`${S3_ASSET_BASE_URL}${path}`);
+}
+
+/**
+ * @param {string} cacheKey
+ * @param {string[]} paths
+ */
+async function resolveFromCandidates(cacheKey, paths) {
+  const cached = resolvedImageCache.get(cacheKey);
+  if (typeof cached === "string") {
+    try {
+      await loadImage(cached);
+      return { url: cached, failed: false };
+    } catch {
+      resolvedImageCache.delete(cacheKey);
+    }
+  } else if (cached === null) {
+    return { url: PLACEHOLDER_SVG, failed: true };
+  }
+
+  for (const imagePath of paths) {
+    try {
+      await loadImage(imagePath);
+      resolvedImageCache.set(cacheKey, imagePath);
+      return { url: imagePath, failed: false };
+    } catch {
+      // try next path
+    }
+  }
+
+  resolvedImageCache.set(cacheKey, null);
+  return { url: PLACEHOLDER_SVG, failed: true };
+}
 
 /**
  * @param {import('./data/games.js').Game} game
@@ -26,12 +95,12 @@ export function candidateImagePaths(card, game, imageType) {
   const key = IMAGE_FIELD_MAP[imageType] ?? "boxArt";
   const paths = [];
 
-  paths.push(`assets/images/platforms/${card.platformId}/games/${card.raGameId}/${key}.png`);
+  addPathVariants(paths, `assets/images/platforms/${card.platformId}/games/${card.raGameId}/${key}.png`);
 
   const fromCatalog = game?.images?.[key];
-  if (fromCatalog) paths.push(fromCatalog);
+  addPathVariants(paths, fromCatalog);
 
-  paths.push(`assets/images/games/${card.raGameId}-${key}.png`);
+  addPathVariants(paths, `assets/images/games/${card.raGameId}-${key}.png`);
 
   return [...new Set(paths)];
 }
@@ -43,16 +112,8 @@ export function candidateImagePaths(card, game, imageType) {
  */
 export async function resolveGameImage(game, imageType) {
   const card = { platformId: game.platformId, raGameId: game.raGameId };
-  for (const imagePath of candidateImagePaths(card, game, imageType)) {
-    try {
-      await loadImage(imagePath);
-      return { url: imagePath, failed: false };
-    } catch {
-      // try next path
-    }
-  }
-
-  return { url: PLACEHOLDER_SVG, failed: true };
+  const cacheKey = imageCacheKey(game.platformId, game.raGameId, imageType);
+  return resolveFromCandidates(cacheKey, candidateImagePaths(card, game, imageType));
 }
 
 /**
@@ -61,16 +122,8 @@ export async function resolveGameImage(game, imageType) {
  */
 export async function resolveCardImage(card) {
   const game = gameByPlatformAndRaId(card.platformId, card.raGameId);
-  for (const imagePath of candidateImagePaths(card, game, card.imageType)) {
-    try {
-      await loadImage(imagePath);
-      return { url: imagePath, failed: false };
-    } catch {
-      // try next path
-    }
-  }
-
-  return { url: PLACEHOLDER_SVG, failed: true };
+  const cacheKey = imageCacheKey(card.platformId, card.raGameId, card.imageType);
+  return resolveFromCandidates(cacheKey, candidateImagePaths(card, game, card.imageType));
 }
 
 /**

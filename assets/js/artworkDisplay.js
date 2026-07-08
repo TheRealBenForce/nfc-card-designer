@@ -7,6 +7,7 @@
  * @property {ArtworkAlignment} alignment
  * @property {ArtworkBackgroundMode} backgroundMode
  * @property {string} backgroundColor
+ * @property {number} zoom
  */
 
 /** @type {readonly ArtworkAlignment[]} */
@@ -59,6 +60,9 @@ export const ARTWORK_BACKGROUND_MODES = {
 
 export const DEFAULT_ARTWORK_BACKGROUND_MODE = "select";
 export const DEFAULT_ARTWORK_BACKGROUND_COLOR = "#000000";
+export const DEFAULT_ARTWORK_ZOOM = 0;
+export const MIN_ARTWORK_ZOOM = 0;
+export const MAX_ARTWORK_ZOOM = 100;
 
 /** @type {Record<string, string>} */
 export const BLURRED_BACKGROUND_IMAGE_TYPES = {
@@ -73,6 +77,7 @@ export function defaultArtworkDisplay() {
     alignment: DEFAULT_ARTWORK_ALIGNMENT,
     backgroundMode: DEFAULT_ARTWORK_BACKGROUND_MODE,
     backgroundColor: DEFAULT_ARTWORK_BACKGROUND_COLOR,
+    zoom: DEFAULT_ARTWORK_ZOOM,
   };
 }
 
@@ -114,6 +119,15 @@ export function normalizeArtworkBackgroundMode(mode) {
 }
 
 /**
+ * @param {unknown} zoom
+ * @returns {number}
+ */
+export function normalizeArtworkZoom(zoom) {
+  if (typeof zoom !== "number" || !Number.isFinite(zoom)) return DEFAULT_ARTWORK_ZOOM;
+  return Math.min(MAX_ARTWORK_ZOOM, Math.max(MIN_ARTWORK_ZOOM, Math.round(zoom)));
+}
+
+/**
  * @param {unknown} parsed
  * @returns {ArtworkDisplaySettings}
  */
@@ -128,6 +142,7 @@ export function normalizeArtworkDisplay(parsed) {
     backgroundColor: normalizeHexColor(
       typeof entry.backgroundColor === "string" ? entry.backgroundColor : defaults.backgroundColor,
     ),
+    zoom: normalizeArtworkZoom(entry.zoom),
   };
 }
 

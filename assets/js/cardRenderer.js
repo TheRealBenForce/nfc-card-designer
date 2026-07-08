@@ -28,8 +28,9 @@ const BLUR_RADIUS_PX = 18;
  * @param {number} h
  * @param {number} [rotationDeg]
  * @param {{ x: number, y: number }} [align]
+ * @param {number} [zoom]
  */
-function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = { x: 0.5, y: 0 }) {
+function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = { x: 0.5, y: 0 }, zoom = 0) {
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, w, h);
@@ -44,7 +45,7 @@ function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = 
   const boxW = isSideways ? h : w;
   const boxH = isSideways ? w : h;
 
-  const scale = Math.min(boxW / img.width, boxH / img.height);
+  const scale = Math.min(boxW / img.width, boxH / img.height) * (1 + zoom / 100);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
   const drawX = -boxW / 2 + (boxW - drawW) * align.x;
@@ -96,15 +97,16 @@ function drawPlatformLogo(ctx, icon, rect) {
  * @param {HTMLImageElement} img
  * @param {number} rotationDeg
  * @param {{ x: number, y: number }} align
+ * @param {number} [zoom]
  * @returns {HTMLCanvasElement}
  */
-function renderArtworkLayer(w, h, img, rotationDeg, align) {
+function renderArtworkLayer(w, h, img, rotationDeg, align, zoom = 0) {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
-  drawContainImageAligned(ctx, img, 0, 0, w, h, rotationDeg, align);
+  drawContainImageAligned(ctx, img, 0, 0, w, h, rotationDeg, align, zoom);
   return canvas;
 }
 
@@ -187,9 +189,10 @@ function extendEdgeColors(imageData) {
  * @param {HTMLImageElement} img
  * @param {number} rotationDeg
  * @param {{ x: number, y: number }} align
+ * @param {number} [zoom]
  */
-function drawNearestEdgeBackground(ctx, rect, img, rotationDeg, align) {
-  const layer = renderArtworkLayer(rect.w, rect.h, img, rotationDeg, align);
+function drawNearestEdgeBackground(ctx, rect, img, rotationDeg, align, zoom = 0) {
+  const layer = renderArtworkLayer(rect.w, rect.h, img, rotationDeg, align, zoom);
   const layerCtx = layer.getContext("2d");
   if (!layerCtx) return;
 
@@ -256,6 +259,7 @@ async function loadCardImageType(card, imageType) {
  * @param {HTMLImageElement} foregroundImg
  * @param {number} rotationDeg
  * @param {{ x: number, y: number }} align
+ * @param {number} zoom
  */
 async function drawArtBackground(
   ctx,
@@ -266,6 +270,7 @@ async function drawArtBackground(
   foregroundImg,
   rotationDeg,
   align,
+  zoom,
 ) {
   const { backgroundMode } = artworkDisplay;
 
@@ -276,7 +281,7 @@ async function drawArtBackground(
   }
 
   if (backgroundMode === "nearestEdge") {
-    drawNearestEdgeBackground(ctx, rect, foregroundImg, rotationDeg, align);
+    drawNearestEdgeBackground(ctx, rect, foregroundImg, rotationDeg, align, zoom);
     return;
   }
 
@@ -307,6 +312,7 @@ export async function renderCard(card, platformDefaults) {
 
   const normalizedDisplay = resolveArtworkDisplay(card, platformDefaults);
   const align = getAlignmentFractions(normalizedDisplay);
+  const zoom = normalizedDisplay.zoom;
 
   const platform = platformById[card.platformId];
   const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
@@ -324,8 +330,8 @@ export async function renderCard(card, platformDefaults) {
     img = await loadImage(PLACEHOLDER_SVG);
   }
 
-  await drawArtBackground(ctx, art, card, normalizedDisplay, color, img, rotation, align);
-  drawContainImageAligned(ctx, img, art.x, art.y, art.w, art.h, rotation, align);
+  await drawArtBackground(ctx, art, card, normalizedDisplay, color, img, rotation, align, zoom);
+  drawContainImageAligned(ctx, img, art.x, art.y, art.w, art.h, rotation, align, zoom);
 
   const icon = await loadImage(getPlatformIconPath(card.platformId));
   drawPlatformLogo(ctx, icon, logo);

@@ -23,6 +23,8 @@ import {
   ARTWORK_ALIGNMENTS,
   ARTWORK_BACKGROUND_MODE_ORDER,
   ARTWORK_BACKGROUND_MODES,
+  MAX_ARTWORK_ZOOM,
+  MIN_ARTWORK_ZOOM,
 } from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
@@ -104,6 +106,10 @@ let platformArtworkBackgroundModeEl = null;
 let platformArtworkBackgroundColorEl = null;
 /** @type {HTMLButtonElement|null} */
 let platformArtworkColorToolBtn = null;
+/** @type {HTMLInputElement|null} */
+let platformArtworkZoomEl = null;
+/** @type {HTMLElement|null} */
+let platformArtworkZoomValueEl = null;
 /** @type {HTMLElement|null} */
 let previewArtworkControlsEl = null;
 /** @type {HTMLElement|null} */
@@ -114,6 +120,10 @@ let previewArtworkBackgroundModeEl = null;
 let previewArtworkBackgroundColorEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkColorToolBtn = null;
+/** @type {HTMLInputElement|null} */
+let previewArtworkZoomEl = null;
+/** @type {HTMLElement|null} */
+let previewArtworkZoomValueEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
@@ -226,6 +236,16 @@ function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDis
 }
 
 /**
+ * @param {HTMLInputElement | null} zoomEl
+ * @param {HTMLElement | null} valueEl
+ * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ */
+function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
+  if (zoomEl) zoomEl.value = String(artworkDisplay.zoom);
+  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom}%`;
+}
+
+/**
  * @param {HTMLButtonElement} toolBtn
  * @param {HTMLInputElement} colorInput
  * @param {(color: string) => void} onColor
@@ -302,6 +322,11 @@ function syncPlatformArtworkDisplayControls() {
     platformArtworkColorToolBtn,
     platformDefaults.artworkDisplay,
   );
+  syncArtworkZoomControl(
+    platformArtworkZoomEl,
+    platformArtworkZoomValueEl,
+    platformDefaults.artworkDisplay,
+  );
 }
 
 function syncPreviewArtworkControls() {
@@ -331,6 +356,7 @@ function syncPreviewArtworkControls() {
     previewArtworkColorToolBtn,
     context.display,
   );
+  syncArtworkZoomControl(previewArtworkZoomEl, previewArtworkZoomValueEl, context.display);
 }
 
 /**
@@ -1022,10 +1048,30 @@ function bindEvents() {
     refreshPreview();
   });
 
+  platformArtworkZoomEl?.addEventListener("input", (e) => {
+    const zoom = Math.min(
+      MAX_ARTWORK_ZOOM,
+      Math.max(MIN_ARTWORK_ZOOM, Number(/** @type {HTMLInputElement} */ (e.target).value)),
+    );
+    const settings = getSettings();
+    setPlatformArtworkDisplay(settings.selectedPlatformId, { zoom });
+    saveSettings(getSettings());
+    syncPlatformArtworkDisplayControls();
+    refreshPreview();
+  });
+
   previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
     applyPreviewArtworkPatch({
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
     });
+  });
+
+  previewArtworkZoomEl?.addEventListener("input", (e) => {
+    const zoom = Math.min(
+      MAX_ARTWORK_ZOOM,
+      Math.max(MIN_ARTWORK_ZOOM, Number(/** @type {HTMLInputElement} */ (e.target).value)),
+    );
+    applyPreviewArtworkPatch({ zoom });
   });
 
   previewArtworkResetBtn?.addEventListener("click", () => {
@@ -1164,6 +1210,10 @@ export async function initUI() {
   platformArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("platform-artwork-color-tool")
   );
+  platformArtworkZoomEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("platform-artwork-zoom")
+  );
+  platformArtworkZoomValueEl = document.getElementById("platform-artwork-zoom-value");
   previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
   previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
   previewArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
@@ -1175,6 +1225,10 @@ export async function initUI() {
   previewArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-color-tool")
   );
+  previewArtworkZoomEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-artwork-zoom")
+  );
+  previewArtworkZoomValueEl = document.getElementById("preview-artwork-zoom-value");
   previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-reset")
   );

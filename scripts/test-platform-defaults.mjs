@@ -5,6 +5,7 @@ import {
   normalizePlatformDefaults,
   getEffectiveImageTypePriority,
 } from "../assets/js/platformDefaults.js";
+import { normalizeArtworkDisplay } from "../assets/js/artworkDisplay.js";
 import { platformById } from "../assets/js/data/platforms.js";
 
 const defaults = defaultPlatformDefaults();
@@ -66,6 +67,20 @@ const invalidRotation = normalizePlatformDefaults({
 });
 if (invalidRotation.nes.imageRotation.boxArt !== 0) {
   throw new Error("Invalid rotation degrees should fall back to 0");
+}
+
+if (defaults.nes.artworkDisplay.zoom !== 0) {
+  throw new Error("Default artwork zoom should be 0");
+}
+
+const zoomNormalized = normalizeArtworkDisplay({ zoom: 150 });
+if (zoomNormalized.zoom !== 100) {
+  throw new Error("Artwork zoom should clamp to 100");
+}
+
+const zoomInvalid = normalizeArtworkDisplay({ zoom: "bad" });
+if (zoomInvalid.zoom !== 0) {
+  throw new Error("Invalid artwork zoom should fall back to 0");
 }
 
 console.log("✓ Platform defaults normalization works");

@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const siteRoot = path.join(root, "src");
 
 /** @param {string} cmd @param {string[]} args */
 function run(cmd, args) {
@@ -22,7 +23,7 @@ function run(cmd, args) {
 }
 
 /**
- * Return static route names backed by root-level HTML files.
+ * Return static route names backed by src HTML files.
  * Uploading each file as a route index document allows CloudFront+S3 origins
  * to resolve URLs like /supplies and /thanks.
  * @returns {string[]}
@@ -37,41 +38,16 @@ async function main() {
     throw new Error("S3_BUCKET is required (e.g. zaparoo.therealbenforce.com)");
   }
 
-  const excludes = [
-    "--exclude",
-    ".git/*",
-    "--exclude",
-    ".github/*",
-    "--exclude",
-    "node_modules/*",
-    "--exclude",
-    ".env",
-    "--exclude",
-    ".env.*",
-    "--exclude",
-    "infrastructure/*",
-    "--exclude",
-    "docs/*",
-    "--exclude",
-    "scripts/*",
-    "--exclude",
-    "package-lock.json",
-    "--exclude",
-    "package.json",
-    "--exclude",
-    "README.md",
-    "--exclude",
-    "assets/images/*",
-  ];
+  const excludes = ["--exclude", "assets/images/*"];
 
-  console.log(`→ Syncing site to s3://${bucket}/`);
-  await run("aws", ["s3", "sync", ".", `s3://${bucket}`, "--delete", ...excludes]);
+  console.log(`→ Syncing site from ${siteRoot} to s3://${bucket}/`);
+  await run("aws", ["s3", "sync", "src", `s3://${bucket}`, "--delete", ...excludes]);
 
   const extensionlessAliases = getExtensionlessRouteAliases();
   if (extensionlessAliases.length > 0) {
     console.log(`→ Publishing extensionless route aliases: ${extensionlessAliases.join(", ")}`);
     for (const route of extensionlessAliases) {
-      const source = `${route}.html`;
+      const source = path.join("src", `${route}.html`);
       await run("aws", [
         "s3",
         "cp",

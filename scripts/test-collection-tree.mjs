@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { buildCollectionTree } from "../assets/js/collectionTree.js";
+import { buildCollectionTree } from "../src/assets/js/collectionTree.js";
 
 const cards = [
   { id: "1", platformId: "nes", gameName: "Zelda", raGameId: 1, imageType: "boxArt" },

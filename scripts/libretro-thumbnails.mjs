@@ -9,7 +9,7 @@ import {
   libretroThumbnailDirectoryUrl,
   libretroThumbnailUrl,
   pickLibretroFilename,
-} from "../assets/js/libretroThumbnails.js";
+} from "../src/assets/js/libretroThumbnails.js";
 
 const USER_AGENT = "nfc-card-designer/1.0";
 

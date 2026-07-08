@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Writes assets/data/games-by-platform.json from the flat games.js catalog.
+ * Writes src/assets/data/games-by-platform.json from the flat games.js catalog.
  * fetch-game-list also writes this file automatically.
  */
 
@@ -19,4 +19,4 @@ console.log(`Wrote ${retailGames.length} retail games across ${platformCount} pl
 if (excluded > 0) {
   console.log(`Excluded ${excluded} non-retail entries from JSON`);
 }
-console.log("Updated assets/data/games-by-platform.json");
+console.log("Updated src/assets/data/games-by-platform.json");

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fetches the full RetroAchievements game catalog for each platform and
- * writes assets/js/data/games.js (images populated later by fetch-images from libretro).
+ * writes src/assets/js/data/games.js (images populated later by fetch-images from libretro).
  */
 
 import path from "node:path";
@@ -13,7 +13,7 @@ import { isRetailRelease } from "./game-filters.mjs";
 import { fetchLibretroGameCatalog } from "./libretro-catalog.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const platformsPath = path.join(root, "assets/js/data/platforms.js");
+const platformsPath = path.join(root, "src/assets/js/data/platforms.js");
 
 /** @param {Record<string, unknown>} entry */
 function gameIdFromEntry(entry) {
@@ -39,14 +39,14 @@ async function main() {
   const retailOnly = !includeNonRetail;
   const { platforms } = await import(pathToFileURL(platformsPath).href);
 
-  /** @type {import("../assets/js/data/games.js").Game[]} */
+  /** @type {import("../src/assets/js/data/games.js").Game[]} */
   let existing = [];
   if (platformId && existsSync(gamesPath)) {
     const { games } = await import(pathToFileURL(gamesPath).href);
     existing = games.filter((g) => g.platformId !== platformId);
   }
 
-  /** @type {import("../assets/js/data/games.js").Game[]} */
+  /** @type {import("../src/assets/js/data/games.js").Game[]} */
   const games = [...existing];
   let excludedNonRetail = 0;
 
@@ -107,8 +107,8 @@ async function main() {
   }
 
   await writeGamesJs(games);
-  console.log(`\nWrote ${games.length} games to assets/js/data/games.js`);
-  console.log("Wrote assets/data/games-by-platform.json");
+  console.log(`\nWrote ${games.length} games to src/assets/js/data/games.js`);
+  console.log("Wrote src/assets/data/games-by-platform.json");
   if (retailOnly && excludedNonRetail > 0) {
     console.log(`Excluded ${excludedNonRetail} non-retail entries (hacks, homebrew, demos, etc.)`);
   }

@@ -7,10 +7,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gamesToByPlatform } from "./games-data.mjs";
-import { isRetailRelease } from "../assets/js/retailFilter.js";
+import { isRetailRelease } from "../src/assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const jsonPath = path.join(root, "assets/data/games-by-platform.json");
+const jsonPath = path.join(root, "src/assets/data/games-by-platform.json");
 const raw = await readFile(jsonPath, "utf8");
 const data = JSON.parse(raw);
 
@@ -43,7 +43,7 @@ for (const platformId of platformIds) {
   }
 }
 
-const { games } = await import(pathToFileURL(path.join(root, "assets/js/data/games.js")).href);
+const { games } = await import(pathToFileURL(path.join(root, "src/assets/js/data/games.js")).href);
 const converted = gamesToByPlatform(games, { retailOnly: true });
 
 for (const platformId of Object.keys(converted)) {

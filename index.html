@@ -82,6 +82,20 @@
           </p>
           <p id="preview-actual-size" class="preview-dimensions__line">Card Actual Size: 52 mm × 84 mm</p>
         </div>
+        <label for="preview-calibration-input" class="preview-calibration">
+          <span class="preview-calibration__label">Screen calibration</span>
+          <input
+            id="preview-calibration-input"
+            class="preview-calibration__range"
+            type="range"
+            min="70"
+            max="130"
+            step="1"
+            value="100"
+          />
+          <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+        </label>
+        <p class="preview-calibration__hint">Adjust until the card measures 52 × 84 mm with a ruler.</p>
         <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" hidden>
           Add to collection
         </button>

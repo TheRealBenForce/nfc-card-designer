@@ -49,6 +49,7 @@ export const STORAGE_KEY = "nfc-card-designer-settings";
 export const COLLECTION_STORAGE_KEY = "nfc-card-designer-collection";
 /** @deprecated Legacy key — migrated on read */
 export const DECK_STORAGE_KEY = "nfc-card-designer-deck";
+export const PREVIEW_CALIBRATION_STORAGE_KEY = "nfc-card-designer-preview-calibration-scale";
 
 export const PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="520" height="840" viewBox="0 0 520 840">

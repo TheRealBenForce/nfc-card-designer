@@ -17,6 +17,7 @@ import {
   CARD_WIDTH_MM,
   CARD_HEIGHT_MM,
   CSS_PX_PER_MM,
+  PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import { movePriorityItem } from "./imageSettings.js";
 import { getEffectiveImageTypePriority, ROTATION_OPTIONS } from "./platformDefaults.js";
@@ -75,6 +76,10 @@ let previewDisplaySizeEl = null;
 /** @type {HTMLElement|null} */
 let previewActualSizeEl = null;
 /** @type {HTMLInputElement|null} */
+let previewCalibrationInputEl = null;
+/** @type {HTMLElement|null} */
+let previewCalibrationValueEl = null;
+/** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
@@ -98,6 +103,8 @@ let gameHighlightIndex = 0;
 let filteredGames = [];
 /** @type {number} */
 let filteredGamesTotal = 0;
+/** @type {number} */
+let previewCalibrationScale = 1;
 
 function logStatus(message, isError = false) {
   if (isError) console.error(message);
@@ -110,6 +117,54 @@ function logStatus(message, isError = false) {
  */
 function formatMm(value) {
   return `${Math.round(value)} mm`;
+}
+
+/**
+ * @param {number} value
+ */
+function clampPreviewCalibrationScale(value) {
+  return Math.min(1.3, Math.max(0.7, value));
+}
+
+function loadPreviewCalibrationScale() {
+  try {
+    const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
+    if (!raw) return 1;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return 1;
+    return clampPreviewCalibrationScale(parsed);
+  } catch {
+    return 1;
+  }
+}
+
+/**
+ * @param {number} nextScale
+ * @param {{ persist?: boolean }} [options]
+ */
+function applyPreviewCalibrationScale(nextScale, options = {}) {
+  const scale = clampPreviewCalibrationScale(nextScale);
+  previewCalibrationScale = scale;
+
+  document.documentElement.style.setProperty("--preview-calibration-scale", String(scale));
+
+  const percent = Math.round(scale * 100);
+  if (previewCalibrationInputEl) {
+    previewCalibrationInputEl.value = String(percent);
+  }
+  if (previewCalibrationValueEl) {
+    previewCalibrationValueEl.textContent = `${percent}%`;
+  }
+
+  if (options.persist !== false) {
+    try {
+      localStorage.setItem(PREVIEW_CALIBRATION_STORAGE_KEY, String(scale));
+    } catch {
+      // no-op when storage is unavailable
+    }
+  }
+
+  updatePreviewDimensions();
 }
 
 function updatePreviewDimensions() {
@@ -126,8 +181,10 @@ function updatePreviewDimensions() {
   }
 
   const bounds = previewImageEl.getBoundingClientRect();
-  const displayWmm = bounds.width / CSS_PX_PER_MM;
-  const displayHmm = bounds.height / CSS_PX_PER_MM;
+  const cssWmm = bounds.width / CSS_PX_PER_MM;
+  const cssHmm = bounds.height / CSS_PX_PER_MM;
+  const displayWmm = cssWmm / previewCalibrationScale;
+  const displayHmm = cssHmm / previewCalibrationScale;
   previewDisplaySizeEl.textContent =
     `Display Size: ${formatMm(displayWmm)} × ${formatMm(displayHmm)}`;
 }
@@ -731,6 +788,11 @@ function bindEvents() {
     addBrowsedGame();
   });
 
+  previewCalibrationInputEl?.addEventListener("input", (e) => {
+    const nextPercent = Number(/** @type {HTMLInputElement} */ (e.target).value);
+    applyPreviewCalibrationScale(nextPercent / 100);
+  });
+
   document.getElementById("export-project")?.addEventListener("click", () => {
     exportProjectFile(getSettings(), getCollection());
     logStatus("Project exported.");
@@ -825,6 +887,10 @@ export async function initUI() {
   previewMetaEl = document.getElementById("preview-meta");
   previewDisplaySizeEl = document.getElementById("preview-display-size");
   previewActualSizeEl = document.getElementById("preview-actual-size");
+  previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-calibration-input")
+  );
+  previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
@@ -838,6 +904,7 @@ export async function initUI() {
   );
 
   bindEvents();
+  applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   previewImageEl?.addEventListener("load", updatePreviewDimensions);
   window.addEventListener("resize", updatePreviewDimensions);
   updatePreviewDimensions();

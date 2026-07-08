@@ -642,8 +642,8 @@ body {
 
 .preview-image {
   display: block;
-  width: min(100%, 52mm);
-  max-height: 84mm;
+  width: min(100%, calc(52mm * var(--preview-calibration-scale, 1)));
+  max-height: calc(84mm * var(--preview-calibration-scale, 1));
   height: auto;
   border-radius: 4px;
 }
@@ -662,6 +662,31 @@ body {
 
 .preview-dimensions__line + .preview-dimensions__line {
   margin-top: 0.2rem;
+}
+
+.preview-calibration {
+  display: grid;
+  grid-template-columns: auto minmax(150px, 220px) auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+}
+
+.preview-calibration__label,
+.preview-calibration__value {
+  font-size: 0.75rem;
+}
+
+.preview-calibration__range {
+  width: 100%;
+}
+
+.preview-calibration__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 .priority-list {

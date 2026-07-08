@@ -45,7 +45,7 @@ async function main() {
     await page.waitForURL((url) => url.pathname.endsWith("/") || url.pathname.endsWith("/index.html"), {
       timeout: 5000,
     });
-    console.log("✓ NFC Card Designer link navigates home");
+    console.log("✓ Zaparoo NFC Designer link navigates home");
 
     await page.locator(".header__link", { hasText: "Supplies" }).click();
     await page.waitForURL((url) => /\/supplies(?:\.html)?$/.test(url.pathname), { timeout: 5000 });

@@ -220,6 +220,19 @@ async function main() {
     }
     console.log("✓ Search hint updates after filtering");
 
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await page.waitForFunction(() => {
+      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+      return Boolean(image && !image.hasAttribute("src"));
+    });
+    const previewImageAfterClear = page.locator("#preview-image");
+    const previewSrcAfterClear = await previewImageAfterClear.getAttribute("src");
+    if (previewSrcAfterClear !== null) {
+      throw new Error(`Preview image src should be removed after clearing project, got: ${previewSrcAfterClear}`);
+    }
+    console.log("✓ Clearing project removes preview image src in empty state");
+
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);
     }

@@ -1429,7 +1429,7 @@ async function refreshPreview() {
     if (!card) {
       if (requestId !== previewRequestId) return;
       previewImageEl.hidden = true;
-      previewImageEl.src = "";
+      previewImageEl.removeAttribute("src");
       previewImageEl.alt = "";
       previewMetaEl.textContent = "Search for a game to preview artwork.";
       renderPreviewTypeTabs();
@@ -1777,7 +1777,11 @@ export async function initUI() {
   selectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("select-all"));
   deselectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("deselect-all"));
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
-  if (previewImageEl) previewImageEl.hidden = true;
+  if (previewImageEl) {
+    previewImageEl.hidden = true;
+    previewImageEl.removeAttribute("src");
+    previewImageEl.alt = "";
+  }
   previewFrameEl = document.getElementById("preview-frame");
   previewSkeletonEl = document.getElementById("preview-skeleton");
   previewMetaEl = document.getElementById("preview-meta");

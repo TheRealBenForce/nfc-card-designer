@@ -113,5 +113,6 @@ cp .env.example .env
 npm run fetch-images          # download + upload missing images to S3
 npm run fetch-images -- --local-only   # disk only, no S3
 npm run fetch-images -- --s3-only      # S3 only, no local image files
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails.libretro.com --s3-only
 npm run deploy                # sync site to S3 + invalidate CloudFront (excludes assets/images/*)
 ```

@@ -141,6 +141,47 @@ async function main() {
     }
     console.log("✓ Platform change clears game search and browse preview");
 
+    await page.fill("#game-search", "ecco");
+    await page.waitForTimeout(300);
+    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.waitForTimeout(300);
+
+    await addBtn.click();
+    await page.waitForTimeout(300);
+
+    const collectionCards = await page.locator(".collection-card").count();
+    if (collectionCards < 1) {
+      throw new Error("Add to collection should create a collection card");
+    }
+    console.log("✓ Add to collection creates a card");
+
+    await page.fill("#game-search", "ecc");
+    await page.waitForTimeout(100);
+    const filtered = await page.locator("#game-results .list-item").allTextContents();
+    if (filtered.length === 0 || !filtered.every((name) => name.toLowerCase().includes("ecc"))) {
+      throw new Error(`Filtered results should all contain 'ecc': ${JSON.stringify(filtered)}`);
+    }
+    console.log("✓ Results narrow as query grows");
+
+    const hint = await page.locator("#game-search-hint").textContent();
+    if (!hint?.includes("found") && !hint?.includes("with artwork")) {
+      throw new Error(`Expected search hint, got: ${hint}`);
+    }
+    console.log("✓ Search hint updates after filtering");
+
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await page.waitForFunction(() => {
+      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+      return Boolean(image && !image.hasAttribute("src"));
+    });
+    const previewImageAfterClear = page.locator("#preview-image");
+    const previewSrcAfterClear = await previewImageAfterClear.getAttribute("src");
+    if (previewSrcAfterClear !== null) {
+      throw new Error(`Preview image src should be removed after clearing project, got: ${previewSrcAfterClear}`);
+    }
+    console.log("✓ Clearing project removes preview image src in empty state");
+
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);
     }

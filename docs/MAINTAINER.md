@@ -112,7 +112,7 @@ Preview still lets users switch artwork types; the platform priority picks which
 
 ## Artwork source
 
-Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are downloaded from the [libretro thumbnail CDN](https://thumbnails.libretro.com/) by `fetch-images` and uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
+Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are pulled by `fetch-images` from either the [libretro thumbnail CDN](https://thumbnails.libretro.com/) or `--libretro-dir=<local mirror path>`, then uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
 
 `fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation when you need new downloads; use `sync-image-paths` when artwork is already on disk/S3. Deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
 

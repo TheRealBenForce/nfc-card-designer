@@ -1051,6 +1051,16 @@ body {
   margin-top: 0.5rem;
 }
 
+.preview-card-customization {
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+
+.preview-card-customization .field {
+  margin-top: 0.5rem;
+}
+
 .artwork-zoom-field {
   display: grid;
   grid-template-columns: auto minmax(120px, 1fr) auto;

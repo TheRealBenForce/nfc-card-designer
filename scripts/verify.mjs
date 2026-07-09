@@ -84,11 +84,11 @@ async function main() {
   console.log("→ Image settings…");
   await run("node", ["scripts/test-image-settings.mjs"]);
 
+  console.log("→ Sync image paths helpers…");
+  await run("node", ["scripts/test-sync-image-paths.mjs"]);
+
   console.log("→ Platform defaults…");
   await run("node", ["scripts/test-platform-defaults.mjs"]);
-
-  console.log("→ Image disk scan…");
-  await run("node", ["scripts/test-image-scan.mjs"]);
 
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "src", "-l", PORT], {

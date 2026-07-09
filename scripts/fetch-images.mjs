@@ -14,7 +14,6 @@ import {
   gameImagePath,
   gameImageDir,
   existingImageTypes,
-  writeImageAvailabilityJson,
 } from "./games-data.mjs";
 import { imagePresent, s3BucketFromEnv, uploadBufferToS3, uploadFileToS3 } from "./s3-storage.mjs";
 import {
@@ -323,14 +322,12 @@ async function main() {
   });
 
   await writeGamesJs(finalGames);
-  await writeImageAvailabilityJson(finalGames);
 
   console.log(
     `\nDone. ${stats.downloaded} downloaded, ${stats.uploaded} uploaded, ${stats.skipped} skipped, ` +
       `${stats.failed} failed/missing (${stats.gamesFullySkipped} games already complete)`,
   );
   console.log(`Updated ${gamesPath}`);
-  console.log("Updated src/assets/data/image-availability.json");
 }
 main().catch((err) => {
   console.error(err instanceof Error ? err.message : err);

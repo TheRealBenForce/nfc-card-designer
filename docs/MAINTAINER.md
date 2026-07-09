@@ -7,8 +7,8 @@ Internal reference for future changes to NFC Card Designer. Read this before edi
 ```
 src/index.html
   └── assets/js/main.js          # loads catalog, then initUI
-        ├── gameCatalog.js       # search (games-by-platform.json)
-        ├── imageAvailability.js  # runtime cache of probed image types
+        ├── gameCatalog.js       # search (games-by-platform.json + games.js artwork filter)
+        ├── imageAvailability.js # runtime cache of probed image types for preview
         ├── imageProvider.js     # resolve PNG paths for a card
         ├── cardRenderer.js      # canvas preview/PDF tiles
         ├── ui.js                # all DOM / events
@@ -18,15 +18,16 @@ src/index.html
 
 Node-only scripts live in `scripts/`. They are **not** imported by the site at runtime.
 
-## Three data files (easy to confuse)
+## Two data files (easy to confuse)
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
-| `src/assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json` | `gameCatalog.js` | Game **names** for search (retail only by default) |
-| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
-| `src/assets/data/image-availability.json` | `scan-images`, `fetch-images` | scripts / debugging workflows | Optional generated snapshot of detected image types |
+| `src/assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json`, `sync-image-paths` | `gameCatalog.js` | Game **names** for search (retail only by default) |
+| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images`, **`sync-image-paths`** | `gameCatalog.js`, `imageProvider.js`, scripts | Flat catalog + **image path metadata** |
 
-**Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
+**Search** loads names from `games-by-platform.json`, then keeps only games that have image paths in `games.js`. There is no runtime S3 probing for search — run `sync-image-paths` after uploading artwork so `games.js` stays current.
+
+Preview artwork still resolves per card via `imageProvider.js` + `imageAvailability.js` (runtime checks for types beyond what search indexes).
 
 **Image paths** always prefer:
 
@@ -40,19 +41,37 @@ Lookups use **`platformId` + `raGameId`**, not `raGameId` alone.
 
 ## Typical maintainer workflows
 
-### Refresh everything for one platform
+### Refresh everything for one platform (downloads from libretro)
 
 ```bash
 npm run fetch-game-list -- --platform=game-boy
 npm run fetch-images -- --platform=game-boy
-npm start   # scan-images runs via prestart
+npm start
 ```
 
-### After manually copying PNGs into `src/assets/images/platforms/` (local dev only)
+`fetch-images` is slow — it downloads thumbnails from libretro. Use it when you need to **fetch** new artwork.
+
+### After uploading artwork directly to S3 (recommended)
+
+Sync `games.js` metadata **without** re-downloading from libretro:
 
 ```bash
-npm run scan-images   # optional: refresh generated image-availability snapshot
+npm run sync-image-paths -- --platform=atari-2600
 ```
+
+Options:
+
+| Flag | Effect |
+|------|--------|
+| `--platform=<id>` | Limit scan/update to one platform |
+| `--s3-only` | Read S3 only (requires `S3_BUCKET` in `.env`, environment, or `--bucket=`) |
+| `--local-only` | Read `src/assets/images/platforms/` only |
+| `--bucket=<name>` | Override S3 bucket (default with `--s3-only`: `zaparoo.therealbenforce.com`) |
+| `--prune` | Clear stale image paths in `games.js` when PNGs are gone |
+
+The script loads `.env` automatically (like other maintainer scripts). It will **not** clear existing `games.js` image paths unless `--prune` is passed.
+
+By default the script merges local disk **and** S3 listings, then writes updated image paths into `games.js` only. It does **not** rewrite `games-by-platform.json` (that file is unchanged by image-path sync). If nothing changed, `games.js` is not written at all.
 
 ### Pull a local random sample cache from S3 (for CORS-safe previewing)
 
@@ -75,10 +94,10 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
 3. `npm run fetch-platform-icons`
 4. `npm run fetch-game-list -- --platform=<id>`
-5. `npm run fetch-images -- --platform=<id>`
-6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3). `image-availability.json` is optional generated metadata.
+5. `npm run fetch-images -- --platform=<id>` **or** upload PNGs to S3 and `npm run sync-image-paths -- --platform=<id>`
+6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3).
 
-Platforms with **zero catalog games** are hidden from the platform selector automatically.
+Platforms with **zero indexed artwork** are hidden from the platform selector automatically.
 
 ## Settings & export format
 
@@ -95,7 +114,7 @@ Preview still lets users switch artwork types; the platform priority picks which
 
 Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are pulled by `fetch-images` from either the [libretro thumbnail CDN](https://thumbnails.libretro.com/) or `--libretro-dir=<local mirror path>`, then uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
 
-`fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation; deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
+`fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation when you need new downloads; use `sync-image-paths` when artwork is already on disk/S3. Deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
 
 Image types map to libretro folders:
 
@@ -125,19 +144,19 @@ Commit to `main`:
 
 ## Gotchas discovered in v1
 
-1. **Don't commit test images under `src/assets/images/`** — use temp dirs in tests (`test-image-scan.mjs`). Real user images at the same path will block `git pull`.
-2. **`games-by-platform.json` ≠ `games.js`** — UI search uses JSON; stale JSON = small catalog in the app even after `fetch-game-list`.
-3. **`scan-images` scans disk** — useful for debugging generated metadata, but search itself no longer depends on this file.
-4. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
-5. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
+1. **Don't commit test images under `src/assets/images/`** — real user images at the same path will block `git pull`.
+2. **`games-by-platform.json` ≠ `games.js`** — search names come from JSON; artwork availability comes from `games.js` image paths.
+3. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
+4. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
+5. **Direct S3 uploads** need `sync-image-paths` (or `fetch-images --s3-only`) so `games.js` records image paths and search includes those games.
 
 ## npm scripts reference
 
 | Script | Purpose |
 |--------|---------|
-| `npm start` | `scan-images` then static server :8000 |
+| `npm start` | Static server :8000 |
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
-| `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
-| `npm run scan-images` | Optional rescan disk → `image-availability.json` snapshot |
+| `npm run fetch-images` | Download libretro thumbnails + update `games.js` |
+| `npm run sync-image-paths` | Scan local disk and/or S3 → update `games.js` (no libretro download) |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

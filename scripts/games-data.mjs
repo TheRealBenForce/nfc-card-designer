@@ -1,4 +1,4 @@
-import { writeFile, mkdir, readdir, stat } from "node:fs/promises";
+import { writeFile, mkdir, stat, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isRetailRelease } from "../src/assets/js/retailFilter.js";
@@ -13,9 +13,10 @@ const IMAGE_FILE_TYPES = {
   "gamePicture.png": "gamePicture",
 };
 
+export const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
+
 export const gamesPath = path.join(root, "src/assets/js/data/games.js");
 export const gamesByPlatformPath = path.join(root, "src/assets/data/games-by-platform.json");
-export const imageAvailabilityPath = path.join(root, "src/assets/data/image-availability.json");
 
 const GAMES_HEADER = `/**
  * @typedef {Object} GameImages
@@ -94,13 +95,56 @@ export async function writeGamesByPlatformJson(games, meta = {}) {
 }
 
 /** @param {import("../src/assets/js/data/games.js").Game[]} games */
-export async function writeGamesJs(games) {
+export async function writeGamesJs(games, options = {}) {
+  const syncByPlatformJson = options.syncByPlatformJson !== false;
+
   await writeFile(
     gamesPath,
     `${GAMES_HEADER}export const games = ${JSON.stringify(games, null, 2)};
 ${GAMES_FOOTER}`,
   );
-  await writeGamesByPlatformJson(games, { retailOnly: true });
+
+  if (syncByPlatformJson) {
+    await writeGamesByPlatformJson(games, { retailOnly: true });
+  }
+}
+
+/** @param {string} platformId @param {number} raGameId @param {string} type */
+export function gameImagePath(platformId, raGameId, type) {
+  return `assets/images/platforms/${platformId}/games/${raGameId}/${type}.png`;
+}
+
+/** @param {string} platformId @param {number} raGameId */
+export function gameImageDir(platformId, raGameId) {
+  return path.join(root, "src/assets/images/platforms", platformId, "games", String(raGameId));
+}
+
+/** @param {string} filePath */
+export async function imageFilePresent(filePath) {
+  try {
+    const info = await stat(filePath);
+    return info.isFile() && info.size > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * @param {string} dir
+ * @param {string[]} imageTypes
+ * @param {boolean} [force]
+ */
+export async function existingImageTypes(dir, imageTypes, force = false) {
+  if (force) return [];
+
+  /** @type {string[]} */
+  const present = [];
+  for (const type of imageTypes) {
+    if (await imageFilePresent(path.join(dir, `${type}.png`))) {
+      present.push(type);
+    }
+  }
+  return present;
 }
 
 /** @param {string} [rootDir] */
@@ -168,79 +212,16 @@ export function mergeImageAvailability(base, extra) {
   return merged;
 }
 
-/** @param {import("../src/assets/js/data/games.js").Game[]} games */
-export function imageAvailabilityFromGames(games) {
-  /** @type {Record<string, Record<string, string[]>>} */
-  const platforms = {};
-
-  for (const game of games) {
-    const types = Object.entries(game.images ?? {})
-      .filter(([, imagePath]) => Boolean(imagePath))
-      .map(([type]) => type);
-    if (types.length === 0) continue;
-
-    if (!platforms[game.platformId]) platforms[game.platformId] = {};
-    platforms[game.platformId][String(game.raGameId)] = types;
-  }
-
-  return platforms;
-}
-
-/** @param {import("../src/assets/js/data/games.js").Game[]} [games] */
-export async function buildImageAvailability(games = []) {
-  const fromGames = imageAvailabilityFromGames(games);
-  const fromDisk = await scanImageAvailabilityFromDisk();
-  return mergeImageAvailability(fromGames, fromDisk);
-}
-
-/** @param {import("../src/assets/js/data/games.js").Game[]} games */
-export async function writeImageAvailabilityJson(games) {
-  const platforms = await buildImageAvailability(games);
-
-  const payload = {
-    version: 2,
-    generatedAt: new Date().toISOString(),
-    platforms,
-  };
-
-  await mkdir(path.dirname(imageAvailabilityPath), { recursive: true });
-  await writeFile(imageAvailabilityPath, `${JSON.stringify(payload, null, 2)}\n`);
-}
-
-/** @param {string} platformId @param {number} raGameId @param {string} type */
-export function gameImagePath(platformId, raGameId, type) {
-  return `assets/images/platforms/${platformId}/games/${raGameId}/${type}.png`;
-}
-
-/** @param {string} platformId @param {number} raGameId */
-export function gameImageDir(platformId, raGameId) {
-  return path.join(root, "src/assets/images/platforms", platformId, "games", String(raGameId));
-}
-
-/** @param {string} filePath */
-export async function imageFilePresent(filePath) {
-  try {
-    const info = await stat(filePath);
-    return info.isFile() && info.size > 0;
-  } catch {
-    return false;
-  }
-}
-
 /**
- * @param {string} dir
- * @param {string[]} imageTypes
- * @param {boolean} [force]
+ * @param {string} platformId
+ * @param {number} raGameId
+ * @param {string[]} types
  */
-export async function existingImageTypes(dir, imageTypes, force = false) {
-  if (force) return [];
-
-  /** @type {string[]} */
-  const present = [];
-  for (const type of imageTypes) {
-    if (await imageFilePresent(path.join(dir, `${type}.png`))) {
-      present.push(type);
-    }
+export function imagePathsForTypes(platformId, raGameId, types) {
+  /** @type {Record<string, string>} */
+  const images = {};
+  for (const type of types) {
+    images[type] = gameImagePath(platformId, raGameId, type);
   }
-  return present;
+  return images;
 }

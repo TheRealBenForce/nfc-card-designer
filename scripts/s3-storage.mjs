@@ -7,6 +7,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -158,4 +159,59 @@ export async function imagePresent(localPath, objectKey, options = {}) {
     if (checkRemote && (await s3ObjectExists(objectKey))) return true;
   }
   return false;
+}
+
+const GAME_IMAGE_KEY_PATTERN =
+  /^assets\/images\/platforms\/([^/]+)\/games\/(\d+)\/(boxArt|titleScreen|gamePicture)\.png$/;
+
+/**
+ * List game image objects under assets/images/platforms/ in S3.
+ * @param {string} [platformId]
+ * @returns {Promise<Record<string, Record<string, string[]>>>}
+ */
+export async function scanImageAvailabilityFromS3(platformId) {
+  const bucket = s3BucketFromEnv();
+  if (!bucket) {
+    throw new Error("S3_BUCKET is required to scan remote artwork.");
+  }
+
+  /** @type {Record<string, Record<string, string[]>>} */
+  const platforms = {};
+  const prefix = platformId
+    ? `assets/images/platforms/${platformId}/games/`
+    : "assets/images/platforms/";
+
+  let continuationToken;
+  do {
+    const response = await getS3Client().send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const object of response.Contents ?? []) {
+      const key = object.Key;
+      if (!key) continue;
+
+      const match = key.match(GAME_IMAGE_KEY_PATTERN);
+      if (!match) continue;
+
+      const [, matchedPlatformId, raGameId, type] = match;
+      if (!platforms[matchedPlatformId]) platforms[matchedPlatformId] = {};
+      if (!platforms[matchedPlatformId][raGameId]) platforms[matchedPlatformId][raGameId] = [];
+      platforms[matchedPlatformId][raGameId].push(type);
+    }
+
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  for (const games of Object.values(platforms)) {
+    for (const raGameId of Object.keys(games)) {
+      games[raGameId] = [...new Set(games[raGameId])].sort();
+    }
+  }
+
+  return platforms;
 }

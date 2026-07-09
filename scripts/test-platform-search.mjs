@@ -8,6 +8,10 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.TEST_BASE_URL ?? "http://localhost:8000";
+const PNG_1X1 = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 /** @param {import('playwright').Page} page */
 async function countPlatformItems(page) {
@@ -17,6 +21,14 @@ async function countPlatformItems(page) {
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  await page.route("**/*.png", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: PNG_1X1,
+    });
+  });
 
   const errors = [];
   page.on("pageerror", (err) => errors.push(err.message));
@@ -33,19 +45,19 @@ async function main() {
     if (initialCount < 1) {
       throw new Error(`Expected at least one platform in browse list, got ${initialCount}`);
     }
-    console.log(`✓ Shows ${initialCount} platforms with catalog games`);
+    console.log(`✓ Shows ${initialCount} platforms with artwork-backed games`);
 
-    await page.getByRole("button", { name: "NES", exact: true }).click();
-    const nesSelected = await page.locator("#platform-results .list-item--selected").textContent();
-    if (!nesSelected?.includes("NES") || nesSelected.includes("SNES")) {
-      throw new Error(`NES should be selected after click, got: ${nesSelected}`);
+    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
+    const segaCdSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    if (!segaCdSelected?.includes("Sega CD")) {
+      throw new Error(`Sega CD should be selected after click, got: ${segaCdSelected}`);
     }
     console.log("✓ Clicking a platform selects it");
 
-    await page.getByRole("button", { name: "Nintendo 64" }).click();
-    const n64Selected = await page.locator("#platform-results .list-item--selected").textContent();
-    if (!n64Selected?.includes("Nintendo 64")) {
-      throw new Error(`N64 should be selected after click, got: ${n64Selected}`);
+    await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
+    const sega32xSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    if (!sega32xSelected?.includes("Sega 32X")) {
+      throw new Error(`Sega 32X should be selected after click, got: ${sega32xSelected}`);
     }
     console.log("✓ Selected platform is highlighted");
 

@@ -1,6 +1,6 @@
 import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
 import { platforms } from "./data/platforms.js";
-import { ensureGameImageProbed, gameHasKnownImage } from "./imageProbe.js";
+import { ensureGameImageProbed, ensurePlatformArtworkIndexed, gameHasKnownImage } from "./imageProbe.js";
 import { isRetailRelease } from "./retailFilter.js";
 
 /**
@@ -26,6 +26,7 @@ let loadPromise = null;
 
 export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
+export const GAME_SEARCH_BROWSE_LIMIT = 10;
 const LOCAL_GAME_CATALOG_URL = "assets/data/games-by-platform.json";
 const S3_GAME_CATALOG_URL = "https://zaparoo.therealbenforce.com/assets/data/games-by-platform.json";
 const S3_CATALOG_TIMEOUT_MS = 4000;
@@ -145,6 +146,15 @@ export function platformHasCatalogGames(platformId) {
 
 /**
  * @param {string} platformId
+ * @param {() => void} [onProgress]
+ */
+export async function refreshPlatformArtworkIndex(platformId, onProgress) {
+  const entries = byPlatform?.[platformId] ?? [];
+  await ensurePlatformArtworkIndexed(platformId, entries, onProgress);
+}
+
+/**
+ * @param {string} platformId
  * @param {number} raGameId
  */
 export function gameByPlatformAndRaId(platformId, raGameId) {
@@ -159,14 +169,45 @@ export function gameForCard(card) {
 
 /**
  * @param {string} platformId
+ * @param {{ limit?: number, prefix?: string }} [options]
+ * @returns {Promise<Game[]>}
+ */
+export async function browseGamesWithArtwork(platformId, options = {}) {
+  const limit = options.limit ?? GAME_SEARCH_BROWSE_LIMIT;
+  const prefix = options.prefix?.trim().toLowerCase() ?? "";
+
+  const entries = (byPlatform?.[platformId] ?? [])
+    .filter((entry) => !prefix || entry.name.toLowerCase().includes(prefix))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+
+  /** @type {Game[]} */
+  const games = [];
+  for (const entry of entries) {
+    const game = withImages(platformId, entry);
+    if (gameHasImage(game) || (await ensureGameImageProbed(game))) {
+      games.push(game);
+      if (games.length >= limit) break;
+    }
+  }
+
+  return games;
+}
+
+/**
+ * @param {string} platformId
  * @param {string} query
- * @param {{ limit?: number }} [options]
- * @returns {Promise<{ games: Game[], total: number }>}
+ * @param {{ limit?: number, browseLimit?: number }} [options]
+ * @returns {Promise<{ games: Game[], total: number, isBrowseSample: boolean }>}
  */
 export async function searchGames(platformId, query, options = {}) {
   const limit = options.limit ?? GAME_SEARCH_RESULT_LIMIT;
+  const browseLimit = options.browseLimit ?? GAME_SEARCH_BROWSE_LIMIT;
   const q = query.trim().toLowerCase();
-  if (q.length < MIN_GAME_SEARCH_CHARS) return { games: [], total: 0 };
+
+  if (q.length < MIN_GAME_SEARCH_CHARS) {
+    const games = await browseGamesWithArtwork(platformId, { limit: browseLimit, prefix: q });
+    return { games, total: games.length, isBrowseSample: true };
+  }
 
   const candidates = (byPlatform?.[platformId] ?? [])
     .map((entry) => withImages(platformId, entry))
@@ -195,9 +236,14 @@ export async function searchGames(platformId, query, options = {}) {
 
   matches.sort((a, b) => compareSearchResults(a.name, b.name, q));
 
+  if (matches.length === 0) {
+    const games = await browseGamesWithArtwork(platformId, { limit: browseLimit });
+    return { games, total: 0, isBrowseSample: true };
+  }
+
   const total = matches.length;
   const games = limit > 0 ? matches.slice(0, limit) : matches;
-  return { games, total };
+  return { games, total, isBrowseSample: false };
 }
 
 /**

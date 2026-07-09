@@ -8,6 +8,10 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.TEST_BASE_URL ?? "http://localhost:8000";
+const PNG_1X1 = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 /** @param {import('playwright').Page} page */
 async function countPlatformItems(page) {
@@ -17,6 +21,14 @@ async function countPlatformItems(page) {
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  await page.route("**/*.png", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: PNG_1X1,
+    });
+  });
 
   const errors = [];
   page.on("pageerror", (err) => errors.push(err.message));

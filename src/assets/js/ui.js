@@ -8,10 +8,8 @@ import {
   catalogCountForPlatform,
   platformsWithCatalogGames,
   platformHasCatalogGames,
-  refreshPlatformArtworkIndex,
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
-import { isPlatformArtworkIndexInProgress } from "./imageProbe.js";
 import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
@@ -227,11 +225,7 @@ let filteredGamesTotal = 0;
 /** @type {boolean} */
 let filteredGamesBrowseMode = false;
 /** @type {boolean} */
-let searchInProgress = false;
-/** @type {boolean} */
 let gameSearchFocused = false;
-/** @type {number} */
-let searchRequestId = 0;
 
 /**
  * Treat empty/invalid ids as no active platform selection.
@@ -712,16 +706,11 @@ function mountPriorityList(listEl, priority, onChange) {
 
 function refreshSearchViews() {
   renderPlatformResults();
-  void filterGames(gameSearchInput?.value ?? "");
+  filterGames(gameSearchInput?.value ?? "");
 }
 
-function startPlatformArtworkIndex(platformId) {
-  if (!platformId) return;
-  void refreshPlatformArtworkIndex(platformId, () => {
-    updateGameSearchHint();
-  }).then(() => {
-    updateGameSearchHint();
-  });
+function artworkCountLabel(count) {
+  return `${count} game${count === 1 ? "" : "s"} with artwork`;
 }
 
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
@@ -735,18 +724,15 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 
   const gameCount = gameCountForPlatform(activePlatformId);
   const catalogSize = catalogCountForPlatform(activePlatformId);
-  const indexing = isPlatformArtworkIndexInProgress(activePlatformId);
 
   if (query.length === 0) {
-    if (indexing) {
-      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} with artwork found…`;
-    } else if (gameCount === 0) {
+    if (gameCount === 0) {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "Click search and pick a game, or type to filter.";
+          : "No artwork indexed yet — run sync-image-paths, then click search to browse.";
     } else {
-      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} with artwork`;
+      gameSearchHintEl.textContent = artworkCountLabel(gameCount);
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
@@ -754,16 +740,11 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
     const remaining = MIN_GAME_SEARCH_CHARS - query.length;
+    const countHint = gameCount > 0 ? artworkCountLabel(gameCount) : "available games";
     gameSearchHintEl.textContent =
       remaining === 1
-        ? `Type 1 more character to search ${gameCount || "available"} games, or pick from the list.`
-        : `Type ${remaining} more characters to search ${gameCount || "available"} games, or pick from the list.`;
-    gameSearchHintEl.classList.remove("field-hint--ready");
-    return;
-  }
-
-  if (searchInProgress) {
-    gameSearchHintEl.textContent = "Searching for games with artwork…";
+        ? `Type 1 more character to search, or pick from the list (${countHint}).`
+        : `Type ${remaining} more characters to search, or pick from the list (${countHint}).`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
@@ -794,15 +775,13 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   gameSearchHintEl.classList.add("field-hint--ready");
 }
 
-async function filterGames(query) {
-  const requestId = ++searchRequestId;
+function filterGames(query) {
   const activePlatformId = getActivePlatformId();
   const q = query.trim();
   if (!activePlatformId) {
     filteredGames = [];
     filteredGamesTotal = 0;
     filteredGamesBrowseMode = false;
-    searchInProgress = false;
     gameHighlightIndex = 0;
     renderGameResults();
     updateGameSearchHint(q);
@@ -813,21 +792,13 @@ async function filterGames(query) {
     filteredGames = [];
     filteredGamesTotal = 0;
     filteredGamesBrowseMode = false;
-    searchInProgress = false;
     gameHighlightIndex = 0;
     renderGameResults();
     updateGameSearchHint(q);
     return;
   }
 
-  searchInProgress = true;
-  renderGameResults();
-  updateGameSearchHint(q);
-
-  const result = await searchGames(activePlatformId, q);
-  if (requestId !== searchRequestId) return;
-
-  searchInProgress = false;
+  const result = searchGames(activePlatformId, q);
   filteredGames = result.games;
   filteredGamesTotal = result.total;
   filteredGamesBrowseMode = result.isBrowseSample;
@@ -878,14 +849,6 @@ function renderGameResults() {
   }
 
   gameResultsEl.hidden = false;
-
-  if (searchInProgress && filteredGames.length === 0) {
-    const pending = document.createElement("p");
-    pending.className = "empty-hint";
-    pending.textContent = "Searching for games with artwork…";
-    gameResultsEl.appendChild(pending);
-    return;
-  }
 
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
@@ -944,7 +907,6 @@ function selectPlatform(platformId) {
   }
 
   syncPlatformControls();
-  startPlatformArtworkIndex(platformId);
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
@@ -1167,7 +1129,7 @@ async function applyPlatformPriorityToBrowse() {
   await refreshPreview();
 }
 
-async function pickGameFromSearch() {
+function pickGameFromSearch() {
   const activePlatformId = getActivePlatformId();
   if (!activePlatformId) {
     logStatus("Select a platform before searching for games.", true);
@@ -1180,7 +1142,7 @@ async function pickGameFromSearch() {
     return null;
   }
 
-  const game = await pickGameFromCatalog(activePlatformId, query, gameHighlightIndex);
+  const game = pickGameFromCatalog(activePlatformId, query, gameHighlightIndex);
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
     return null;
@@ -1525,7 +1487,7 @@ async function refreshPreview() {
 function bindEvents() {
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
-    void filterGames(gameSearchInput?.value ?? "");
+    filterGames(gameSearchInput?.value ?? "");
   });
 
   gameSearchInput?.addEventListener("blur", () => {
@@ -1547,7 +1509,7 @@ function bindEvents() {
     const dropdownOpen =
       Boolean(getActivePlatformId()) &&
       (gameSearchFocused || query.length > 0) &&
-      (filteredGames.length > 0 || searchInProgress);
+      filteredGames.length > 0;
 
     if (dropdownOpen && e.key === "ArrowDown") {
       e.preventDefault();
@@ -1563,12 +1525,11 @@ function bindEvents() {
     }
     if (e.key === "Enter") {
       e.preventDefault();
-      void pickGameFromSearch().then((game) => {
-        if (game) {
-          closeGameResults();
-          void browseGameFromSearch(game);
-        }
-      });
+      const game = pickGameFromSearch();
+      if (game) {
+        closeGameResults();
+        void browseGameFromSearch(game);
+      }
     }
   });
 
@@ -1990,8 +1951,6 @@ export async function initUI() {
     renderCollection();
     refreshPreview();
   });
-
-  startPlatformArtworkIndex(getActivePlatformId());
 
   subscribe((event) => {
     if (event === "settings") {

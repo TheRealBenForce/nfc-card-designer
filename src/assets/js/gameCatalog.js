@@ -1,6 +1,5 @@
 import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
 import { platforms } from "./data/platforms.js";
-import { ensureGameImageProbed, ensurePlatformArtworkIndexed, gameHasKnownImage } from "./imageProbe.js";
 import { isRetailRelease } from "./retailFilter.js";
 
 /**
@@ -146,15 +145,6 @@ export function platformHasCatalogGames(platformId) {
 
 /**
  * @param {string} platformId
- * @param {() => void} [onProgress]
- */
-export async function refreshPlatformArtworkIndex(platformId, onProgress) {
-  const entries = byPlatform?.[platformId] ?? [];
-  await ensurePlatformArtworkIndexed(platformId, entries, onProgress);
-}
-
-/**
- * @param {string} platformId
  * @param {number} raGameId
  */
 export function gameByPlatformAndRaId(platformId, raGameId) {
@@ -170,74 +160,40 @@ export function gameForCard(card) {
 /**
  * @param {string} platformId
  * @param {{ limit?: number, prefix?: string }} [options]
- * @returns {Promise<Game[]>}
+ * @returns {Game[]}
  */
-export async function browseGamesWithArtwork(platformId, options = {}) {
+export function browseGamesWithArtwork(platformId, options = {}) {
   const limit = options.limit ?? GAME_SEARCH_BROWSE_LIMIT;
   const prefix = options.prefix?.trim().toLowerCase() ?? "";
 
-  const entries = (byPlatform?.[platformId] ?? [])
-    .filter((entry) => !prefix || entry.name.toLowerCase().includes(prefix))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
-
-  /** @type {Game[]} */
-  const games = [];
-  for (const entry of entries) {
-    const game = withImages(platformId, entry);
-    if (gameHasImage(game) || (await ensureGameImageProbed(game))) {
-      games.push(game);
-      if (games.length >= limit) break;
-    }
-  }
-
-  return games;
+  return gamesForPlatform(platformId)
+    .filter((game) => !prefix || game.name.toLowerCase().includes(prefix))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
+    .slice(0, limit);
 }
 
 /**
  * @param {string} platformId
  * @param {string} query
  * @param {{ limit?: number, browseLimit?: number }} [options]
- * @returns {Promise<{ games: Game[], total: number, isBrowseSample: boolean }>}
+ * @returns {{ games: Game[], total: number, isBrowseSample: boolean }}
  */
-export async function searchGames(platformId, query, options = {}) {
+export function searchGames(platformId, query, options = {}) {
   const limit = options.limit ?? GAME_SEARCH_RESULT_LIMIT;
   const browseLimit = options.browseLimit ?? GAME_SEARCH_BROWSE_LIMIT;
   const q = query.trim().toLowerCase();
 
   if (q.length < MIN_GAME_SEARCH_CHARS) {
-    const games = await browseGamesWithArtwork(platformId, { limit: browseLimit, prefix: q });
+    const games = browseGamesWithArtwork(platformId, { limit: browseLimit, prefix: q });
     return { games, total: games.length, isBrowseSample: true };
   }
 
-  const candidates = (byPlatform?.[platformId] ?? [])
-    .map((entry) => withImages(platformId, entry))
-    .filter((game) => game.name.toLowerCase().includes(q));
-
-  candidates.sort((a, b) => compareSearchResults(a.name, b.name, q));
-
-  /** @type {Game[]} */
-  const matches = [];
-  const concurrency = 12;
-  let index = 0;
-
-  async function worker() {
-    while (index < candidates.length) {
-      const game = candidates[index];
-      index += 1;
-      if (gameHasImage(game) || (await ensureGameImageProbed(game))) {
-        matches.push(game);
-      }
-    }
-  }
-
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, candidates.length || 1) }, worker),
-  );
-
-  matches.sort((a, b) => compareSearchResults(a.name, b.name, q));
+  const matches = gamesForPlatform(platformId)
+    .filter((game) => game.name.toLowerCase().includes(q))
+    .sort((a, b) => compareSearchResults(a.name, b.name, q));
 
   if (matches.length === 0) {
-    const games = await browseGamesWithArtwork(platformId, { limit: browseLimit });
+    const games = browseGamesWithArtwork(platformId, { limit: browseLimit });
     return { games, total: 0, isBrowseSample: true };
   }
 
@@ -251,8 +207,8 @@ export async function searchGames(platformId, query, options = {}) {
  * @param {string} query
  * @param {number} [highlightedIndex]
  */
-export async function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
-  const { games } = await searchGames(platformId, query, { limit: 0 });
+export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
+  const { games } = searchGames(platformId, query, { limit: 0 });
   if (games.length === 0) return null;
 
   const lower = query.trim().toLowerCase();
@@ -300,5 +256,5 @@ function withImages(platformId, entry) {
  * @returns {boolean}
  */
 function gameHasImage(game) {
-  return gameHasKnownImage(game);
+  return Object.values(game.images).some((value) => Boolean(value));
 }

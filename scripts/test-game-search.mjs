@@ -106,15 +106,26 @@ async function main() {
     }
     console.log("✓ Selecting a game opens browse preview with artwork tabs");
 
-    await page.getByRole("button", { name: "NES", exact: true }).click();
+    await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
     await page.waitForTimeout(150);
     await searchInput.focus();
-    await page.fill("#game-search", "mar");
-    const marioOption = page.getByRole("option", { name: "Super Mario Bros.", exact: true });
-    await marioOption.waitFor({ state: "visible", timeout: 15000 });
-    await marioOption.click();
+    await page.waitForTimeout(300);
+    const browse32x = await page.locator("#game-results .list-item").allTextContents();
+    if (browse32x.length === 0) {
+      throw new Error(`Expected Sega 32X browse suggestions on focus, got: ${JSON.stringify(browse32x)}`);
+    }
+    if (browse32x.length > 10) {
+      throw new Error(`Expected at most 10 browse rows, got ${browse32x.length}`);
+    }
+    console.log("✓ Browse dropdown lists indexed games without waiting for background probing");
+
+    await page.fill("#game-search", "doo");
+    await page.waitForTimeout(300);
+    const doomOption = page.getByRole("option", { name: "Doom", exact: true });
+    await doomOption.waitFor({ state: "visible", timeout: 5000 });
+    await doomOption.click();
     await page.waitForTimeout(500);
-    console.log("✓ Runtime probing finds artwork-backed games without games.js metadata");
+    console.log("✓ Search finds games indexed in games.js");
 
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 

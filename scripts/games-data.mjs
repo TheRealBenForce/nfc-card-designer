@@ -1,9 +1,19 @@
-import { writeFile, mkdir, stat } from "node:fs/promises";
+import { writeFile, mkdir, stat, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isRetailRelease } from "../src/assets/js/retailFilter.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const platformsImageRoot = path.join(root, "src/assets/images/platforms");
+
+/** @type {Record<string, string>} */
+const IMAGE_FILE_TYPES = {
+  "boxArt.png": "boxArt",
+  "titleScreen.png": "titleScreen",
+  "gamePicture.png": "gamePicture",
+};
+
+export const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
 
 export const gamesPath = path.join(root, "src/assets/js/data/games.js");
 export const gamesByPlatformPath = path.join(root, "src/assets/data/games-by-platform.json");
@@ -130,4 +140,83 @@ export async function existingImageTypes(dir, imageTypes, force = false) {
     }
   }
   return present;
+}
+
+/** @param {string} [rootDir] */
+export async function scanImageAvailabilityFromDisk(rootDir = platformsImageRoot) {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const platforms = {};
+
+  let platformEntries = [];
+  try {
+    platformEntries = await readdir(rootDir, { withFileTypes: true });
+  } catch {
+    return platforms;
+  }
+
+  for (const platformEntry of platformEntries) {
+    if (!platformEntry.isDirectory()) continue;
+
+    const platformId = platformEntry.name;
+    const gamesDir = path.join(rootDir, platformId, "games");
+
+    let gameEntries = [];
+    try {
+      gameEntries = await readdir(gamesDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const gameEntry of gameEntries) {
+      if (!gameEntry.isDirectory()) continue;
+
+      const raGameId = gameEntry.name;
+      if (!/^\d+$/.test(raGameId)) continue;
+
+      const imageDir = path.join(gamesDir, raGameId);
+      const files = await readdir(imageDir);
+      const types = files
+        .map((file) => IMAGE_FILE_TYPES[file])
+        .filter((type) => Boolean(type));
+
+      if (types.length === 0) continue;
+
+      if (!platforms[platformId]) platforms[platformId] = {};
+      platforms[platformId][raGameId] = [...new Set(types)].sort();
+    }
+  }
+
+  return platforms;
+}
+
+/**
+ * @param {Record<string, Record<string, string[]>>} base
+ * @param {Record<string, Record<string, string[]>>} extra
+ */
+export function mergeImageAvailability(base, extra) {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const merged = structuredClone(base);
+
+  for (const [platformId, games] of Object.entries(extra)) {
+    if (!merged[platformId]) merged[platformId] = {};
+    for (const [raGameId, types] of Object.entries(games)) {
+      merged[platformId][raGameId] = [...new Set([...(merged[platformId][raGameId] ?? []), ...types])].sort();
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * @param {string} platformId
+ * @param {number} raGameId
+ * @param {string[]} types
+ */
+export function imagePathsForTypes(platformId, raGameId, types) {
+  /** @type {Record<string, string>} */
+  const images = {};
+  for (const type of types) {
+    images[type] = gameImagePath(platformId, raGameId, type);
+  }
+  return images;
 }

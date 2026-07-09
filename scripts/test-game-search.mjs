@@ -30,6 +30,16 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
+    const initialPreviewImage = page.locator("#preview-image");
+    if (!(await initialPreviewImage.isHidden())) {
+      throw new Error("Preview image should remain hidden before selecting a game");
+    }
+    const initialPreviewSrc = await initialPreviewImage.getAttribute("src");
+    if (initialPreviewSrc !== null) {
+      throw new Error(`Preview image src should be unset before selecting a game, got: ${initialPreviewSrc}`);
+    }
+    console.log("✓ Initial preview image starts hidden without src");
+
     await page.locator("summary", { hasText: "Platform Settings" }).click();
     await page.getByRole("button", { name: "NES", exact: true }).click();
     await page.waitForTimeout(150);

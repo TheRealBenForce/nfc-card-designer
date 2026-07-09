@@ -3,47 +3,38 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { existingImageTypes, imageFilePresent } from "./games-data.mjs";
+import { imagePresent } from "./s3-storage.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tempRoot = await mkdtemp(path.join(os.tmpdir(), "nfc-fetch-images-skip-"));
 
 try {
-  const gameDir = path.join(tempRoot, "nes/games/2286");
-  await mkdir(gameDir, { recursive: true });
+  const objectKey = "assets/images/Nintendo - Nintendo Entertainment System/Named_Boxarts/Super Mario Bros. (USA).png";
+  const localPath = path.join(tempRoot, objectKey);
+  await mkdir(path.dirname(localPath), { recursive: true });
 
-  const boxArtPath = path.join(gameDir, "boxArt.png");
-  await writeFile(boxArtPath, "png");
-
-  if (!(await imageFilePresent(boxArtPath))) {
-    throw new Error("Expected non-empty boxArt.png to be present");
+  await writeFile(localPath, "png");
+  if (!(await imagePresent(localPath, objectKey, { checkLocal: true, checkRemote: false }))) {
+    throw new Error("Expected non-empty PNG to be present locally");
   }
 
-  await writeFile(path.join(gameDir, "titleScreen.png"), "");
-  if (await imageFilePresent(path.join(gameDir, "titleScreen.png"))) {
+  const emptyPath = path.join(tempRoot, "empty.png");
+  await writeFile(emptyPath, "");
+  if (await imagePresent(emptyPath, "assets/images/empty.png", { checkLocal: true, checkRemote: false })) {
     throw new Error("Empty files should not count as present");
   }
 
-  const types = ["boxArt", "titleScreen", "gamePicture"];
-  const present = await existingImageTypes(gameDir, types, false);
-  if (present.length !== 1 || present[0] !== "boxArt") {
-    throw new Error(`Expected only boxArt present, got ${JSON.stringify(present)}`);
+  if (
+    await imagePresent(localPath, objectKey, {
+      checkLocal: true,
+      checkRemote: false,
+      force: true,
+    })
+  ) {
+    throw new Error("Force mode should bypass the present check");
   }
 
-  const forced = await existingImageTypes(gameDir, types, true);
-  if (forced.length !== 0) {
-    throw new Error("Force mode should not report existing images");
-  }
-
-  const allPresent = await existingImageTypes(gameDir, ["boxArt"], false);
-  if (allPresent.length !== 1) {
-    throw new Error("Expected boxArt in existingImageTypes result");
-  }
-
-  console.log("✓ imageFilePresent ignores missing and empty files");
-  console.log("✓ existingImageTypes reports only non-empty PNGs");
-  console.log("✓ --force bypass is honored by existingImageTypes");
+  console.log("✓ imagePresent ignores missing and empty files");
+  console.log("✓ imagePresent honors force mode");
 } finally {
   await rm(tempRoot, { recursive: true, force: true });
 }

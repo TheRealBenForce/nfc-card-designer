@@ -32,7 +32,7 @@ function serializeCard(card) {
     id: card.id,
     platformId: card.platformId,
     gameName: card.gameName,
-    raGameId: card.raGameId,
+    libretroName: card.libretroName,
     imageType: card.imageType,
     ...(card.imageFailed ? { imageFailed: true } : {}),
     ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
@@ -52,7 +52,7 @@ function normalizeCard(card, fallbackHeaderSettings) {
     typeof entry.id !== "string" ||
     typeof entry.platformId !== "string" ||
     typeof entry.gameName !== "string" ||
-    typeof entry.raGameId !== "number" ||
+    typeof entry.libretroName !== "string" ||
     typeof entry.imageType !== "string"
   ) {
     return null;
@@ -69,7 +69,7 @@ function normalizeCard(card, fallbackHeaderSettings) {
     id: entry.id,
     platformId: entry.platformId,
     gameName: entry.gameName,
-    raGameId: entry.raGameId,
+    libretroName: entry.libretroName,
     imageType: entry.imageType,
     ...(entry.imageFailed ? { imageFailed: true } : {}),
     ...(entry.artworkDisplay
@@ -166,7 +166,7 @@ export function buildProjectData(settings, collection) {
   const headerSettings = normalizeHeaderSettings(settings);
   const cardSizing = resolveCardSizing(settings);
   return {
-    version: 5,
+    version: 6,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     ...cardSizing,

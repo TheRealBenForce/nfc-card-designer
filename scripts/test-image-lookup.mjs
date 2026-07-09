@@ -1,43 +1,45 @@
 #!/usr/bin/env node
 /**
- * Ensures card artwork resolves using platform + RA game id, not RA id alone.
+ * Ensures card artwork resolves using manifest image paths.
  */
 
-import { gameByPlatformAndRaId, gameForCard, gamesForPlatform } from "../src/assets/js/data/games.js";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { candidateImagePaths } from "../src/assets/js/imageProvider.js";
 
-const nesGames = gamesForPlatform("nes");
-if (nesGames.length === 0) {
-  throw new Error("Expected at least one NES game in catalog");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const manifestPath = path.join(root, "src/assets/data/image-manifest.json");
+const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+
+const nesGame = manifest.platforms.nes?.[0];
+if (!nesGame) {
+  throw new Error("Expected at least one NES game in image-manifest.json");
 }
-const sampleNesGame = nesGames[0];
 
 const card = {
   id: "test",
   platformId: "nes",
-  gameName: sampleNesGame.name,
-  raGameId: sampleNesGame.raGameId,
+  gameName: nesGame.libretroName,
+  libretroName: nesGame.libretroName,
   imageType: "boxArt",
 };
 
-const byPlatformAndId = gameByPlatformAndRaId("nes", sampleNesGame.raGameId);
-if (!byPlatformAndId || byPlatformAndId.name !== sampleNesGame.name) {
-  throw new Error("Expected gameByPlatformAndRaId to return the NES sample game");
-}
-
-const game = gameForCard(card);
-if (!game || game.platformId !== "nes") {
-  throw new Error("gameForCard should return the NES catalog entry");
-}
+const game = {
+  platformId: "nes",
+  libretroName: nesGame.libretroName,
+  name: nesGame.libretroName,
+  images: nesGame.images,
+};
 
 const paths = candidateImagePaths(card, game, "boxArt");
-if (!paths[0].includes(`/platforms/nes/games/${sampleNesGame.raGameId}/`)) {
-  throw new Error(`Platform-specific path should be first, got: ${paths[0]}`);
+if (!paths[0]?.includes("Named_Boxarts")) {
+  throw new Error(`Expected libretro boxart path first, got: ${paths[0]}`);
 }
 
-if (!paths.some((path) => path.includes(`assets/images/games/${sampleNesGame.raGameId}-boxArt.png`))) {
-  throw new Error("Expected legacy fallback path to remain in candidates");
+if (paths[0] !== nesGame.images.boxArt) {
+  throw new Error(`Expected manifest boxArt path, got: ${paths[0]}`);
 }
 
-console.log("✓ Image lookup uses platform + RA game id");
-console.log("✓ Platform-specific image path is preferred");
+console.log("✓ Image lookup uses libretro manifest paths");
+console.log("✓ Manifest image path is preferred");

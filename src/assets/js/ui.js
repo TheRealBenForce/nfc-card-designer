@@ -624,7 +624,7 @@ async function browseSelectedCard(card) {
   const game =
     gameForCard(card) ?? {
       platformId: card.platformId,
-      raGameId: card.raGameId,
+      libretroName: card.libretroName,
       name: card.gameName,
       images: {},
     };
@@ -730,7 +730,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No artwork indexed yet — run sync-image-paths, then click search to browse.";
+          : "No artwork indexed yet — run fetch-images and sync-image-manifest, then click search to browse.";
     } else {
       gameSearchHintEl.textContent = artworkCountLabel(gameCount);
     }
@@ -1220,7 +1220,7 @@ async function addBrowsedGame() {
     updateCard(targetCard.id, {
       platformId: game.platformId,
       gameName: game.name,
-      raGameId: game.raGameId,
+      libretroName: game.libretroName,
       imageType,
       imageFailed,
       ...(targetCard.headerSettings ? {} : { headerSettings }),
@@ -1237,7 +1237,7 @@ async function addBrowsedGame() {
     id: createCardId(),
     platformId: game.platformId,
     gameName: game.name,
-    raGameId: game.raGameId,
+    libretroName: game.libretroName,
     imageType,
     headerSettings,
     ...(imageFailed ? { imageFailed: true } : {}),
@@ -1393,7 +1393,7 @@ async function refreshCollectionImageStatus() {
   for (const card of getCollection()) {
     const game = gameForCard(card);
     const { failed } = await resolveGameImage(
-      game ?? { platformId: card.platformId, raGameId: card.raGameId, name: card.gameName, images: {} },
+      game ?? { platformId: card.platformId, libretroName: card.libretroName, name: card.gameName, images: {} },
       card.imageType,
     );
     if (Boolean(card.imageFailed) !== failed) {
@@ -1422,14 +1422,14 @@ async function refreshPreview() {
             ...targetCard,
             platformId: game.platformId,
             gameName: game.name,
-            raGameId: game.raGameId,
+            libretroName: game.libretroName,
             imageType,
           }
         : {
             id: "browse",
             platformId: game.platformId,
             gameName: game.name,
-            raGameId: game.raGameId,
+            libretroName: game.libretroName,
             imageType,
             headerSettings: currentHeaderSettingsSnapshot(),
             ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),

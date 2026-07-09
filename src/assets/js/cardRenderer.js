@@ -2,7 +2,7 @@ import { PLACEHOLDER_SVG } from "./config.js";
 import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage, candidateImagePaths } from "./imageProvider.js";
-import { gameByPlatformAndRaId } from "./data/games.js";
+import { gameForCard } from "./gameCatalog.js";
 import { getPlatformIconPath } from "./platformIcons.js";
 import {
   DEFAULT_PLATFORM_COLOR,
@@ -279,7 +279,7 @@ function drawBlurredImageBackground(ctx, rect, img) {
  * @returns {Promise<HTMLImageElement|null>}
  */
 async function loadCardImageType(card, imageType) {
-  const game = gameByPlatformAndRaId(card.platformId, card.raGameId);
+  const game = gameForCard(card);
   for (const imagePath of candidateImagePaths(card, game, imageType)) {
     try {
       return await loadImage(imagePath);

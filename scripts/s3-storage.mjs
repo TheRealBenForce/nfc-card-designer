@@ -161,25 +161,25 @@ export async function imagePresent(localPath, objectKey, options = {}) {
   return false;
 }
 
-const GAME_IMAGE_KEY_PATTERN =
-  /^assets\/images\/platforms\/([^/]+)\/games\/(\d+)\/(boxArt|titleScreen|gamePicture)\.png$/;
+import { addInventoryEntry, parseLibretroImageKey } from "./libretro-image-paths.mjs";
 
 /**
- * List game image objects under assets/images/platforms/ in S3.
- * @param {string} [platformId]
- * @returns {Promise<Record<string, Record<string, string[]>>>}
+ * List libretro-mirrored image objects under assets/images/ in S3.
+ * @param {string} [playlistFilter]
+ * @param {Record<string, string>} [playlistToPlatform]
+ * @returns {Promise<Record<string, Record<string, Partial<Record<string, string>>>>>>}
  */
-export async function scanImageAvailabilityFromS3(platformId) {
+export async function scanLibretroImagesFromS3(playlistFilter, playlistToPlatform = {}) {
   const bucket = s3BucketFromEnv();
   if (!bucket) {
     throw new Error("S3_BUCKET is required to scan remote artwork.");
   }
 
-  /** @type {Record<string, Record<string, string[]>>} */
-  const platforms = {};
-  const prefix = platformId
-    ? `assets/images/platforms/${platformId}/games/`
-    : "assets/images/platforms/";
+  /** @type {Record<string, Record<string, Partial<Record<string, string>>>>>} */
+  const inventory = {};
+  const prefix = playlistFilter
+    ? `assets/images/${playlistFilter}/`
+    : "assets/images/";
 
   let continuationToken;
   do {
@@ -195,23 +195,23 @@ export async function scanImageAvailabilityFromS3(platformId) {
       const key = object.Key;
       if (!key) continue;
 
-      const match = key.match(GAME_IMAGE_KEY_PATTERN);
-      if (!match) continue;
+      const parsed = parseLibretroImageKey(key);
+      if (!parsed) continue;
+      if (playlistFilter && parsed.playlist !== playlistFilter) continue;
+      if (Object.keys(playlistToPlatform).length > 0 && !playlistToPlatform[parsed.playlist]) {
+        continue;
+      }
 
-      const [, matchedPlatformId, raGameId, type] = match;
-      if (!platforms[matchedPlatformId]) platforms[matchedPlatformId] = {};
-      if (!platforms[matchedPlatformId][raGameId]) platforms[matchedPlatformId][raGameId] = [];
-      platforms[matchedPlatformId][raGameId].push(type);
+      addInventoryEntry(inventory, {
+        playlist: parsed.playlist,
+        libretroName: parsed.libretroName,
+        imageType: parsed.imageType,
+        objectKey: key,
+      });
     }
 
     continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
   } while (continuationToken);
 
-  for (const games of Object.values(platforms)) {
-    for (const raGameId of Object.keys(games)) {
-      games[raGameId] = [...new Set(games[raGameId])].sort();
-    }
-  }
-
-  return platforms;
+  return inventory;
 }

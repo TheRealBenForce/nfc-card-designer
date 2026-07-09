@@ -1,58 +1,44 @@
 import { PLACEHOLDER_SVG } from "./config.js";
 import { getDevImageDelayMs } from "./devTools.js";
-import { gameByPlatformAndRaId } from "./data/games.js";
-
-const IMAGE_FIELD_MAP = {
-  boxArt: "boxArt",
-  titleScreen: "titleScreen",
-  gamePicture: "gamePicture",
-};
+import { gameForCard } from "./gameCatalog.js";
 
 /**
- * @param {import('./data/games.js').Game} game
+ * @param {import('./gameCatalog.js').Game} game
  * @param {string} imageType
  */
 export function getGameImagePath(game, imageType) {
-  const key = IMAGE_FIELD_MAP[imageType] ?? "boxArt";
-  return game.images?.[key] ?? null;
+  return game.images?.[imageType] ?? null;
 }
 
 /**
  * @param {import('./state.js').Card} card
- * @param {import('./data/games.js').Game | undefined} game
+ * @param {import('./gameCatalog.js').Game | undefined} game
  * @param {string} imageType
  */
 export function candidateImagePaths(card, game, imageType) {
-  const key = IMAGE_FIELD_MAP[imageType] ?? "boxArt";
   const paths = [];
-
-  paths.push(`assets/images/platforms/${card.platformId}/games/${card.raGameId}/${key}.png`);
-
-  const fromCatalog = game?.images?.[key];
+  const fromCatalog = game?.images?.[imageType];
   if (fromCatalog) paths.push(fromCatalog);
-
-  paths.push(`assets/images/games/${card.raGameId}-${key}.png`);
-
   return [...new Set(paths)];
 }
 
 /**
- * @param {import('./data/games.js').Game} game
+ * @param {import('./gameCatalog.js').Game} game
  * @param {string} imageType
  * @returns {Promise<{ url: string, failed: boolean }>}
  */
 export async function resolveGameImage(game, imageType) {
-  const card = { platformId: game.platformId, raGameId: game.raGameId };
-  for (const imagePath of candidateImagePaths(card, game, imageType)) {
-    try {
-      await loadImage(imagePath);
-      return { url: imagePath, failed: false };
-    } catch {
-      // try next path
-    }
+  const imagePath = getGameImagePath(game, imageType);
+  if (!imagePath) {
+    return { url: PLACEHOLDER_SVG, failed: true };
   }
 
-  return { url: PLACEHOLDER_SVG, failed: true };
+  try {
+    await loadImage(imagePath);
+    return { url: imagePath, failed: false };
+  } catch {
+    return { url: PLACEHOLDER_SVG, failed: true };
+  }
 }
 
 /**
@@ -60,7 +46,7 @@ export async function resolveGameImage(game, imageType) {
  * @returns {Promise<{ url: string, failed: boolean }>}
  */
 export async function resolveCardImage(card) {
-  const game = gameByPlatformAndRaId(card.platformId, card.raGameId);
+  const game = gameForCard(card);
   for (const imagePath of candidateImagePaths(card, game, card.imageType)) {
     try {
       await loadImage(imagePath);

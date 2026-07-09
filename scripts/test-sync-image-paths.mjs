@@ -1,49 +1,45 @@
 #!/usr/bin/env node
 /**
- * Unit tests for image path scanning helpers used by sync-image-paths.
+ * Unit tests for libretro image path scanning used by sync-image-manifest.
  */
 
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
-import {
-  mergeImageAvailability,
-  scanImageAvailabilityFromDisk,
-  imagePathsForTypes,
-} from "./games-data.mjs";
+import { mergeInventory, scanLibretroImagesFromDisk } from "./image-manifest.mjs";
+import { libretroImageKeyForType } from "./libretro-image-paths.mjs";
 
-const tempRoot = await mkdtemp(path.join(tmpdir(), "sync-image-paths-"));
+const playlist = "Nintendo - Nintendo Entertainment System";
+const libretroName = "Super Mario Bros. (USA)";
+const tempRoot = await mkdtemp(path.join(tmpdir(), "sync-image-manifest-"));
+
 try {
-  const platformDir = path.join(tempRoot, "atari-2600", "games", "42");
-  await mkdir(platformDir, { recursive: true });
-  await writeFile(path.join(platformDir, "boxArt.png"), "png");
+  const boxArtKey = libretroImageKeyForType(playlist, "boxArt", libretroName);
+  const boxArtPath = path.join(tempRoot, boxArtKey);
+  await mkdir(path.dirname(boxArtPath), { recursive: true });
+  await writeFile(boxArtPath, "png");
 
-  const availability = await scanImageAvailabilityFromDisk(tempRoot);
-  const types = availability["atari-2600"]?.["42"];
-  if (!types || !types.includes("boxArt")) {
-    throw new Error(`Expected boxArt for atari-2600/42, got ${JSON.stringify(availability)}`);
+  const availability = await scanLibretroImagesFromDisk(tempRoot);
+  const types = availability[playlist]?.[libretroName];
+  if (!types?.boxArt) {
+    throw new Error(`Expected boxArt for ${playlist}/${libretroName}, got ${JSON.stringify(availability)}`);
   }
 
-  const merged = mergeImageAvailability(
-    { "atari-2600": { "42": ["boxArt"] } },
-    { "atari-2600": { "42": ["titleScreen"], "99": ["gamePicture"] } },
-  );
-  if (!merged["atari-2600"]["42"].includes("titleScreen")) {
-    throw new Error("mergeImageAvailability should union image types");
-  }
-  if (!merged["atari-2600"]["99"].includes("gamePicture")) {
-    throw new Error("mergeImageAvailability should add new games");
-  }
-
-  const paths = imagePathsForTypes("atari-2600", 42, ["boxArt", "titleScreen"]);
-  if (paths.boxArt !== "assets/images/platforms/atari-2600/games/42/boxArt.png") {
-    throw new Error(`Unexpected boxArt path: ${paths.boxArt}`);
+  const titleKey = libretroImageKeyForType(playlist, "titleScreen", libretroName);
+  const merged = mergeInventory(availability, {
+    [playlist]: {
+      [libretroName]: {
+        titleScreen: titleKey,
+      },
+    },
+  });
+  if (!merged[playlist][libretroName].titleScreen) {
+    throw new Error("mergeInventory should union image types");
   }
 
-  console.log("✓ scanImageAvailabilityFromDisk finds local PNGs");
-  console.log("✓ mergeImageAvailability unions platforms and types");
-  console.log("✓ imagePathsForTypes builds canonical paths");
-  console.log("\nAll sync-image-paths helper tests passed.");
+  console.log("✓ scanLibretroImagesFromDisk finds local PNGs");
+  console.log("✓ mergeInventory unions playlists and image types");
+  console.log("\nAll sync-image-manifest helper tests passed.");
 } finally {
   await rm(tempRoot, { recursive: true, force: true });
 }

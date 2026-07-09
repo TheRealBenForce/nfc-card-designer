@@ -1,335 +1,279 @@
 #!/usr/bin/env node
 /**
- * Pulls libretro thumbnails (CDN or local mirror) and uploads to S3
- * (and optionally keeps local copies).
+ * Upload libretro thumbnail files from a local mirror to S3 using libretro directory paths.
+ *
+ * Requires --libretro-dir=<path to local thumbnails root>.
+ *
+ * Examples:
+ *   npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes
+ *   npm run fetch-images -- --libretro-dir=/path/to/thumbnails --local-only
+ *   npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes --max-games=25
  */
 
-import { writeFile, mkdir } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { libretroImageUrl, resolveLibretroFilename } from "./libretro-thumbnails.mjs";
+import { LIBRETRO_IMAGE_FOLDERS } from "../src/assets/js/libretroThumbnails.js";
+import { isRetailRelease } from "./game-filters.mjs";
 import {
-  gamesPath,
-  writeGamesJs,
-  gameImagePath,
-  gameImageDir,
-  existingImageTypes,
-} from "./games-data.mjs";
-import { imagePresent, s3BucketFromEnv, uploadBufferToS3, uploadFileToS3 } from "./s3-storage.mjs";
-import {
-  directoryExists,
-  readLocalLibretroImage,
-  resolveLocalLibretroFilename,
-} from "./local-libretro-source.mjs";
+  LIBRETRO_IMAGE_ASSET_PREFIX,
+  LIBRETRO_IMAGE_FOLDERS_LIST,
+  libretroImageObjectKey,
+} from "./libretro-image-paths.mjs";
+import { directoryExists } from "./local-libretro-source.mjs";
+import { loadDotEnv } from "./load-env.mjs";
+import { imagePresent, s3BucketFromEnv, uploadBufferToS3 } from "./s3-storage.mjs";
 
-const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
-const REQUEST_DELAY_MS = 150;
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const localImagesRoot = path.join(root, "src/assets/images");
+
+function parseArgs() {
+  const platformArg = process.argv.find((arg) => arg.startsWith("--platform="));
+  const libretroDirArg = process.argv.find((arg) => arg.startsWith("--libretro-dir="));
+  const maxGamesArg = process.argv.find((arg) => arg.startsWith("--max-games="));
+  const maxGamesValue = maxGamesArg ? Number(maxGamesArg.split("=")[1]) : null;
+
+  return {
+    platformId: platformArg?.split("=")[1],
+    libretroDir: libretroDirArg?.split("=")[1]?.trim() ?? null,
+    maxGames:
+      maxGamesValue !== null && Number.isInteger(maxGamesValue) && maxGamesValue > 0
+        ? maxGamesValue
+        : null,
+    force: process.argv.includes("--force"),
+    localOnly: process.argv.includes("--local-only"),
+    includeNonRetail: process.argv.includes("--include-non-retail"),
+  };
+}
 
 /**
  * @param {string} name
  */
-function argValue(name) {
-  const prefix = `${name}=`;
-  const arg = process.argv.find((value) => value.startsWith(prefix));
-  return arg ? arg.slice(prefix.length).trim() : null;
-}
-
-function parseArgs() {
-  return {
-    platformId: argValue("--platform"),
-    libretroDir: argValue("--libretro-dir"),
-    force: process.argv.includes("--force"),
-    localOnly: process.argv.includes("--local-only"),
-    s3Only: process.argv.includes("--s3-only"),
-  };
-}
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function applyImagePaths(game, platformId, raGameId, types = IMAGE_TYPES) {
-  for (const type of types) {
-    game.images[type] = gameImagePath(platformId, raGameId, type);
-  }
-}
-
-async function downloadImageBuffer(url) {
-  const res = await fetch(url, { headers: { "User-Agent": "nfc-card-designer/1.0" } });
-  if (!res.ok) return null;
-  return Buffer.from(await res.arrayBuffer());
+export function shouldIncludeFilename(name, includeNonRetail) {
+  if (!name) return false;
+  if (name.includes("[") || /\b(Beta|Demo|Proto|Pirate|Unl)\b/i.test(name)) return false;
+  if (!includeNonRetail && !isRetailRelease(name)) return false;
+  return true;
 }
 
 /**
- * @param {string} platformId
- * @param {number} raGameId
- * @param {string} type
+ * @param {string[]} boxartBasenames filenames with or without .png
+ * @param {{ includeNonRetail?: boolean, maxGames?: number | null }} [options]
+ * @returns {Set<string>} libretro basenames without .png
  */
-function objectKeyForImage(platformId, raGameId, type) {
-  return gameImagePath(platformId, raGameId, type);
+export function selectGameNamesForPlatform(boxartBasenames, options = {}) {
+  const includeNonRetail = options.includeNonRetail === true;
+  const names = boxartBasenames
+    .map((basename) => basename.replace(/\.png$/i, ""))
+    .filter((name) => shouldIncludeFilename(name, includeNonRetail))
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+
+  const limited = options.maxGames ? names.slice(0, options.maxGames) : names;
+  return new Set(limited);
+}
+
+/**
+ * @param {string} localRoot
+ * @param {string} playlistName
+ * @param {string} imageFolder
+ */
+async function listLocalPngFiles(localRoot, playlistName, imageFolder) {
+  const dir = path.join(localRoot, playlistName, imageFolder);
+  try {
+    const files = await readdir(dir);
+    return files.filter((file) => /\.png$/i.test(file));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Remove empty libretro image folders for one platform under src/assets/images.
+ * @param {string} playlistName
+ */
+export async function removeEmptyPlatformImageDirs(playlistName, imagesRoot = localImagesRoot) {
+  const playlistDir = path.join(imagesRoot, playlistName);
+  if (!(await directoryExists(playlistDir))) return 0;
+
+  let removed = 0;
+
+  for (const imageFolder of LIBRETRO_IMAGE_FOLDERS_LIST) {
+    const dir = path.join(playlistDir, imageFolder);
+    try {
+      const entries = await readdir(dir);
+      if (entries.length === 0) {
+        await rm(dir, { recursive: true, force: true });
+        removed += 1;
+      }
+    } catch {
+      // folder missing
+    }
+  }
+
+  try {
+    const remaining = await readdir(playlistDir);
+    if (remaining.length === 0) {
+      await rm(playlistDir, { recursive: true, force: true });
+      removed += 1;
+    }
+  } catch {
+    // playlist folder already removed
+  }
+
+  return removed;
+}
+
+/**
+ * @param {string} localRoot
+ * @param {string} playlistName
+ * @param {{ includeNonRetail?: boolean, maxGames?: number | null }} options
+ */
+async function gameNamesForPlatform(localRoot, playlistName, options) {
+  const boxartFolder = LIBRETRO_IMAGE_FOLDERS.boxArt;
+  const boxartFiles = await listLocalPngFiles(localRoot, playlistName, boxartFolder);
+  return selectGameNamesForPlatform(boxartFiles, options);
+}
+
+/**
+ * @param {string} file
+ * @param {Set<string>} allowedGameNames
+ */
+function fileMatchesGameScope(file, allowedGameNames) {
+  const libretroName = file.replace(/\.png$/i, "");
+  return allowedGameNames.has(libretroName);
 }
 
 async function main() {
-  const { platformId, libretroDir, force, localOnly, s3Only } = parseArgs();
-  if (localOnly && s3Only) {
-    throw new Error("Choose either --local-only or --s3-only, not both.");
+  await loadDotEnv();
+
+  const { platformId, libretroDir, maxGames, force, localOnly, includeNonRetail } = parseArgs();
+  if (!libretroDir) {
+    throw new Error("--libretro-dir is required (path to local libretro thumbnails root).");
+  }
+  if (process.argv.some((arg) => arg.startsWith("--max-games=")) && !maxGames) {
+    throw new Error("--max-games must be a positive integer.");
   }
 
-  const localLibretroRoot = libretroDir ? path.resolve(libretroDir) : null;
-  if (localLibretroRoot && !(await directoryExists(localLibretroRoot))) {
+  const localLibretroRoot = path.resolve(libretroDir);
+  if (!(await directoryExists(localLibretroRoot))) {
     throw new Error(`--libretro-dir does not exist or is not a directory: ${localLibretroRoot}`);
   }
 
   const bucket = s3BucketFromEnv();
   const uploadToS3 = Boolean(bucket) && !localOnly;
-  const keepLocal = !s3Only;
-
-  if (s3Only && !bucket) {
-    throw new Error("S3_BUCKET is required when using --s3-only.");
+  const writeLocal = localOnly || !uploadToS3;
+  if (!uploadToS3 && !writeLocal) {
+    throw new Error("Set S3_BUCKET to upload, or pass --local-only to copy into src/assets/images/.");
   }
 
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const platformsPath = path.join(root, "src/assets/js/data/platforms.js");
   const { platforms } = await import(pathToFileURL(platformsPath).href);
-  const platformById = Object.fromEntries(platforms.map((p) => [p.id, p]));
+  const selectedPlatforms = platformId
+    ? platforms.filter((platform) => platform.id === platformId)
+    : platforms;
 
-  const { games } = await import(pathToFileURL(gamesPath).href);
-  const selectedPlatformIds = platformId ? [platformId] : platforms.map((p) => p.id);
-  /** @type {Map<string, import("../src/assets/js/data/games.js").Game[]>} */
-  const targetsByPlatform = new Map(selectedPlatformIds.map((id) => [id, []]));
-  for (const game of games) {
-    if (targetsByPlatform.has(game.platformId)) {
-      targetsByPlatform.get(game.platformId)?.push(game);
-    }
-  }
-  const totalTargets = [...targetsByPlatform.values()].reduce((sum, items) => sum + items.length, 0);
-  if (totalTargets === 0) {
-    console.error(platformId ? `No games found for platform "${platformId}".` : "No games in games.js.");
-    process.exit(1);
+  if (selectedPlatforms.length === 0) {
+    throw new Error(platformId ? `Unknown platform "${platformId}".` : "No platforms configured.");
   }
 
-  if (games.length < 100) {
-    console.warn(
-      `\nWarning: games.js only has ${games.length} games (starter list).\n` +
-        "Run npm run fetch-game-list first to pull the full RetroAchievements catalog.\n",
-    );
-  }
+  const stats = { uploaded: 0, copied: 0, skipped: 0, failed: 0, emptyDirsRemoved: 0 };
 
-  if (force) {
-    console.log("Force mode: re-downloading even when images already exist.\n");
-  } else {
-    if (s3Only) {
-      console.log("Existing images are skipped using S3 only. Pass --force to re-download.\n");
-    } else if (localOnly) {
-      console.log("Existing images are skipped using local disk only. Pass --force to re-download.\n");
-    } else {
-      console.log("Existing images are skipped (local disk and S3). Pass --force to re-download.\n");
-    }
-  }
-
+  console.log(`Local libretro source: ${localLibretroRoot}`);
   if (uploadToS3) {
-    console.log(`Upload target: s3://${bucket}/\n`);
-    if (s3Only) {
-      console.log("S3-only mode: downloaded images are uploaded to S3 and not saved locally.\n");
-    }
-  } else if (!localOnly && !bucket) {
-    console.log("S3_BUCKET not set — saving images locally only.\n");
+    console.log(`Upload target: s3://${bucket}/`);
   }
-
-  if (localLibretroRoot) {
-    console.log(`Using local libretro image source: ${localLibretroRoot}\n`);
+  if (writeLocal) {
+    console.log(`Local target: ${localImagesRoot}/`);
   }
+  if (maxGames) {
+    console.log(`Max games per platform: ${maxGames}`);
+  }
+  console.log("");
 
-  const stats = {
-    downloaded: 0,
-    skipped: 0,
-    uploaded: 0,
-    failed: 0,
-    gamesDone: 0,
-    gamesFullySkipped: 0,
-  };
-  const gameKey = (g) => `${g.platformId}:${g.raGameId}`;
-  const updatedById = new Map(games.map((g) => [gameKey(g), { ...g, images: { ...g.images } }]));
+  for (const platform of selectedPlatforms) {
+    console.log(`=== ${platform.name} (${platform.id}) ===`);
 
-  for (const currentPlatformId of selectedPlatformIds) {
-    const platform = platformById[currentPlatformId];
-    const platformName = platform?.name ?? currentPlatformId;
-    const platformGames = targetsByPlatform.get(currentPlatformId) ?? [];
-    const platformStats = {
-      downloaded: 0,
-      skipped: 0,
-      uploaded: 0,
-      failed: 0,
-      gamesDone: 0,
-      gamesFullySkipped: 0,
-      totalImageSlots: platformGames.length * IMAGE_TYPES.length,
-    };
+    const allowedGameNames = await gameNamesForPlatform(localLibretroRoot, platform.libretroPlaylist, {
+      includeNonRetail,
+      maxGames,
+    });
 
-    console.log(`\n=== Platform: ${platformName} (${currentPlatformId}) ===`);
     console.log(
-      `Games in scope: ${platformGames.length} | Total image slots: ${platformStats.totalImageSlots}`,
+      `  Games in scope: ${allowedGameNames.size}` +
+        (maxGames ? ` (max ${maxGames}, sorted by boxart name)` : " (all retail boxart entries)"),
     );
 
-    for (const game of platformGames) {
-      const current = updatedById.get(gameKey(game));
-      if (!current) continue;
+    for (const [imageType, imageFolder] of Object.entries(LIBRETRO_IMAGE_FOLDERS)) {
+      const files = await listLocalPngFiles(localLibretroRoot, platform.libretroPlaylist, imageFolder);
+      const filesInScope = files.filter((file) => fileMatchesGameScope(file, allowedGameNames));
+      console.log(`  ${imageFolder}: ${filesInScope.length}/${files.length} file(s) in scope`);
 
-      if (!platform?.libretroPlaylist) {
-        console.warn(
-          `[${currentPlatformId} ${platformStats.gamesDone + 1}/${platformGames.length}] ` +
-            `${game.name} (${game.raGameId}) — skipped (no libretro playlist configured)`,
+      for (const file of filesInScope) {
+        const sourcePath = path.join(
+          localLibretroRoot,
+          platform.libretroPlaylist,
+          imageFolder,
+          file,
         );
-        platformStats.gamesDone += 1;
-        continue;
-      }
+        const objectKey = libretroImageObjectKey(platform.libretroPlaylist, imageFolder, file);
+        const localDestPath = path.join(root, "src", objectKey);
 
-      const dir = gameImageDir(game.platformId, game.raGameId);
-      if (keepLocal) {
-        await mkdir(dir, { recursive: true });
-      }
-
-      /** @type {string[]} */
-      const alreadyPresent = [];
-      /** @type {string[]} */
-      const missingTypes = [];
-
-      for (const type of IMAGE_TYPES) {
-        const destPath = path.join(dir, `${type}.png`);
-        const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
-        if (!force && (await imagePresent(destPath, objectKey, { checkLocal: keepLocal, checkRemote: uploadToS3 }))) {
-          alreadyPresent.push(type);
-        } else {
-          missingTypes.push(type);
-        }
-      }
-
-      if (alreadyPresent.length > 0) {
-        applyImagePaths(current, game.platformId, game.raGameId, alreadyPresent);
-        stats.skipped += alreadyPresent.length;
-        platformStats.skipped += alreadyPresent.length;
-      }
-
-      if (missingTypes.length === 0) {
-        stats.gamesFullySkipped += 1;
-        stats.gamesDone += 1;
-        platformStats.gamesFullySkipped += 1;
-        platformStats.gamesDone += 1;
-        console.log(
-          `[${currentPlatformId} ${platformStats.gamesDone}/${platformGames.length}] ` +
-            `${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} present)`,
-        );
-        continue;
-      }
-
-      process.stdout.write(
-        `[${currentPlatformId} ${platformStats.gamesDone + 1}/${platformGames.length}] ` +
-          `${game.name} (${game.raGameId}) — ${alreadyPresent.length} skipped, processing ${missingTypes.length}… `,
-      );
-
-      let gameDownloaded = 0;
-      let gameFailed = 0;
-      let resolvedLibretroName = current.libretroName ?? null;
-
-      for (const type of missingTypes) {
-        const destPath = path.join(dir, `${type}.png`);
-        const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
-
-        let libretroName = null;
-        let imageBuffer = null;
-
-        if (localLibretroRoot) {
-          libretroName = await resolveLocalLibretroFilename(
-            localLibretroRoot,
-            platform.libretroPlaylist,
-            type,
-            game.name,
-            resolvedLibretroName,
-          );
-          if (libretroName) {
-            imageBuffer = await readLocalLibretroImage(
-              localLibretroRoot,
-              platform.libretroPlaylist,
-              type,
-              libretroName,
-            );
-          }
-        } else {
-          libretroName = await resolveLibretroFilename(
-            platform.libretroPlaylist,
-            type,
-            game.name,
-            resolvedLibretroName,
-          );
-          if (libretroName) {
-            const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
-            imageBuffer = await downloadImageBuffer(url);
+        if (!force) {
+          const present = await imagePresent(localDestPath, objectKey, {
+            checkLocal: writeLocal,
+            checkRemote: uploadToS3,
+          });
+          if (present) {
+            stats.skipped += 1;
+            continue;
           }
         }
 
-        if (!libretroName || !imageBuffer) {
-          gameFailed += 1;
+        let imageBuffer;
+        try {
+          const info = await stat(sourcePath);
+          if (!info.isFile() || info.size === 0) {
+            stats.failed += 1;
+            continue;
+          }
+          imageBuffer = await readFile(sourcePath);
+        } catch {
           stats.failed += 1;
-          platformStats.failed += 1;
           continue;
         }
 
-        if (!resolvedLibretroName) resolvedLibretroName = libretroName;
-
-        if (keepLocal) {
-          await writeFile(destPath, imageBuffer);
+        if (writeLocal) {
+          await mkdir(path.dirname(localDestPath), { recursive: true });
+          await writeFile(localDestPath, imageBuffer);
+          stats.copied += 1;
         }
-
-        current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
-        gameDownloaded += 1;
-        stats.downloaded += 1;
-        platformStats.downloaded += 1;
 
         if (uploadToS3) {
-          const uploaded = keepLocal
-            ? await uploadFileToS3(destPath, objectKey)
-            : await uploadBufferToS3(imageBuffer, objectKey);
-          if (uploaded) {
-            stats.uploaded += 1;
-            platformStats.uploaded += 1;
-          }
-        }
-
-        if (!localLibretroRoot) {
-          await delay(REQUEST_DELAY_MS);
+          const uploaded = await uploadBufferToS3(imageBuffer, objectKey);
+          if (uploaded) stats.uploaded += 1;
+          else stats.failed += 1;
         }
       }
-
-      if (resolvedLibretroName) {
-        current.libretroName = resolvedLibretroName;
-      }
-
-      console.log(`${gameDownloaded} downloaded, ${gameFailed} missing`);
-      stats.gamesDone += 1;
-      platformStats.gamesDone += 1;
     }
 
-    console.log(
-      `--- ${platformName} (${currentPlatformId}) summary ---\n` +
-        `image slots: total=${platformStats.totalImageSlots}, skipped_existing=${platformStats.skipped}, ` +
-        `downloaded=${platformStats.downloaded}, uploaded=${platformStats.uploaded}, missing=${platformStats.failed}\n` +
-        `games: processed=${platformStats.gamesDone}, fully_skipped=${platformStats.gamesFullySkipped}\n`,
-    );
+    const removed = await removeEmptyPlatformImageDirs(platform.libretroPlaylist);
+    stats.emptyDirsRemoved += removed;
+    if (removed > 0) {
+      console.log(`  Removed ${removed} empty local folder(s)`);
+    }
   }
 
-  const finalGames = [...updatedById.values()].sort((a, b) => {
-    if (a.platformId !== b.platformId) return a.platformId.localeCompare(b.platformId);
-    return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-  });
-
-  await writeGamesJs(finalGames);
-
   console.log(
-    `\nDone. ${stats.downloaded} downloaded, ${stats.uploaded} uploaded, ${stats.skipped} skipped, ` +
-      `${stats.failed} failed/missing (${stats.gamesFullySkipped} games already complete)`,
+    `\nDone. uploaded=${stats.uploaded}, copied=${stats.copied}, skipped=${stats.skipped}, ` +
+      `failed=${stats.failed}, emptyDirsRemoved=${stats.emptyDirsRemoved}`,
   );
-  console.log(`Updated ${gamesPath}`);
+  console.log("Run npm run sync-image-manifest to refresh image-manifest.json.");
 }
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+if (isMain) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}

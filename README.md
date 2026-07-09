@@ -17,19 +17,14 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 ```
 src/
   index.html
-  recognition.html
-  supplies.html
-  thanks.html
   assets/
     css/styles.css
-    js/                      # Application modules
+    js/                         # Application modules
     data/
-      games-by-platform.json      # Game names for search (grouped by platform)
-    images/platforms/             # Downloaded artwork (platform/game folders)
+      image-manifest.json       # S3/local artwork inventory (libretro names + paths)
 scripts/
-  fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
-  fetch-images.mjs              # Download libretro thumbnails + update games.js
-  export-games-json.mjs         # Rebuild games-by-platform.json from games.js
+  fetch-images.mjs              # Local libretro mirror → S3
+  sync-image-manifest.mjs         # Scan S3/local → image-manifest.json
   verify.mjs                    # Run before merging changes
 docs/
   MAINTAINER.md                 # Architecture & data-pipeline notes for developers
@@ -51,65 +46,39 @@ npm run verify   # run before merging changes (tests + smoke checks)
 
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
-## Artwork setup (libretro thumbnails → S3)
+## Artwork setup (libretro → S3)
 
-Game images are **not stored in git**. `fetch-images` pulls missing thumbnails from the [libretro CDN](https://thumbnails.libretro.com/) (or a local libretro mirror directory) and uploads them to your S3 bucket (`zaparoo.therealbenforce.com`).
+Game images are **not stored in git**. Upload from a local [libretro thumbnails](https://thumbnails.libretro.com/) mirror, then refresh the manifest.
 
 ```bash
-npm run fetch-game-list    # RA catalogs (+ libretro catalog for DOS) → games.js
-npm run fetch-images       # download missing thumbnails → upload to S3
-npm run deploy             # sync src/ to S3 + CloudFront invalidation (excludes assets/images/*)
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails
+npm run sync-image-manifest -- --s3-only
+npm run deploy
 ```
 
 Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.
 
 ```bash
-npm run fetch-images -- --local-only   # dev: save to src/assets/images/ only, no S3
-npm run fetch-images -- --s3-only      # upload to S3 only, do not keep local image files
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails.libretro.com
-npm run sync-s3-sample-images          # pull a small random local cache from S3
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails --local-only
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes
+npm run sync-image-manifest -- --local-only
+npm run sync-s3-sample-images
 ```
 
-Game catalogs come from RetroAchievements for most platforms; **DOS** uses libretro thumbnail listings (RA does not support DOS).
-
-For `fetch-game-list`, add your RetroAchievements Web API key:
-
-```bash
-cp .env.example .env
-npm run test-ra-auth
-```
-
-Images are stored in S3 at:
+Images are stored in S3 using libretro directory names:
 
 ```
-assets/images/platforms/<platformId>/games/<raGameId>/boxArt.png
-assets/images/platforms/<platformId>/games/<raGameId>/titleScreen.png
-assets/images/platforms/<platformId>/games/<raGameId>/gamePicture.png
+assets/images/<libretroPlaylist>/Named_Boxarts/<filename>.png
+assets/images/<libretroPlaylist>/Named_Titles/<filename>.png
+assets/images/<libretroPlaylist>/Named_Snaps/<filename>.png
 ```
 
-Only platforms with games in the catalog appear in the platform selector.
+Only platforms with games in `image-manifest.json` appear in the platform selector.
 
-Optional flags:
+GitHub Actions:
 
-```bash
-npm run fetch-game-list -- --platform=nes
-npm run fetch-game-list -- --with-achievements
-npm run fetch-game-list -- --include-non-retail
-npm run fetch-images -- --platform=genesis
-npm run fetch-images -- --force
-npm run fetch-images -- --s3-only --force
-npm run fetch-images -- --platform=nes --libretro-dir=/path/to/thumbnails.libretro.com --s3-only
-npm run sync-s3-sample-images -- --count=10
-npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
-```
-
-### API key
-
-Get your **Web API Key** from https://retroachievements.org/controlpanel.php → Settings → Keys.
-
-```env
-RETROACHIEVEMENTS_API_KEY=your_key_here
-```
+- **Sync image manifest** — manual workflow; scans S3 and builds `image-manifest.json`
+- **Deploy** — runs on push to `main` (and manually); syncs manifest, then deploys the site
 
 ## Deploy to AWS (S3 + CloudFront)
 
@@ -117,7 +86,7 @@ Infrastructure template: [`infrastructure/cloudformation.yaml`](infrastructure/c
 
 1. Deploy the CloudFormation stack in **us-east-1** (see [`infrastructure/README.md`](infrastructure/README.md)).
 2. Add GitHub repository secrets from stack outputs: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFRONT_DISTRIBUTION_ID`.
-3. Push to `main` — `.github/workflows/deploy.yml` syncs the site to S3 automatically.
+3. Push to `main` — `.github/workflows/deploy.yml` syncs manifest + site to S3.
 
 Run `fetch-images` from your workstation when you need new artwork uploaded to S3 (not in CI).
 
@@ -168,11 +137,7 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 ## Notes
 
 - See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships, deploy checklist, and gotchas.
-- `fetch-game-list` replaces the starter list with full RetroAchievements retail catalogs and writes both `games.js` and `games-by-platform.json`.
-- After fetching locally, **commit both files** so deploys include the full catalog — the UI loads games from `games-by-platform.json`, not `games.js`.
-- Game search shows up to 100 matches at a time; type more characters to narrow results, or press Enter to preview
-- Search uses the game catalog; artwork is resolved at preview time from S3/local image paths
-- Browse box art / title screen / in-game in preview before adding to collection
-- Global artwork priority is configurable under Defaults (saved in localStorage)
+- Game search uses `image-manifest.json` (inventory of artwork on S3).
+- Browse box art / title screen / in-game in preview before adding to collection.
+- Global artwork priority is configurable under Defaults (saved in localStorage).
 - Re-run `fetch-images` safely — it skips files that already exist.
-- Use `--platform=<id>` to fetch one platform at a time (e.g. `nes`, `genesis`).

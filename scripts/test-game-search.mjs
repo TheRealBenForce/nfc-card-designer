@@ -60,7 +60,7 @@ async function main() {
     await page.fill("#game-search", "ecc");
     await page.waitForTimeout(500);
     const results = await page.locator("#game-results .list-item").allTextContents();
-    if (!results.includes("Ecco the Dolphin")) {
+    if (!results.some((name) => name.includes("Ecco the Dolphin"))) {
       throw new Error(`Expected Ecco the Dolphin in results, got: ${JSON.stringify(results)}`);
     }
     console.log("✓ Short query filters browse suggestions");
@@ -68,7 +68,7 @@ async function main() {
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(500);
     const eccoResults = await page.locator("#game-results .list-item").allTextContents();
-    if (!eccoResults.includes("Ecco the Dolphin")) {
+    if (!eccoResults.some((name) => name.includes("Ecco the Dolphin"))) {
       throw new Error(`Expected artwork-backed game in results, got: ${JSON.stringify(eccoResults)}`);
     }
     if (eccoResults.includes("Ecco: The Tides of Time")) {
@@ -121,11 +121,11 @@ async function main() {
 
     await page.fill("#game-search", "doo");
     await page.waitForTimeout(300);
-    const doomOption = page.getByRole("option", { name: "Doom", exact: true });
+    const doomOption = page.getByRole("option", { name: /Doom \(Europe\)/ });
     await doomOption.waitFor({ state: "visible", timeout: 5000 });
     await doomOption.click();
     await page.waitForTimeout(500);
-    console.log("✓ Search finds games indexed in games.js");
+    console.log("✓ Search finds games indexed in image-manifest.json");
 
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
@@ -143,7 +143,7 @@ async function main() {
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.getByRole("option", { name: /Ecco the Dolphin/ }).click();
     await page.waitForTimeout(300);
 
     await addBtn.click();

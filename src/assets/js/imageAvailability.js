@@ -6,23 +6,23 @@ const cache = new Map();
 
 /**
  * @param {string} platformId
- * @param {number} raGameId
+ * @param {string} libretroName
  */
-export function gameCacheKey(platformId, raGameId) {
-  return `${platformId}:${raGameId}`;
+export function gameCacheKey(platformId, libretroName) {
+  return `${platformId}:${libretroName}`;
 }
 
 /**
  * @param {string} platformId
- * @param {number} raGameId
+ * @param {string} libretroName
  * @param {string[]} types
  */
-function setCachedTypes(platformId, raGameId, types) {
+function setCachedTypes(platformId, libretroName, types) {
   if (types.length === 0) {
-    cache.delete(gameCacheKey(platformId, raGameId));
+    cache.delete(gameCacheKey(platformId, libretroName));
     return;
   }
-  cache.set(gameCacheKey(platformId, raGameId), types);
+  cache.set(gameCacheKey(platformId, libretroName), types);
 }
 
 /**
@@ -30,7 +30,7 @@ function setCachedTypes(platformId, raGameId, types) {
  * @param {string[]} priority
  */
 export async function getAvailableImageTypes(game, priority) {
-  const cached = cache.get(gameCacheKey(game.platformId, game.raGameId));
+  const cached = cache.get(gameCacheKey(game.platformId, game.libretroName));
   if (cached) {
     return sortTypesByPriority(cached, priority);
   }
@@ -43,7 +43,7 @@ export async function getAvailableImageTypes(game, priority) {
   }
 
   const sorted = sortTypesByPriority(available, priority);
-  setCachedTypes(game.platformId, game.raGameId, sorted);
+  setCachedTypes(game.platformId, game.libretroName, sorted);
   return sorted;
 }
 

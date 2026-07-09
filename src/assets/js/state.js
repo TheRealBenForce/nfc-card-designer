@@ -12,7 +12,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {string} id
  * @property {string} platformId
  * @property {string} gameName
- * @property {number} raGameId
+ * @property {string} libretroName
  * @property {string} imageType
  * @property {boolean} [imageFailed]
  * @property {ArtworkDisplaySettings} [artworkDisplay]

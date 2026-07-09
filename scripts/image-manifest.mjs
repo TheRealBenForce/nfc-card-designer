@@ -16,6 +16,8 @@ import { scanLibretroImagesFromS3 } from "./s3-storage.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const imageManifestPath = path.join(root, "src/assets/data/image-manifest.json");
+/** Local static site root; game PNGs live under <localSiteRoot>/assets/images/ */
+export const localSiteRoot = path.join(root, "src");
 
 /**
  * @typedef {Object} ManifestGame

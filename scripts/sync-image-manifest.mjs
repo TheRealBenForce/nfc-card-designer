@@ -10,7 +10,7 @@
 
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildImageManifest, writeImageManifest, imageManifestPath } from "./image-manifest.mjs";
+import { buildImageManifest, writeImageManifest, imageManifestPath, localSiteRoot } from "./image-manifest.mjs";
 import { loadDotEnv } from "./load-env.mjs";
 import { s3BucketFromEnv } from "./s3-storage.mjs";
 
@@ -60,7 +60,7 @@ async function main() {
   }
 
   const manifest = await buildImageManifest(platforms, {
-    localRoot: scanLocal ? root : undefined,
+    localRoot: scanLocal ? localSiteRoot : undefined,
     scanS3,
     platformId,
   });

@@ -6,14 +6,16 @@
  *   npm run generate:test-pdf
  *   npm run generate:test-pdf -- --output my-sheet.pdf
  *
- * Requires the static file server (started automatically unless TEST_BASE_URL is set).
+ * Requires Playwright Chromium (installed automatically on first run via npm install
+ * or when the browser binary is missing). Also starts the static file server when
+ * TEST_BASE_URL is not set.
  */
 
 import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
+import { launchChromium } from "./playwright-browser.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = process.env.TEST_PORT ?? "8000";
@@ -93,7 +95,7 @@ async function main() {
     await waitForServer(BASE);
   }
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchChromium();
   const page = await browser.newPage();
 
   const errors = [];

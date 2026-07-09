@@ -15,6 +15,10 @@ const PNG_1X1 = Buffer.from(
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+  await page.addInitScript(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
 
   await page.route("**/*.png", async (route) => {
     await route.fulfill({
@@ -188,6 +192,10 @@ async function main() {
     if (!(await addBtn.isDisabled())) {
       throw new Error("Add to collection should be disabled after platform change clears browse state");
     }
+    await page.waitForFunction(() => {
+      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+      return Boolean(image?.hidden && !image.hasAttribute("src"));
+    });
     const previewImageAfterBrowseClear = page.locator("#preview-image");
     if (!(await previewImageAfterBrowseClear.isHidden())) {
       throw new Error("Preview image should hide when browse preview is cleared");

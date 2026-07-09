@@ -103,9 +103,14 @@ if (defaults.nes.artworkDisplay.zoom !== 0) {
   throw new Error("Default artwork zoom should be 0");
 }
 
-const zoomNormalized = normalizeArtworkDisplay({ zoom: 150 });
-if (zoomNormalized.zoom !== 100) {
-  throw new Error("Artwork zoom should clamp to 100");
+const zoomNormalized = normalizeArtworkDisplay({ zoom: 250 });
+if (zoomNormalized.zoom !== 200) {
+  throw new Error("Artwork zoom should clamp to 200");
+}
+
+const zoomMinNormalized = normalizeArtworkDisplay({ zoom: -100 });
+if (zoomMinNormalized.zoom !== -50) {
+  throw new Error("Artwork zoom should clamp to -50");
 }
 
 const zoomInvalid = normalizeArtworkDisplay({ zoom: "bad" });

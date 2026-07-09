@@ -152,6 +152,19 @@ async function main() {
     }
     console.log("✓ Artwork display controls are visible while browsing");
 
+    const previewZoom = page.locator("#preview-artwork-zoom");
+    if ((await previewZoom.getAttribute("min")) !== "-50") {
+      throw new Error("Preview artwork zoom min should be -50 (50% scale)");
+    }
+    if ((await previewZoom.getAttribute("max")) !== "200") {
+      throw new Error("Preview artwork zoom max should be 200 (300% scale)");
+    }
+    const previewZoomValue = await page.locator("#preview-artwork-zoom-value").textContent();
+    if (previewZoomValue?.trim() !== "100%") {
+      throw new Error(`Preview artwork zoom should default to 100%, got: ${previewZoomValue}`);
+    }
+    console.log("✓ Artwork zoom range supports 50% to 300%");
+
     await page.route("**/*.png", async (route) => route.abort());
     await page.fill("#game-search", "met");
     await page.waitForTimeout(150);

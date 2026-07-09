@@ -335,7 +335,7 @@ function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDis
  */
 function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
   if (zoomEl) zoomEl.value = String(artworkDisplay.zoom);
-  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom}%`;
+  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom + 100}%`;
 }
 
 /**

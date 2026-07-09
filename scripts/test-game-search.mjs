@@ -30,16 +30,6 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
-    const initialPreviewImage = page.locator("#preview-image");
-    if (!(await initialPreviewImage.isHidden())) {
-      throw new Error("Preview image should remain hidden before selecting a game");
-    }
-    const initialPreviewSrc = await initialPreviewImage.getAttribute("src");
-    if (initialPreviewSrc !== null) {
-      throw new Error(`Preview image src should be unset before selecting a game, got: ${initialPreviewSrc}`);
-    }
-    console.log("✓ Initial preview image starts hidden without src");
-
     await page.locator("summary", { hasText: "Platform Settings" }).click();
     await page.getByRole("button", { name: "NES", exact: true }).click();
     await page.waitForTimeout(150);
@@ -197,6 +187,16 @@ async function main() {
     }
     if (!(await addBtn.isDisabled())) {
       throw new Error("Add to collection should be disabled after platform change clears browse state");
+    }
+    const previewImageAfterBrowseClear = page.locator("#preview-image");
+    if (!(await previewImageAfterBrowseClear.isHidden())) {
+      throw new Error("Preview image should hide when browse preview is cleared");
+    }
+    const previewSrcAfterBrowseClear = await previewImageAfterBrowseClear.getAttribute("src");
+    if (previewSrcAfterBrowseClear !== null) {
+      throw new Error(
+        `Preview image src should be removed when browse preview is cleared, got: ${previewSrcAfterBrowseClear}`,
+      );
     }
     console.log("✓ Platform change clears game search and browse preview");
 

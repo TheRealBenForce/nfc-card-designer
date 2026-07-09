@@ -1,5 +1,6 @@
 .env
 node_modules/
+output/
 
 # Local game image cache (development only)
 src/assets/images/platforms/*/games/

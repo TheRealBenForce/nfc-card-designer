@@ -12,7 +12,7 @@ import { cardPositionMm, drawSheetCutMarks } from "./pdfLayout.js";
  *   headerHeightPercent?: number,
  * } | null | undefined} [layoutSettings]
  */
-export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
+export async function buildLetterPdf(deck, platformDefaults, layoutSettings) {
   const { jsPDF } = await import("https://esm.sh/jspdf@2.5.2");
   const cardSizing = resolveCardSizing(layoutSettings);
 
@@ -44,5 +44,10 @@ export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
     drawSheetCutMarks(pdf, layoutSettings);
   }
 
+  return pdf;
+}
+
+export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
+  const pdf = await buildLetterPdf(deck, platformDefaults, layoutSettings);
   pdf.save("nfc-card-labels.pdf");
 }

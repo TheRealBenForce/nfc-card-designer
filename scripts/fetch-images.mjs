@@ -95,9 +95,16 @@ async function main() {
   const platformById = Object.fromEntries(platforms.map((p) => [p.id, p]));
 
   const { games } = await import(pathToFileURL(gamesPath).href);
-
-  const targets = platformId ? games.filter((g) => g.platformId === platformId) : games;
-  if (targets.length === 0) {
+  const selectedPlatformIds = platformId ? [platformId] : platforms.map((p) => p.id);
+  /** @type {Map<string, import("../src/assets/js/data/games.js").Game[]>} */
+  const targetsByPlatform = new Map(selectedPlatformIds.map((id) => [id, []]));
+  for (const game of games) {
+    if (targetsByPlatform.has(game.platformId)) {
+      targetsByPlatform.get(game.platformId)?.push(game);
+    }
+  }
+  const totalTargets = [...targetsByPlatform.values()].reduce((sum, items) => sum + items.length, 0);
+  if (totalTargets === 0) {
     console.error(platformId ? `No games found for platform "${platformId}".` : "No games in games.js.");
     process.exit(1);
   }
@@ -145,129 +152,169 @@ async function main() {
   const gameKey = (g) => `${g.platformId}:${g.raGameId}`;
   const updatedById = new Map(games.map((g) => [gameKey(g), { ...g, images: { ...g.images } }]));
 
-  for (const game of targets) {
-    const current = updatedById.get(gameKey(game));
-    if (!current) continue;
+  for (const currentPlatformId of selectedPlatformIds) {
+    const platform = platformById[currentPlatformId];
+    const platformName = platform?.name ?? currentPlatformId;
+    const platformGames = targetsByPlatform.get(currentPlatformId) ?? [];
+    const platformStats = {
+      downloaded: 0,
+      skipped: 0,
+      uploaded: 0,
+      failed: 0,
+      gamesDone: 0,
+      gamesFullySkipped: 0,
+      totalImageSlots: platformGames.length * IMAGE_TYPES.length,
+    };
 
-    const platform = platformById[game.platformId];
-    if (!platform?.libretroPlaylist) {
-      console.warn(`Skipping ${game.name}: no libretro playlist for platform ${game.platformId}`);
-      continue;
-    }
-
-    const dir = gameImageDir(game.platformId, game.raGameId);
-    if (keepLocal) {
-      await mkdir(dir, { recursive: true });
-    }
-
-    /** @type {string[]} */
-    const alreadyPresent = [];
-    /** @type {string[]} */
-    const missingTypes = [];
-
-    for (const type of IMAGE_TYPES) {
-      const destPath = path.join(dir, `${type}.png`);
-      const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
-      if (!force && (await imagePresent(destPath, objectKey, { checkLocal: keepLocal, checkRemote: uploadToS3 }))) {
-        alreadyPresent.push(type);
-      } else {
-        missingTypes.push(type);
-      }
-    }
-
-    if (alreadyPresent.length > 0) {
-      applyImagePaths(current, game.platformId, game.raGameId, alreadyPresent);
-      stats.skipped += alreadyPresent.length;
-    }
-
-    if (missingTypes.length === 0) {
-      stats.gamesFullySkipped += 1;
-      stats.gamesDone += 1;
-      console.log(
-        `[${stats.gamesDone}/${targets.length}] ${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} present)`,
-      );
-      continue;
-    }
-
-    process.stdout.write(
-      `[${stats.gamesDone + 1}/${targets.length}] ${game.name} (${game.raGameId}) — ` +
-        `${alreadyPresent.length} skipped, processing ${missingTypes.length}… `,
+    console.log(`\n=== Platform: ${platformName} (${currentPlatformId}) ===`);
+    console.log(
+      `Games in scope: ${platformGames.length} | Total image slots: ${platformStats.totalImageSlots}`,
     );
 
-    let gameDownloaded = 0;
-    let gameFailed = 0;
-    let resolvedLibretroName = current.libretroName ?? null;
+    for (const game of platformGames) {
+      const current = updatedById.get(gameKey(game));
+      if (!current) continue;
 
-    for (const type of missingTypes) {
-      const destPath = path.join(dir, `${type}.png`);
-      const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
-
-      let libretroName = null;
-      let imageBuffer = null;
-
-      if (localLibretroRoot) {
-        libretroName = await resolveLocalLibretroFilename(
-          localLibretroRoot,
-          platform.libretroPlaylist,
-          type,
-          game.name,
-          resolvedLibretroName,
+      if (!platform?.libretroPlaylist) {
+        console.warn(
+          `[${currentPlatformId} ${platformStats.gamesDone + 1}/${platformGames.length}] ` +
+            `${game.name} (${game.raGameId}) — skipped (no libretro playlist configured)`,
         );
-        if (libretroName) {
-          imageBuffer = await readLocalLibretroImage(
-            localLibretroRoot,
-            platform.libretroPlaylist,
-            type,
-            libretroName,
-          );
-        }
-      } else {
-        libretroName = await resolveLibretroFilename(
-          platform.libretroPlaylist,
-          type,
-          game.name,
-          resolvedLibretroName,
-        );
-        if (libretroName) {
-          const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
-          imageBuffer = await downloadImageBuffer(url);
-        }
-      }
-
-      if (!libretroName || !imageBuffer) {
-        gameFailed += 1;
-        stats.failed += 1;
+        platformStats.gamesDone += 1;
         continue;
       }
 
-      if (!resolvedLibretroName) resolvedLibretroName = libretroName;
-
+      const dir = gameImageDir(game.platformId, game.raGameId);
       if (keepLocal) {
-        await writeFile(destPath, imageBuffer);
+        await mkdir(dir, { recursive: true });
       }
 
-      current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
-      gameDownloaded += 1;
-      stats.downloaded += 1;
+      /** @type {string[]} */
+      const alreadyPresent = [];
+      /** @type {string[]} */
+      const missingTypes = [];
 
-      if (uploadToS3) {
-        const uploaded = keepLocal
-          ? await uploadFileToS3(destPath, objectKey)
-          : await uploadBufferToS3(imageBuffer, objectKey);
-        if (uploaded) stats.uploaded += 1;
+      for (const type of IMAGE_TYPES) {
+        const destPath = path.join(dir, `${type}.png`);
+        const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
+        if (!force && (await imagePresent(destPath, objectKey, { checkLocal: keepLocal, checkRemote: uploadToS3 }))) {
+          alreadyPresent.push(type);
+        } else {
+          missingTypes.push(type);
+        }
       }
 
-      if (!localLibretroRoot) {
-        await delay(REQUEST_DELAY_MS);
+      if (alreadyPresent.length > 0) {
+        applyImagePaths(current, game.platformId, game.raGameId, alreadyPresent);
+        stats.skipped += alreadyPresent.length;
+        platformStats.skipped += alreadyPresent.length;
       }
+
+      if (missingTypes.length === 0) {
+        stats.gamesFullySkipped += 1;
+        stats.gamesDone += 1;
+        platformStats.gamesFullySkipped += 1;
+        platformStats.gamesDone += 1;
+        console.log(
+          `[${currentPlatformId} ${platformStats.gamesDone}/${platformGames.length}] ` +
+            `${game.name} (${game.raGameId}) — skipped (${IMAGE_TYPES.length}/${IMAGE_TYPES.length} present)`,
+        );
+        continue;
+      }
+
+      process.stdout.write(
+        `[${currentPlatformId} ${platformStats.gamesDone + 1}/${platformGames.length}] ` +
+          `${game.name} (${game.raGameId}) — ${alreadyPresent.length} skipped, processing ${missingTypes.length}… `,
+      );
+
+      let gameDownloaded = 0;
+      let gameFailed = 0;
+      let resolvedLibretroName = current.libretroName ?? null;
+
+      for (const type of missingTypes) {
+        const destPath = path.join(dir, `${type}.png`);
+        const objectKey = objectKeyForImage(game.platformId, game.raGameId, type);
+
+        let libretroName = null;
+        let imageBuffer = null;
+
+        if (localLibretroRoot) {
+          libretroName = await resolveLocalLibretroFilename(
+            localLibretroRoot,
+            platform.libretroPlaylist,
+            type,
+            game.name,
+            resolvedLibretroName,
+          );
+          if (libretroName) {
+            imageBuffer = await readLocalLibretroImage(
+              localLibretroRoot,
+              platform.libretroPlaylist,
+              type,
+              libretroName,
+            );
+          }
+        } else {
+          libretroName = await resolveLibretroFilename(
+            platform.libretroPlaylist,
+            type,
+            game.name,
+            resolvedLibretroName,
+          );
+          if (libretroName) {
+            const url = libretroImageUrl(platform.libretroPlaylist, type, libretroName);
+            imageBuffer = await downloadImageBuffer(url);
+          }
+        }
+
+        if (!libretroName || !imageBuffer) {
+          gameFailed += 1;
+          stats.failed += 1;
+          platformStats.failed += 1;
+          continue;
+        }
+
+        if (!resolvedLibretroName) resolvedLibretroName = libretroName;
+
+        if (keepLocal) {
+          await writeFile(destPath, imageBuffer);
+        }
+
+        current.images[type] = gameImagePath(game.platformId, game.raGameId, type);
+        gameDownloaded += 1;
+        stats.downloaded += 1;
+        platformStats.downloaded += 1;
+
+        if (uploadToS3) {
+          const uploaded = keepLocal
+            ? await uploadFileToS3(destPath, objectKey)
+            : await uploadBufferToS3(imageBuffer, objectKey);
+          if (uploaded) {
+            stats.uploaded += 1;
+            platformStats.uploaded += 1;
+          }
+        }
+
+        if (!localLibretroRoot) {
+          await delay(REQUEST_DELAY_MS);
+        }
+      }
+
+      if (resolvedLibretroName) {
+        current.libretroName = resolvedLibretroName;
+      }
+
+      console.log(`${gameDownloaded} downloaded, ${gameFailed} missing`);
+      stats.gamesDone += 1;
+      platformStats.gamesDone += 1;
     }
 
-    if (resolvedLibretroName) {
-      current.libretroName = resolvedLibretroName;
-    }
-
-    console.log(`${gameDownloaded} downloaded, ${gameFailed} missing`);
-    stats.gamesDone += 1;
+    console.log(
+      `--- ${platformName} (${currentPlatformId}) summary ---\n` +
+        `image slots: total=${platformStats.totalImageSlots}, skipped_existing=${platformStats.skipped}, ` +
+        `downloaded=${platformStats.downloaded}, uploaded=${platformStats.uploaded}, missing=${platformStats.failed}\n` +
+        `games: processed=${platformStats.gamesDone}, fully_skipped=${platformStats.gamesFullySkipped}\n`,
+    );
   }
 
   const finalGames = [...updatedById.values()].sort((a, b) => {

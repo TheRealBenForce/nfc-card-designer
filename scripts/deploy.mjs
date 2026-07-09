@@ -38,7 +38,19 @@ async function main() {
     throw new Error("S3_BUCKET is required (e.g. zaparoo.therealbenforce.com)");
   }
 
-  const excludes = ["--exclude", "assets/images/*"];
+  // Game artwork is uploaded separately (fetch-images). Sync platform icons and favicon only.
+  const excludes = [
+    "--exclude",
+    "assets/images/*/Named_Boxarts/*",
+    "--exclude",
+    "assets/images/*/Named_Titles/*",
+    "--exclude",
+    "assets/images/*/Named_Snaps/*",
+    "--exclude",
+    "assets/images/platforms/*/games/*",
+    "--exclude",
+    "assets/images/games/*",
+  ];
 
   console.log(`→ Syncing site from ${siteRoot} to s3://${bucket}/`);
   await run("aws", ["s3", "sync", "src", `s3://${bucket}`, "--delete", ...excludes]);

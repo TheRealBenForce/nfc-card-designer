@@ -143,6 +143,26 @@ function fileMatchesGameScope(file, allowedGameNames) {
   return allowedGameNames.has(libretroName);
 }
 
+/**
+ * @param {number} bytes
+ */
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * @param {"skip" | "copy" | "upload" | "fail"} action
+ * @param {string} target
+ * @param {{ bytes?: number, reason?: string }} [meta]
+ */
+function logImageResult(action, target, meta = {}) {
+  const size = meta.bytes != null ? ` (${formatBytes(meta.bytes)})` : "";
+  const reason = meta.reason ? ` — ${meta.reason}` : "";
+  console.log(`    ${action.padEnd(6)} ${target}${size}${reason}`);
+}
+
 async function main() {
   await loadDotEnv();
 
@@ -225,6 +245,7 @@ async function main() {
           });
           if (present) {
             stats.skipped += 1;
+            logImageResult("skip", objectKey);
             continue;
           }
         }
@@ -234,24 +255,48 @@ async function main() {
           const info = await stat(sourcePath);
           if (!info.isFile() || info.size === 0) {
             stats.failed += 1;
+            logImageResult("fail", objectKey, {
+              reason: info.isFile() ? "empty source file" : "source is not a file",
+            });
             continue;
           }
           imageBuffer = await readFile(sourcePath);
-        } catch {
+        } catch (err) {
           stats.failed += 1;
+          const reason = err instanceof Error ? err.message : String(err);
+          logImageResult("fail", objectKey, { reason: `could not read source: ${reason}` });
           continue;
         }
 
         if (writeLocal) {
-          await mkdir(path.dirname(localDestPath), { recursive: true });
-          await writeFile(localDestPath, imageBuffer);
-          stats.copied += 1;
+          try {
+            await mkdir(path.dirname(localDestPath), { recursive: true });
+            await writeFile(localDestPath, imageBuffer);
+            stats.copied += 1;
+            logImageResult("copy", objectKey, { bytes: imageBuffer.length });
+          } catch (err) {
+            stats.failed += 1;
+            const reason = err instanceof Error ? err.message : String(err);
+            logImageResult("fail", objectKey, { reason: `local copy failed: ${reason}` });
+            continue;
+          }
         }
 
         if (uploadToS3) {
-          const uploaded = await uploadBufferToS3(imageBuffer, objectKey);
-          if (uploaded) stats.uploaded += 1;
-          else stats.failed += 1;
+          try {
+            const uploaded = await uploadBufferToS3(imageBuffer, objectKey);
+            if (uploaded) {
+              stats.uploaded += 1;
+              logImageResult("upload", `s3://${bucket}/${objectKey}`, { bytes: imageBuffer.length });
+            } else {
+              stats.failed += 1;
+              logImageResult("fail", objectKey, { reason: "S3 upload returned false (no bucket?)" });
+            }
+          } catch (err) {
+            stats.failed += 1;
+            const reason = err instanceof Error ? err.message : String(err);
+            logImageResult("fail", `s3://${bucket}/${objectKey}`, { reason });
+          }
         }
       }
     }

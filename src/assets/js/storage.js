@@ -21,7 +21,6 @@ export function defaultSettings() {
     selectedPlatformId: "",
     ...headerSettings,
     ...cardSizing,
-    searchOnlyGamesWithImages: false,
     ...headerSettings,
   };
 }
@@ -92,7 +91,6 @@ export function saveSettings(settings) {
     selectedPlatformId: settings.selectedPlatformId,
     ...headerSettings,
     ...cardSizing,
-    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
@@ -118,10 +116,6 @@ export function loadSettings() {
         typeof parsed.selectedPlatformId === "string"
           ? parsed.selectedPlatformId
           : defaults.selectedPlatformId,
-      searchOnlyGamesWithImages:
-        typeof parsed.searchOnlyGamesWithImages === "boolean"
-          ? parsed.searchOnlyGamesWithImages
-          : defaults.searchOnlyGamesWithImages,
       ...cardSizing,
       ...headerSettings,
     };
@@ -176,7 +170,6 @@ export function buildProjectData(settings, collection) {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     ...cardSizing,
-    searchOnlyGamesWithImages: settings.searchOnlyGamesWithImages,
     ...headerSettings,
     cards: collection.map(serializeCard),
   };
@@ -234,10 +227,6 @@ export function importProjectFile() {
             ),
             selectedPlatformId: parsed.selectedPlatformId,
             ...resolveCardSizing(parsed),
-            searchOnlyGamesWithImages:
-              typeof parsed.searchOnlyGamesWithImages === "boolean"
-                ? parsed.searchOnlyGamesWithImages
-                : undefined,
             ...importedHeaderSettings,
           },
           cards: cards.map((card) => normalizeCard(card, importedHeaderSettings)).filter(Boolean),

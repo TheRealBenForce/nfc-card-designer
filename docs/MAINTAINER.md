@@ -7,8 +7,9 @@ Internal reference for future changes to NFC Card Designer. Read this before edi
 ```
 src/index.html
   └── assets/js/main.js          # loads catalog, then initUI
-        ├── gameCatalog.js       # search (games-by-platform.json)
-        ├── imageAvailability.js  # runtime cache of probed image types
+        ├── gameCatalog.js       # search (games-by-platform.json + artwork filter)
+        ├── imageProbe.js        # runtime box-art probing cache for search
+        ├── imageAvailability.js # runtime cache of probed image types for preview
         ├── imageProvider.js     # resolve PNG paths for a card
         ├── cardRenderer.js      # canvas preview/PDF tiles
         ├── ui.js                # all DOM / events
@@ -18,15 +19,19 @@ src/index.html
 
 Node-only scripts live in `scripts/`. They are **not** imported by the site at runtime.
 
-## Three data files (easy to confuse)
+## Two data files (easy to confuse)
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
 | `src/assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json` | `gameCatalog.js` | Game **names** for search (retail only by default) |
-| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
-| `src/assets/data/image-availability.json` | `scan-images`, `fetch-images` | scripts / debugging workflows | Optional generated snapshot of detected image types |
+| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images` | `gameCatalog.js`, `imageProvider.js`, scripts | Flat catalog + **image path metadata** after download |
 
-**Search uses only the catalog** (`games-by-platform.json`). Artwork availability is resolved when rendering preview cards via `imageProvider.js`.
+**Search** loads names from `games-by-platform.json`, then keeps only games with artwork:
+
+1. Image paths already present in `games.js` (from `fetch-images`), or
+2. A successful runtime probe of `boxArt.png` on S3/local (`imageProbe.js`)
+
+Preview artwork still resolves per card via `imageProvider.js` + `imageAvailability.js`.
 
 **Image paths** always prefer:
 
@@ -45,13 +50,15 @@ Lookups use **`platformId` + `raGameId`**, not `raGameId` alone.
 ```bash
 npm run fetch-game-list -- --platform=game-boy
 npm run fetch-images -- --platform=game-boy
-npm start   # scan-images runs via prestart
+npm start
 ```
 
-### After manually copying PNGs into `src/assets/images/platforms/` (local dev only)
+### After uploading artwork directly to S3
+
+Sync `games.js` metadata without re-downloading:
 
 ```bash
-npm run scan-images   # optional: refresh generated image-availability snapshot
+npm run fetch-images -- --platform=atari-2600 --s3-only
 ```
 
 ### Pull a local random sample cache from S3 (for CORS-safe previewing)
@@ -76,7 +83,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 3. `npm run fetch-platform-icons`
 4. `npm run fetch-game-list -- --platform=<id>`
 5. `npm run fetch-images -- --platform=<id>`
-6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3). `image-availability.json` is optional generated metadata.
+6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3).
 
 Platforms with **zero catalog games** are hidden from the platform selector automatically.
 
@@ -125,19 +132,18 @@ Commit to `main`:
 
 ## Gotchas discovered in v1
 
-1. **Don't commit test images under `src/assets/images/`** — use temp dirs in tests (`test-image-scan.mjs`). Real user images at the same path will block `git pull`.
-2. **`games-by-platform.json` ≠ `games.js`** — UI search uses JSON; stale JSON = small catalog in the app even after `fetch-game-list`.
-3. **`scan-images` scans disk** — useful for debugging generated metadata, but search itself no longer depends on this file.
-4. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
-5. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
+1. **Don't commit test images under `src/assets/images/`** — real user images at the same path will block `git pull`.
+2. **`games-by-platform.json` ≠ `games.js`** — search names come from JSON; artwork availability comes from `games.js` paths and runtime probing.
+3. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
+4. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
+5. **Direct S3 uploads** still need `fetch-images --s3-only` (or a local run against S3) so `games.js` records image paths and search skips failed probes on the next visit.
 
 ## npm scripts reference
 
 | Script | Purpose |
 |--------|---------|
-| `npm start` | `scan-images` then static server :8000 |
+| `npm start` | Static server :8000 |
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
-| `npm run fetch-images` | Download libretro thumbnails + update `games.js` + `image-availability.json` |
-| `npm run scan-images` | Optional rescan disk → `image-availability.json` snapshot |
+| `npm run fetch-images` | Download libretro thumbnails + update `games.js` |
 | `npm run export-games-json` | Rebuild JSON from existing `games.js` |

@@ -3,12 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prestart": "npm run scan-images",
     "start": "npx --yes serve src -l 8000",
     "test-ra-auth": "node scripts/test-ra-auth.mjs",
     "fetch-game-list": "node scripts/fetch-game-list.mjs",
     "export-games-json": "node scripts/export-games-json.mjs",
-    "scan-images": "node scripts/export-image-availability.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
     "sync-s3-sample-images": "node scripts/sync-s3-sample-images.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",

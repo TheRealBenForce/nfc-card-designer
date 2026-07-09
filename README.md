@@ -25,13 +25,11 @@ src/
     js/                      # Application modules
     data/
       games-by-platform.json      # Game names for search (grouped by platform)
-      image-availability.json     # Optional generated image index (not required for search)
     images/platforms/             # Downloaded artwork (platform/game folders)
 scripts/
   fetch-game-list.mjs         # Pull RA catalogs → games.js + games-by-platform.json
-  fetch-images.mjs              # Download libretro thumbnails + update games.js + availability
+  fetch-images.mjs              # Download libretro thumbnails + update games.js
   export-games-json.mjs         # Rebuild games-by-platform.json from games.js
-  export-image-availability.mjs  # scan-images: index PNGs on disk
   verify.mjs                    # Run before merging changes
 docs/
   MAINTAINER.md                 # Architecture & data-pipeline notes for developers

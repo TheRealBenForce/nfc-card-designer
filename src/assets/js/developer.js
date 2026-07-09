@@ -1,4 +1,5 @@
 import { platforms } from "./data/platforms.js";
+import { games } from "./data/games.js";
 import { COLLECTION_STORAGE_KEY, DEV_IMAGE_DELAY_MAX_MS, DEV_IMAGE_DELAY_STORAGE_KEY, STORAGE_KEY } from "./config.js";
 import { getDevImageDelayMs, setDevImageDelayMs } from "./devTools.js";
 import { loadSettings, loadCollection } from "./storage.js";
@@ -63,38 +64,43 @@ function bindDelayControls() {
 }
 
 /**
- * @param {Record<string, Record<string, string[]>>} availability
- * @param {Record<string, { name: string, raGameId: number }[]>} catalog
+ * @param {typeof games} catalogGames
  */
-function buildLocalGameSections(availability, catalog) {
+function buildLocalGameSections(catalogGames) {
   const platformOrder = platforms.map((platform) => platform.id);
-  const extraPlatformIds = Object.keys(availability).filter((id) => !platformOrder.includes(id));
+  /** @type {Record<string, { name: string, raGameId: number, types: string[] }[]>} */
+  const grouped = {};
+
+  for (const game of catalogGames) {
+    const types = Object.entries(game.images ?? {})
+      .filter(([, imagePath]) => Boolean(imagePath))
+      .map(([type]) => type)
+      .sort();
+    if (types.length === 0) continue;
+
+    if (!grouped[game.platformId]) grouped[game.platformId] = [];
+    grouped[game.platformId].push({
+      name: game.name,
+      raGameId: game.raGameId,
+      types,
+    });
+  }
+
+  const extraPlatformIds = Object.keys(grouped).filter((id) => !platformOrder.includes(id));
   const orderedPlatformIds = [...platformOrder, ...extraPlatformIds.sort()];
 
   /** @type {{ platformId: string, platformName: string, games: { name: string, raGameId: number, types: string[] }[] }[]} */
   const sections = [];
 
   for (const platformId of orderedPlatformIds) {
-    const gamesOnDisk = availability[platformId];
-    if (!gamesOnDisk) continue;
+    const platformGames = grouped[platformId];
+    if (!platformGames || platformGames.length === 0) continue;
 
-    const catalogEntries = catalog[platformId] ?? [];
-    const nameById = new Map(catalogEntries.map((entry) => [String(entry.raGameId), entry.name]));
-
-    const games = Object.entries(gamesOnDisk)
-      .map(([raGameId, types]) => ({
-        name: nameById.get(raGameId) ?? `Game ${raGameId}`,
-        raGameId: Number(raGameId),
-        types: [...types].sort(),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
-
-    if (games.length === 0) continue;
-
+    platformGames.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     sections.push({
       platformId,
       platformName: platforms.find((platform) => platform.id === platformId)?.name ?? platformId,
-      games,
+      games: platformGames,
     });
   }
 
@@ -110,12 +116,12 @@ function renderLocalGames(sections) {
   const totalGames = sections.reduce((sum, section) => sum + section.games.length, 0);
   if (totalGames === 0) {
     localGamesMetaEl.textContent =
-      "No local artwork found. Run npm run sync-s3-sample-images or fetch-images --local-only.";
-    localGamesEl.innerHTML = '<p class="empty-hint">No PNGs indexed in assets/data/image-availability.json.</p>';
+      "No artwork metadata in games.js. Run fetch-images or sync from S3.";
+    localGamesEl.innerHTML = '<p class="empty-hint">No games with image paths in games.js.</p>';
     return;
   }
 
-  localGamesMetaEl.textContent = `${totalGames} game(s) with on-disk artwork across ${sections.length} platform(s).`;
+  localGamesMetaEl.textContent = `${totalGames} game(s) with artwork metadata across ${sections.length} platform(s).`;
 
   localGamesEl.replaceChildren();
   for (const section of sections) {
@@ -154,38 +160,9 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
-async function refreshLocalGames() {
+function refreshLocalGames() {
   if (!localGamesEl || !localGamesMetaEl) return;
-
-  localGamesMetaEl.textContent = "Loading image index…";
-  localGamesEl.replaceChildren();
-
-  try {
-    const [availabilityRes, catalogRes] = await Promise.all([
-      fetch("assets/data/image-availability.json"),
-      fetch("assets/data/games-by-platform.json"),
-    ]);
-
-    if (!availabilityRes.ok) {
-      throw new Error(`image-availability.json (${availabilityRes.status})`);
-    }
-    if (!catalogRes.ok) {
-      throw new Error(`games-by-platform.json (${catalogRes.status})`);
-    }
-
-    const availability = /** @type {{ platforms?: Record<string, Record<string, string[]>> }} */ (
-      await availabilityRes.json()
-    );
-    const catalog = /** @type {{ platforms?: Record<string, { name: string, raGameId: number }[]> }} */ (
-      await catalogRes.json()
-    );
-
-    renderLocalGames(buildLocalGameSections(availability.platforms ?? {}, catalog.platforms ?? {}));
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to load local game index.";
-    localGamesMetaEl.textContent = message;
-    localGamesEl.innerHTML = `<p class="empty-hint">${escapeHtml(message)}</p>`;
-  }
+  renderLocalGames(buildLocalGameSections(games));
 }
 
 function renderCollectionJson() {
@@ -201,41 +178,15 @@ function renderCollectionJson() {
     selectedPlatformId: settings.selectedPlatformId,
     cards: collection,
   };
-
   collectionJsonEl.textContent = JSON.stringify(payload, null, 2);
 }
 
-function bindRefreshButtons() {
-  document.getElementById("dev-refresh-local-games")?.addEventListener("click", () => {
-    void refreshLocalGames();
-  });
-  document.getElementById("dev-refresh-collection")?.addEventListener("click", renderCollectionJson);
-}
-
-function bindStorageEvents() {
-  window.addEventListener("storage", (event) => {
-    if (event.key === COLLECTION_STORAGE_KEY || event.key === STORAGE_KEY) {
-      renderCollectionJson();
-    }
-    if (event.key === DEV_IMAGE_DELAY_STORAGE_KEY) {
-      syncDelayControls(getDevImageDelayMs());
-    }
-  });
-}
-
-function init() {
-  const storageKeyEl = document.getElementById("dev-collection-storage-key");
-  if (storageKeyEl) storageKeyEl.textContent = COLLECTION_STORAGE_KEY;
-
+export function initDeveloperPage() {
   localGamesMetaEl = document.getElementById("dev-local-games-meta");
   localGamesEl = document.getElementById("dev-local-games");
   collectionJsonEl = document.getElementById("dev-collection-json");
 
   bindDelayControls();
-  bindRefreshButtons();
-  bindStorageEvents();
+  refreshLocalGames();
   renderCollectionJson();
-  void refreshLocalGames();
 }
-
-init();

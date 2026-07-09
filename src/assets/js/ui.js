@@ -110,8 +110,6 @@ let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
 let previewCalibrationValueEl = null;
 /** @type {HTMLInputElement|null} */
-let searchOnlyGamesWithImagesInput = null;
-/** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
@@ -702,6 +700,11 @@ function mountPriorityList(listEl, priority, onChange) {
   });
 }
 
+function refreshSearchViews() {
+  renderPlatformResults();
+  void filterGames(gameSearchInput?.value ?? "");
+}
+
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
   const activePlatformId = getActivePlatformId();
@@ -711,8 +714,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     return;
   }
 
-  const requireImages = getSettings().searchOnlyGamesWithImages;
-  const gameCount = gameCountForPlatform(activePlatformId, { requireImages });
+  const gameCount = gameCountForPlatform(activePlatformId);
   const catalogSize = catalogCountForPlatform(activePlatformId);
 
   if (query.length === 0) {
@@ -720,11 +722,9 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : requireImages
-            ? "No games with artwork available for this platform."
-            : "No games available for this platform.";
+          : "Type 3+ letters to search games with artwork.";
     } else {
-      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} in catalog`;
+      gameSearchHintEl.textContent = `${gameCount} game${gameCount === 1 ? "" : "s"} with artwork`;
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
@@ -734,18 +734,16 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     const remaining = MIN_GAME_SEARCH_CHARS - query.length;
     gameSearchHintEl.textContent =
       remaining === 1
-        ? `Type 1 more character to search ${gameCount} games.`
-        : `Type ${remaining} more characters to search ${gameCount} games.`;
+        ? `Type 1 more character to search games with artwork.`
+        : `Type ${remaining} more characters to search games with artwork.`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
   }
 
   if (filteredGamesTotal === 0) {
     gameSearchHintEl.textContent =
-      gameCount === 0
-        ? requireImages
-          ? "No games with artwork on this platform yet."
-          : "No games on this platform yet."
+      gameCount === 0 && catalogSize > 0
+        ? `No games with artwork matching "${query}".`
         : `No games matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     return;
@@ -759,7 +757,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   gameSearchHintEl.classList.add("field-hint--ready");
 }
 
-function filterGames(query) {
+async function filterGames(query) {
   const activePlatformId = getActivePlatformId();
   const q = query.trim();
   if (!activePlatformId) {
@@ -770,8 +768,7 @@ function filterGames(query) {
     updateGameSearchHint(q);
     return;
   }
-  const requireImages = getSettings().searchOnlyGamesWithImages;
-  const result = searchGames(activePlatformId, q, { requireImages });
+  const result = await searchGames(activePlatformId, q);
   filteredGames = result.games;
   filteredGamesTotal = result.total;
   gameHighlightIndex = 0;
@@ -813,8 +810,7 @@ function renderGameResults() {
     return;
   }
 
-  const requireImages = getSettings().searchOnlyGamesWithImages;
-  const gameCount = gameCountForPlatform(activePlatformId, { requireImages });
+  const gameCount = gameCountForPlatform(activePlatformId);
   const query = gameSearchInput?.value.trim() ?? "";
 
   if (query.length < MIN_GAME_SEARCH_CHARS) {
@@ -828,9 +824,7 @@ function renderGameResults() {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     if (gameCount === 0) {
-      empty.textContent = requireImages
-        ? "No games with artwork on this platform yet."
-        : "No games on this platform yet.";
+      empty.textContent = "No games with artwork on this platform yet.";
     } else {
       empty.textContent = `No games matching "${query}".`;
     }
@@ -889,9 +883,6 @@ function applyCardSizingCssVariables(settings) {
 function syncGlobalSettingsControls() {
   const settings = getSettings();
   const sizing = resolveCardSizing(settings);
-  if (searchOnlyGamesWithImagesInput) {
-    searchOnlyGamesWithImagesInput.checked = !settings.searchOnlyGamesWithImages;
-  }
   if (globalShowHeaderInput) {
     globalShowHeaderInput.checked = settings.showHeader;
   }
@@ -1097,7 +1088,7 @@ async function applyPlatformPriorityToBrowse() {
   await refreshPreview();
 }
 
-function pickGameFromSearch() {
+async function pickGameFromSearch() {
   const activePlatformId = getActivePlatformId();
   if (!activePlatformId) {
     logStatus("Select a platform before searching for games.", true);
@@ -1110,9 +1101,7 @@ function pickGameFromSearch() {
     return null;
   }
 
-  const game = pickGameFromCatalog(activePlatformId, query, gameHighlightIndex, {
-    requireImages: getSettings().searchOnlyGamesWithImages,
-  });
+  const game = await pickGameFromCatalog(activePlatformId, query, gameHighlightIndex);
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
     return null;
@@ -1455,15 +1444,6 @@ async function refreshPreview() {
 }
 
 function bindEvents() {
-  searchOnlyGamesWithImagesInput?.addEventListener("change", (e) => {
-    updateSettings({
-      // Checked means "include games with no images", so require-images is the inverse.
-      searchOnlyGamesWithImages: !/** @type {HTMLInputElement} */ (e.target).checked,
-    });
-    saveSettings(getSettings());
-    filterGames(gameSearchInput?.value ?? "");
-  });
-
   gameSearchInput?.addEventListener("input", (e) => {
     filterGames(/** @type {HTMLInputElement} */ (e.target).value);
   });
@@ -1486,11 +1466,12 @@ function bindEvents() {
     }
     if (e.key === "Enter") {
       e.preventDefault();
-      const game = pickGameFromSearch();
-      if (game) {
-        closeGameResults();
-        void browseGameFromSearch(game);
-      }
+      void pickGameFromSearch().then((game) => {
+        if (game) {
+          closeGameResults();
+          void browseGameFromSearch(game);
+        }
+      });
     }
   });
 
@@ -1684,8 +1665,6 @@ function bindEvents() {
         showHeader: imported.settings.showHeader ?? defaults.showHeader,
         showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
         headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
-        searchOnlyGamesWithImages:
-          imported.settings.searchOnlyGamesWithImages ?? defaults.searchOnlyGamesWithImages,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -1785,9 +1764,6 @@ export async function initUI() {
     document.getElementById("preview-calibration-input")
   );
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
-  searchOnlyGamesWithImagesInput = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("search-only-games-with-images")
-  );
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (

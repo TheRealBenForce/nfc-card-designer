@@ -41,11 +41,20 @@ Lookups use **`platformId` + `libretroName`**.
 ### Upload artwork from a local libretro mirror
 
 ```bash
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes
-npm run sync-image-manifest -- --s3-only
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes --max-games=25
+npm run sync-image-manifest -- --local-only
 ```
 
-`fetch-images` requires `--libretro-dir`. It uploads PNGs to S3 using libretro directory names. Run `sync-image-manifest` afterward so `image-manifest.json` reflects the inventory.
+`fetch-images` requires `--libretro-dir`. Optional `--max-games=<n>` limits retail boxart titles per platform (alphabetical). After each platform, empty folders under `src/assets/images/<playlist>/` are removed. Run `sync-image-manifest` afterward so `image-manifest.json` reflects the inventory.
+
+| Flag | Effect |
+|------|--------|
+| `--libretro-dir=<path>` | Local libretro thumbnails root (required) |
+| `--platform=<id>` | Process one platform |
+| `--max-games=<n>` | Sync only the first N retail boxart games (A–Z) per platform |
+| `--local-only` | Copy into `src/assets/images/` only (no S3) |
+| `--force` | Re-copy/upload even when the file already exists |
+| `--include-non-retail` | Include hacks, betas, and other filtered titles |
 
 ### Refresh manifest after direct S3 changes
 

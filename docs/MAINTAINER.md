@@ -64,9 +64,12 @@ Options:
 | Flag | Effect |
 |------|--------|
 | `--platform=<id>` | Limit scan/update to one platform |
-| `--s3-only` | Read S3 only (requires `S3_BUCKET`) |
+| `--s3-only` | Read S3 only (requires `S3_BUCKET` in `.env`, environment, or `--bucket=`) |
 | `--local-only` | Read `src/assets/images/platforms/` only |
+| `--bucket=<name>` | Override S3 bucket (default with `--s3-only`: `zaparoo.therealbenforce.com`) |
 | `--prune` | Clear stale image paths in `games.js` when PNGs are gone |
+
+The script loads `.env` automatically (like other maintainer scripts). It will **not** clear existing `games.js` image paths unless `--prune` is passed.
 
 By default the script merges local disk **and** S3 listings, then writes updated paths into `games.js` and rebuilds `games-by-platform.json`.
 

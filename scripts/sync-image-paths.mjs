@@ -17,12 +17,17 @@ import {
   mergeImageAvailability,
   imagePathsForTypes,
 } from "./games-data.mjs";
+import { loadDotEnv } from "./load-env.mjs";
 import { scanImageAvailabilityFromS3, s3BucketFromEnv } from "./s3-storage.mjs";
+
+const DEFAULT_S3_BUCKET = "zaparoo.therealbenforce.com";
 
 function parseArgs() {
   const platformArg = process.argv.find((arg) => arg.startsWith("--platform="));
+  const bucketArg = process.argv.find((arg) => arg.startsWith("--bucket="));
   return {
     platformId: platformArg?.split("=")[1],
+    bucket: bucketArg?.split("=")[1]?.trim(),
     localOnly: process.argv.includes("--local-only"),
     s3Only: process.argv.includes("--s3-only"),
     prune: process.argv.includes("--prune"),
@@ -30,9 +35,17 @@ function parseArgs() {
 }
 
 async function main() {
-  const { platformId, localOnly, s3Only, prune } = parseArgs();
+  await loadDotEnv();
+
+  const { platformId, bucket: bucketArg, localOnly, s3Only, prune } = parseArgs();
   if (localOnly && s3Only) {
     throw new Error("Choose either --local-only or --s3-only, not both.");
+  }
+
+  if (bucketArg) {
+    process.env.S3_BUCKET = bucketArg;
+  } else if (s3Only && !s3BucketFromEnv()) {
+    process.env.S3_BUCKET = DEFAULT_S3_BUCKET;
   }
 
   /** @type {Record<string, Record<string, string[]>>} */
@@ -49,13 +62,33 @@ async function main() {
   if (!localOnly) {
     const bucket = s3BucketFromEnv();
     if (!bucket) {
-      throw new Error("S3_BUCKET is required unless --local-only is passed.");
+      throw new Error(
+        "S3_BUCKET is required unless --local-only is passed. Set it in .env, export it, or pass --bucket=<name>.",
+      );
     }
+
+    const prefix = platformId
+      ? `assets/images/platforms/${platformId}/games/`
+      : "assets/images/platforms/";
+    console.log(`Scanning s3://${bucket}/${prefix}`);
+
     const fromS3 = await scanImageAvailabilityFromS3(platformId);
     availability = mergeImageAvailability(availability, fromS3);
+    const s3GameCount = countGames(fromS3);
     console.log(
-      `Scanned s3://${bucket}/: ${countGames(availability)} game(s) with PNGs across ${Object.keys(availability).length} platform(s).`,
+      `Scanned S3: ${s3GameCount} game(s) with PNGs across ${Object.keys(fromS3).length} platform(s).`,
     );
+
+    if (s3Only && s3GameCount === 0) {
+      throw new Error(
+        `S3 scan found 0 game images under ${prefix}. Check AWS credentials, bucket name, and that PNG keys match assets/images/platforms/<platform>/games/<raGameId>/<type>.png`,
+      );
+    }
+  }
+
+  const indexedCount = countGames(availability);
+  if (indexedCount === 0) {
+    throw new Error("No artwork found to index. Nothing was written to games.js.");
   }
 
   const { games } = await import(pathToFileURL(gamesPath).href);
@@ -66,6 +99,7 @@ async function main() {
 
   let updatedGames = 0;
   let clearedGames = 0;
+  let unchangedGames = 0;
 
   const finalGames = games.map((game) => {
     if (platformId && game.platformId !== platformId) {
@@ -73,23 +107,24 @@ async function main() {
     }
 
     const types = availability[game.platformId]?.[String(game.raGameId)] ?? [];
-    const nextImages = types.length > 0 ? imagePathsForTypes(game.platformId, game.raGameId, types) : {};
-
     const previousImages = game.images ?? {};
-    const changed =
-      JSON.stringify(previousImages) !== JSON.stringify(nextImages) ||
-      (prune && types.length === 0 && Object.keys(previousImages).length > 0);
 
-    if (!changed) {
+    if (types.length === 0) {
+      if (!prune || Object.keys(previousImages).length === 0) {
+        unchangedGames += 1;
+        return game;
+      }
+      clearedGames += 1;
+      return { ...game, images: {} };
+    }
+
+    const nextImages = imagePathsForTypes(game.platformId, game.raGameId, types);
+    if (JSON.stringify(previousImages) === JSON.stringify(nextImages)) {
+      unchangedGames += 1;
       return game;
     }
 
-    if (types.length > 0) {
-      updatedGames += 1;
-    } else if (Object.keys(previousImages).length > 0) {
-      clearedGames += 1;
-    }
-
+    updatedGames += 1;
     return {
       ...game,
       images: nextImages,
@@ -102,7 +137,8 @@ async function main() {
     `\nUpdated ${gamesPath}\n` +
       `  ${updatedGames} game(s) now have image paths\n` +
       (prune ? `  ${clearedGames} game(s) had stale paths cleared\n` : "") +
-      `  ${countGames(availability)} indexed game(s) total`,
+      `  ${unchangedGames} game(s) left unchanged\n` +
+      `  ${indexedCount} indexed game(s) total`,
   );
 }
 

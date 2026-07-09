@@ -1,15 +1,15 @@
 # Maintainer notes
 
-Internal reference for future changes to NFC Card Designer. Read this before editing data pipelines, search, or artwork handling.
+Internal reference for data pipelines, search, and artwork handling.
 
 ## Architecture (browser)
 
 ```
 src/index.html
-  └── assets/js/main.js          # loads catalog, then initUI
-        ├── gameCatalog.js       # search (games-by-platform.json + games.js artwork filter)
+  └── assets/js/main.js          # loads manifest, then initUI
+        ├── gameCatalog.js       # search from image-manifest.json
         ├── imageAvailability.js # runtime cache of probed image types for preview
-        ├── imageProvider.js     # resolve PNG paths for a card
+        ├── imageProvider.js     # resolve libretro image paths for a card
         ├── cardRenderer.js      # canvas preview/PDF tiles
         ├── ui.js                # all DOM / events
         ├── state.js             # in-memory settings + collection
@@ -18,60 +18,51 @@ src/index.html
 
 Node-only scripts live in `scripts/`. They are **not** imported by the site at runtime.
 
-## Two data files (easy to confuse)
+## Image manifest (inventory only)
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
-| `src/assets/data/games-by-platform.json` | `fetch-game-list`, `export-games-json`, `sync-image-paths` | `gameCatalog.js` | Game **names** for search (retail only by default) |
-| `src/assets/js/data/games.js` | `fetch-game-list`, `fetch-images`, **`sync-image-paths`** | `gameCatalog.js`, `imageProvider.js`, scripts | Flat catalog + **image path metadata** |
+| `src/assets/data/image-manifest.json` | `sync-image-manifest`, GitHub Actions | `gameCatalog.js` | Games with artwork in S3/local, keyed by `libretroName` |
 
-**Search** loads names from `games-by-platform.json`, then keeps only games that have image paths in `games.js`. There is no runtime S3 probing for search — run `sync-image-paths` after uploading artwork so `games.js` stays current.
+Search only includes games present in the manifest. There is no runtime S3 probing for search.
 
-Preview artwork still resolves per card via `imageProvider.js` + `imageAvailability.js` (runtime checks for types beyond what search indexes).
-
-**Image paths** always prefer:
+**S3 / local image paths** mirror libretro:
 
 ```
-assets/images/platforms/<platformId>/games/<raGameId>/<type>.png
+assets/images/<libretroPlaylist>/Named_Boxarts/<libretro filename>.png
+assets/images/<libretroPlaylist>/Named_Titles/<libretro filename>.png
+assets/images/<libretroPlaylist>/Named_Snaps/<libretro filename>.png
 ```
 
-(Published S3/object keys omit `src/`; local checked-in files live under `src/assets/...`.)
-
-Lookups use **`platformId` + `raGameId`**, not `raGameId` alone.
+Lookups use **`platformId` + `libretroName`**.
 
 ## Typical maintainer workflows
 
-### Refresh everything for one platform (downloads from libretro)
+### Upload artwork from a local libretro mirror
 
 ```bash
-npm run fetch-game-list -- --platform=game-boy
-npm run fetch-images -- --platform=game-boy
-npm start
+npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes
+npm run sync-image-manifest -- --s3-only
 ```
 
-`fetch-images` is slow — it downloads thumbnails from libretro. Use it when you need to **fetch** new artwork.
+`fetch-images` requires `--libretro-dir`. It uploads PNGs to S3 using libretro directory names. Run `sync-image-manifest` afterward so `image-manifest.json` reflects the inventory.
 
-### After uploading artwork directly to S3 (recommended)
-
-Sync `games.js` metadata **without** re-downloading from libretro:
+### Refresh manifest after direct S3 changes
 
 ```bash
-npm run sync-image-paths -- --platform=atari-2600
+npm run sync-image-manifest -- --s3-only
 ```
 
 Options:
 
 | Flag | Effect |
 |------|--------|
-| `--platform=<id>` | Limit scan/update to one platform |
+| `--platform=<id>` | Limit scan to one platform's libretro playlist |
 | `--s3-only` | Read S3 only (requires `S3_BUCKET` in `.env`, environment, or `--bucket=`) |
-| `--local-only` | Read `src/assets/images/platforms/` only |
-| `--bucket=<name>` | Override S3 bucket (default with `--s3-only`: `zaparoo.therealbenforce.com`) |
-| `--prune` | Clear stale image paths in `games.js` when PNGs are gone |
+| `--local-only` | Read `src/assets/images/` only |
+| `--bucket=<name>` | Override S3 bucket |
 
-The script loads `.env` automatically (like other maintainer scripts). It will **not** clear existing `games.js` image paths unless `--prune` is passed.
-
-By default the script merges local disk **and** S3 listings, then writes updated image paths into `games.js` only. It does **not** rewrite `games-by-platform.json` (that file is unchanged by image-path sync). If nothing changed, `games.js` is not written at all.
+By default (no flags), the script merges local disk **and** S3 listings.
 
 ### Pull a local random sample cache from S3 (for CORS-safe previewing)
 
@@ -86,37 +77,33 @@ npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
 npm run verify
 ```
 
-Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp server on port 8765).
+## GitHub Actions
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `sync-image-manifest.yml` | `workflow_dispatch`, `workflow_call` | Scan S3 → write `image-manifest.json` artifact |
+| `deploy.yml` | `push` to `main`, `workflow_dispatch` | Calls sync-manifest, then deploys site |
+
+Deploy uploads the freshly generated manifest with the site. Game PNGs remain on S3 only (`deploy.mjs` excludes `assets/images/*` except what is bundled under `src/assets/data/`).
 
 ## Adding a platform
 
-1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `raConsoleId` or `catalogSource: "libretro"`, optional `searchAliases`).
+1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `searchAliases`).
 2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
 3. `npm run fetch-platform-icons`
-4. `npm run fetch-game-list -- --platform=<id>`
-5. `npm run fetch-images -- --platform=<id>` **or** upload PNGs to S3 and `npm run sync-image-paths -- --platform=<id>`
-6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3).
+4. `npm run fetch-images -- --libretro-dir=<path> --platform=<id>`
+5. `npm run sync-image-manifest`
+6. Commit platform icons and updated `image-manifest.json` (not game PNGs).
 
 Platforms with **zero indexed artwork** are hidden from the platform selector automatically.
 
 ## Settings & export format
 
 - **localStorage keys:** `nfc-card-designer-settings`, `nfc-card-designer-collection`
-- **Export file:** `nfc-card-designer.json` (project version `3`)
-- **Global settings:** `selectedPlatformId` (reserved panel for future settings)
-- **Per-platform defaults** (`platformDefaults`): `color` (from `platforms.js` palette), `imageTypePriority` (default: boxArt → titleScreen → gamePicture), `imageRotation` per image type (default `0°`)
-- **Per-card:** `platformId`, `gameName`, `raGameId`, `imageType` (chosen in preview before add)
-- **Import migration:** v2 `platformColors` maps into `platformDefaults.color`
+- **Export file:** `nfc-card-designer.json` (project version `6`)
+- **Per-card:** `platformId`, `gameName`, `libretroName`, `imageType`
 
-Preview still lets users switch artwork types; the platform priority picks which type is selected first.
-
-## Artwork source
-
-Game catalogs come from RetroAchievements (`fetch-game-list`) for most platforms; **DOS** uses libretro thumbnail listings. Box art, title screens, and in-game snapshots are pulled by `fetch-images` from either the [libretro thumbnail CDN](https://thumbnails.libretro.com/) or `--libretro-dir=<local mirror path>`, then uploaded to **S3** (`S3_BUCKET`, default `zaparoo.therealbenforce.com`).
-
-`fetch-images` skips images that already exist locally or in S3 unless `--force` is passed. Run `fetch-images` from your workstation when you need new downloads; use `sync-image-paths` when artwork is already on disk/S3. Deploy via `npm run deploy` or the GitHub Actions workflow on `main` (site files only).
-
-Image types map to libretro folders:
+## Image types → libretro folders
 
 | App type | Libretro folder |
 |----------|-----------------|
@@ -124,39 +111,13 @@ Image types map to libretro folders:
 | `titleScreen` | `Named_Titles` |
 | `gamePicture` | `Named_Snaps` |
 
-## Retail-only catalog filter
-
-`fetch-game-list` excludes RA title tags: `~Hack~`, `~Homebrew~`, `~Demo~`, `~Prototype~`, `~Test Kit~`, `~Unlicensed~`, `~Z~`, and `[Subset - …]`. Logic is in `src/assets/js/retailFilter.js` (shared with scripts).
-
-Pass `--include-non-retail` to opt out.
-
-## GitHub Pages deploy checklist
-
-Replaced by AWS deploy — see `infrastructure/README.md` and `.github/workflows/deploy.yml`.
-
-Commit to `main`:
-
-- [ ] `src/index.html`, `src/assets/` (JS, CSS, data JSON, platform icons)
-- [ ] `src/assets/data/games-by-platform.json`
-- [ ] Game PNGs are uploaded to S3 by CI (`fetch-images`), not committed to git
-
-`.env` is gitignored. The live site never calls the RA API.
-
-## Gotchas discovered in v1
-
-1. **Don't commit test images under `src/assets/images/`** — real user images at the same path will block `git pull`.
-2. **`games-by-platform.json` ≠ `games.js`** — search names come from JSON; artwork availability comes from `games.js` image paths.
-3. **`fetch-images` Map key** is `platformId:raGameId`, not `raGameId` alone.
-4. **Platform search "nes"** also matches SNES and Genesis (`genesis` contains `nes`). Enter re-filters before select.
-5. **Direct S3 uploads** need `sync-image-paths` (or `fetch-images --s3-only`) so `games.js` records image paths and search includes those games.
-
 ## npm scripts reference
 
 | Script | Purpose |
 |--------|---------|
 | `npm start` | Static server :8000 |
 | `npm run verify` | Full pre-merge check |
-| `npm run fetch-game-list` | RA catalogs → `games.js` + `games-by-platform.json` |
-| `npm run fetch-images` | Download libretro thumbnails + update `games.js` |
-| `npm run sync-image-paths` | Scan local disk and/or S3 → update `games.js` (no libretro download) |
-| `npm run export-games-json` | Rebuild JSON from existing `games.js` |
+| `npm run fetch-images` | Local libretro mirror → S3 (and optionally `src/assets/images/`) |
+| `npm run sync-image-manifest` | Scan local disk and/or S3 → `image-manifest.json` |
+| `npm run sync-s3-sample-images` | Pull random sample images from S3 for local dev |
+| `npm run deploy` | Site to S3 + CloudFront invalidation |

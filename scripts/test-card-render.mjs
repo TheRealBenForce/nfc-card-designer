@@ -31,8 +31,8 @@ async function main() {
         {
           id: "test",
           platformId: "nes",
-          gameName: "Super Mario Bros.",
-          raGameId: 2286,
+          gameName: "Super Mario Bros. (USA)",
+          libretroName: "Super Mario Bros. (USA)",
           imageType: "boxArt",
         },
         {

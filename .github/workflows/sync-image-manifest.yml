@@ -1,10 +1,8 @@
-name: Deploy to AWS
+name: Sync image manifest
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -12,25 +10,13 @@ permissions:
 env:
   AWS_REGION: us-east-1
   S3_BUCKET: zaparoo.therealbenforce.com
-  SITE_URL: https://zaparoo.therealbenforce.com
 
 jobs:
   sync-manifest:
-    uses: ./.github/workflows/sync-image-manifest.yml
-    secrets: inherit
-
-  deploy:
-    needs: sync-manifest
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download image manifest
-        uses: actions/download-artifact@v4
-        with:
-          name: image-manifest
-          path: src/assets/data
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -39,9 +25,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy site to S3
-        run: node scripts/deploy.mjs
+      - name: Build image manifest from S3
+        run: npm run sync-image-manifest -- --s3-only
         env:
           S3_BUCKET: ${{ env.S3_BUCKET }}
-          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-          SITE_URL: ${{ env.SITE_URL }}
+
+      - name: Upload manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-manifest
+          path: src/assets/data/image-manifest.json

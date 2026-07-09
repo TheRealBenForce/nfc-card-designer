@@ -1,30 +1,28 @@
 #!/usr/bin/env node
 /**
- * Validates games-by-platform.json structure and search helpers.
+ * Validates image-manifest.json structure and search helpers.
  */
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { gamesToByPlatform } from "./games-data.mjs";
-import { isRetailRelease } from "../src/assets/js/retailFilter.js";
+import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const jsonPath = path.join(root, "src/assets/data/games-by-platform.json");
+const jsonPath = path.join(root, "src/assets/data/image-manifest.json");
 const raw = await readFile(jsonPath, "utf8");
 const data = JSON.parse(raw);
 
-if (!data.platforms || typeof data.platforms !== "object") {
-  throw new Error("games-by-platform.json must include a platforms object");
+if (data.version !== 1) {
+  throw new Error("image-manifest.json must be version 1");
 }
 
-if (data.retailOnly !== true) {
-  throw new Error("games-by-platform.json should be marked retailOnly: true");
+if (!data.platforms || typeof data.platforms !== "object") {
+  throw new Error("image-manifest.json must include a platforms object");
 }
 
 const platformIds = Object.keys(data.platforms);
 if (platformIds.length === 0) {
-  throw new Error("Expected at least one platform in games-by-platform.json");
+  throw new Error("Expected at least one platform in image-manifest.json");
 }
 
 for (const platformId of platformIds) {
@@ -34,32 +32,27 @@ for (const platformId of platformIds) {
   }
 
   for (const game of games) {
-    if (!game.name || typeof game.raGameId !== "number") {
+    if (!game.libretroName || typeof game.libretroName !== "string") {
       throw new Error(`Invalid game entry under "${platformId}"`);
     }
-    if (!isRetailRelease(game.name)) {
-      throw new Error(`Non-retail game in catalog JSON: ${game.name}`);
+    if (!game.images || typeof game.images !== "object") {
+      throw new Error(`Missing images for "${game.libretroName}" under "${platformId}"`);
+    }
+    const hasImage = Object.values(game.images).some((value) => Boolean(value));
+    if (!hasImage) {
+      throw new Error(`Game "${game.libretroName}" has no image paths`);
     }
   }
 }
 
-const { games } = await import(pathToFileURL(path.join(root, "src/assets/js/data/games.js")).href);
-const converted = gamesToByPlatform(games, { retailOnly: true });
-
-for (const platformId of Object.keys(converted)) {
-  const count = converted[platformId].length;
-  const jsonCount = data.platforms[platformId]?.length ?? 0;
-  if (count !== jsonCount) {
-    throw new Error(`Platform "${platformId}" count mismatch: games.js=${count}, json=${jsonCount}`);
-  }
+if (!data.platforms["sega-cd"]?.some((game) => game.libretroName.includes("Ecco"))) {
+  throw new Error("Expected Ecco the Dolphin sample in sega-cd manifest");
 }
 
-const nesGames = data.platforms.nes ?? [];
-const marioMatches = nesGames.filter((g) => g.name.toLowerCase().includes("mario"));
-if (marioMatches.length === 0) {
-  throw new Error("Expected at least one Mario game on NES in catalog JSON");
+if (!data.platforms["sega-32x"]?.some((game) => game.libretroName.startsWith("Doom"))) {
+  throw new Error("Expected Doom sample in sega-32x manifest");
 }
 
-console.log(`✓ games-by-platform.json has ${platformIds.length} platforms`);
-console.log(`✓ Catalog entries match games.js (${games.length} total games)`);
-console.log("✓ Sample NES search data present");
+console.log(`✓ image-manifest.json has ${platformIds.length} platforms`);
+console.log("✓ Manifest entries include libretroName and image paths");
+console.log("✓ Sample search fixtures present");

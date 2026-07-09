@@ -1,18 +1,16 @@
 #!/usr/bin/env node
 /**
  * Download a small random local image cache from S3 for development.
- * Defaults to 10 games per platform into:
- * assets/images/platforms/<platformId>/games/<raGameId>/<type>.png
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { gameImageDir, gameImagePath, gamesPath } from "./games-data.mjs";
+import { readImageManifest } from "./image-manifest.mjs";
 import { getS3Client, localFilePresent, s3BucketFromEnv } from "./s3-storage.mjs";
 
-const IMAGE_TYPES = ["boxArt", "titleScreen", "gamePicture"];
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_SAMPLE_COUNT = 10;
 const DEFAULT_BUCKET = "zaparoo.therealbenforce.com";
 
@@ -81,141 +79,53 @@ async function bodyToBuffer(body) {
   if (typeof body.transformToByteArray === "function") {
     return Buffer.from(await body.transformToByteArray());
   }
-  if (typeof body[Symbol.asyncIterator] === "function") {
-    const chunks = [];
-    for await (const chunk of body) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    return Buffer.concat(chunks);
-  }
-  throw new Error("Unsupported S3 response body type");
-}
-
-/**
- * @param {string} bucket
- * @param {string} key
- * @returns {Promise<Buffer | null>}
- */
-async function downloadObject(bucket, key) {
-  try {
-    const output = await getS3Client().send(
-      new GetObjectCommand({
-        Bucket: bucket,
-        Key: key.replace(/^\/+/, ""),
-      }),
-    );
-    return await bodyToBuffer(output.Body);
-  } catch (err) {
-    if (isNotFound(err)) return null;
-    throw err;
-  }
-}
-
-/**
- * @param {import("../src/assets/js/data/games.js").Game} game
- */
-function gameHasImageMetadata(game) {
-  return IMAGE_TYPES.some((type) => Boolean(game.images?.[type]));
-}
-
-/**
- * @param {import("../src/assets/js/data/games.js").Game} game
- * @param {string} type
- */
-function objectKeyForGameType(game, type) {
-  return (game.images?.[type] ?? gameImagePath(game.platformId, game.raGameId, type)).replace(
-    /^\/+/,
-    "",
-  );
+  throw new Error("Unsupported S3 object body type");
 }
 
 async function main() {
   const { count, platformIds, bucket, force } = parseArgs();
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const platformsPath = path.join(root, "src/assets/js/data/platforms.js");
-  const { platforms } = await import(pathToFileURL(platformsPath).href);
-  const { games } = await import(pathToFileURL(gamesPath).href);
+  process.env.S3_BUCKET = bucket;
 
-  const knownPlatforms = new Set(platforms.map((platform) => platform.id));
-  const selectedPlatforms = platformIds?.length ? platformIds : platforms.map((platform) => platform.id);
-  const invalidPlatforms = selectedPlatforms.filter((platformId) => !knownPlatforms.has(platformId));
-  if (invalidPlatforms.length > 0) {
-    throw new Error(`Unknown platform id(s): ${invalidPlatforms.join(", ")}`);
-  }
+  const manifest = await readImageManifest();
+  const selectedPlatformIds = platformIds ?? Object.keys(manifest.platforms ?? {});
 
-  /** @type {Map<string, import("../src/assets/js/data/games.js").Game[]>} */
-  const gamesByPlatform = new Map(selectedPlatforms.map((platformId) => [platformId, []]));
-  for (const game of games) {
-    if (gamesByPlatform.has(game.platformId)) {
-      gamesByPlatform.get(game.platformId)?.push(game);
-    }
-  }
+  let downloaded = 0;
+  let skipped = 0;
 
-  let totalGamesSynced = 0;
-  let totalFilesDownloaded = 0;
-  console.log(`Syncing random local image samples from s3://${bucket}`);
-  console.log(`Target: ${count} game(s) per platform${force ? " (force overwrite)" : ""}\n`);
+  for (const platformId of selectedPlatformIds) {
+    const games = manifest.platforms?.[platformId] ?? [];
+    const sampleGames = shuffled(games).slice(0, count);
 
-  for (const platformId of selectedPlatforms) {
-    const platformGames = gamesByPlatform.get(platformId) ?? [];
-    if (platformGames.length === 0) {
-      console.log(`${platformId}: no games found in catalog, skipping.\n`);
-      continue;
-    }
+    for (const game of sampleGames) {
+      for (const objectKey of Object.values(game.images ?? {})) {
+        if (!objectKey) continue;
 
-    const withMetadata = platformGames.filter(gameHasImageMetadata);
-    const candidates = withMetadata.length > 0 ? withMetadata : platformGames;
-    const randomGames = shuffled(candidates);
-
-    let syncedGames = 0;
-    let downloadedFiles = 0;
-    for (const game of randomGames) {
-      if (syncedGames >= count) break;
-
-      const localDir = gameImageDir(game.platformId, game.raGameId);
-      let hasAnyLocalOrDownloaded = false;
-      let gameDownloads = 0;
-
-      for (const type of IMAGE_TYPES) {
-        const localPath = path.join(localDir, `${type}.png`);
+        const localPath = path.join(root, "src", objectKey);
         if (!force && (await localFilePresent(localPath))) {
-          hasAnyLocalOrDownloaded = true;
+          skipped += 1;
           continue;
         }
 
-        const key = objectKeyForGameType(game, type);
-        const buffer = await downloadObject(bucket, key);
-        if (!buffer) continue;
-
-        await mkdir(localDir, { recursive: true });
-        await writeFile(localPath, buffer);
-        hasAnyLocalOrDownloaded = true;
-        gameDownloads += 1;
-        downloadedFiles += 1;
+        try {
+          const response = await getS3Client().send(
+            new GetObjectCommand({
+              Bucket: bucket,
+              Key: objectKey,
+            }),
+          );
+          const body = await bodyToBuffer(response.Body);
+          await mkdir(path.dirname(localPath), { recursive: true });
+          await writeFile(localPath, body);
+          downloaded += 1;
+        } catch (err) {
+          if (isNotFound(err)) continue;
+          throw err;
+        }
       }
-
-      if (hasAnyLocalOrDownloaded) {
-        syncedGames += 1;
-        const suffix = gameDownloads > 0 ? `${gameDownloads} downloaded` : "already local";
-        console.log(`  ✓ ${platformId} · ${game.name} (${game.raGameId}) — ${suffix}`);
-      }
-    }
-
-    totalGamesSynced += syncedGames;
-    totalFilesDownloaded += downloadedFiles;
-
-    if (syncedGames < count) {
-      console.log(
-        `${platformId}: synced ${syncedGames}/${count} game(s) with local images (${downloadedFiles} new files).\n`,
-      );
-    } else {
-      console.log(`${platformId}: synced ${syncedGames}/${count} game(s) (${downloadedFiles} new files).\n`);
     }
   }
 
-  console.log(
-    `Done. Synced ${totalGamesSynced} game sample(s) total; downloaded ${totalFilesDownloaded} new file(s).`,
-  );
+  console.log(`Downloaded ${downloaded} file(s), skipped ${skipped} existing file(s).`);
 }
 
 main().catch((err) => {

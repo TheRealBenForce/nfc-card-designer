@@ -1,5 +1,5 @@
 import { platforms } from "./data/platforms.js";
-import { games } from "./data/games.js";
+import { loadGameCatalog, gamesForPlatform } from "./gameCatalog.js";
 import { COLLECTION_STORAGE_KEY, DEV_IMAGE_DELAY_MAX_MS, DEV_IMAGE_DELAY_STORAGE_KEY, STORAGE_KEY } from "./config.js";
 import { getDevImageDelayMs, setDevImageDelayMs } from "./devTools.js";
 import { loadSettings, loadCollection } from "./storage.js";
@@ -63,33 +63,32 @@ function bindDelayControls() {
   });
 }
 
-/**
- * @param {typeof games} catalogGames
- */
-function buildLocalGameSections(catalogGames) {
+function buildLocalGameSections() {
   const platformOrder = platforms.map((platform) => platform.id);
-  /** @type {Record<string, { name: string, raGameId: number, types: string[] }[]>} */
+  /** @type {Record<string, { name: string, libretroName: string, types: string[] }[]>} */
   const grouped = {};
 
-  for (const game of catalogGames) {
-    const types = Object.entries(game.images ?? {})
-      .filter(([, imagePath]) => Boolean(imagePath))
-      .map(([type]) => type)
-      .sort();
-    if (types.length === 0) continue;
+  for (const platform of platforms) {
+    for (const game of gamesForPlatform(platform.id)) {
+      const types = Object.entries(game.images ?? {})
+        .filter(([, imagePath]) => Boolean(imagePath))
+        .map(([type]) => type)
+        .sort();
+      if (types.length === 0) continue;
 
-    if (!grouped[game.platformId]) grouped[game.platformId] = [];
-    grouped[game.platformId].push({
-      name: game.name,
-      raGameId: game.raGameId,
-      types,
-    });
+      if (!grouped[game.platformId]) grouped[game.platformId] = [];
+      grouped[game.platformId].push({
+        name: game.name,
+        libretroName: game.libretroName,
+        types,
+      });
+    }
   }
 
   const extraPlatformIds = Object.keys(grouped).filter((id) => !platformOrder.includes(id));
   const orderedPlatformIds = [...platformOrder, ...extraPlatformIds.sort()];
 
-  /** @type {{ platformId: string, platformName: string, games: { name: string, raGameId: number, types: string[] }[] }[]} */
+  /** @type {{ platformId: string, platformName: string, games: { name: string, libretroName: string, types: string[] }[] }[]} */
   const sections = [];
 
   for (const platformId of orderedPlatformIds) {
@@ -108,7 +107,7 @@ function buildLocalGameSections(catalogGames) {
 }
 
 /**
- * @param {{ platformId: string, platformName: string, games: { name: string, raGameId: number, types: string[] }[] }[]} sections
+ * @param {{ platformId: string, platformName: string, games: { name: string, libretroName: string, types: string[] }[] }[]} sections
  */
 function renderLocalGames(sections) {
   if (!localGamesEl || !localGamesMetaEl) return;
@@ -116,8 +115,8 @@ function renderLocalGames(sections) {
   const totalGames = sections.reduce((sum, section) => sum + section.games.length, 0);
   if (totalGames === 0) {
     localGamesMetaEl.textContent =
-      "No artwork metadata in games.js. Run fetch-images or sync from S3.";
-    localGamesEl.innerHTML = '<p class="empty-hint">No games with image paths in games.js.</p>';
+      "No artwork in image-manifest.json. Run fetch-images and sync-image-manifest.";
+    localGamesEl.innerHTML = '<p class="empty-hint">No games with image paths in the manifest.</p>';
     return;
   }
 
@@ -140,7 +139,7 @@ function renderLocalGames(sections) {
       const item = document.createElement("li");
       item.className = "dev-local-games__item";
       item.innerHTML = `<span class="dev-local-games__name">${escapeHtml(game.name)}</span>
-        <span class="dev-local-games__meta">#${game.raGameId} · ${escapeHtml(game.types.join(", "))}</span>`;
+        <span class="dev-local-games__meta">${escapeHtml(game.libretroName)} · ${escapeHtml(game.types.join(", "))}</span>`;
       list.appendChild(item);
     }
 
@@ -162,7 +161,7 @@ function escapeHtml(value) {
 
 function refreshLocalGames() {
   if (!localGamesEl || !localGamesMetaEl) return;
-  renderLocalGames(buildLocalGameSections(games));
+  renderLocalGames(buildLocalGameSections());
 }
 
 function renderCollectionJson() {
@@ -181,12 +180,19 @@ function renderCollectionJson() {
   collectionJsonEl.textContent = JSON.stringify(payload, null, 2);
 }
 
-export function initDeveloperPage() {
+export async function initDeveloperPage() {
   localGamesMetaEl = document.getElementById("dev-local-games-meta");
   localGamesEl = document.getElementById("dev-local-games");
   collectionJsonEl = document.getElementById("dev-collection-json");
 
   bindDelayControls();
+  await loadGameCatalog();
   refreshLocalGames();
   renderCollectionJson();
+
+  document.getElementById("dev-refresh-local-games")?.addEventListener("click", async () => {
+    await loadGameCatalog();
+    refreshLocalGames();
+  });
+  document.getElementById("dev-refresh-collection")?.addEventListener("click", renderCollectionJson);
 }

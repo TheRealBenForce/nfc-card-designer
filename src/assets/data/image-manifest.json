@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-09T00:00:00.000Z",
+  "platforms": {
+    "nes": [
+      {
+        "libretroName": "Super Mario Bros. (USA)",
+        "images": {
+          "boxArt": "assets/images/Nintendo - Nintendo Entertainment System/Named_Boxarts/Super Mario Bros. (USA).png",
+          "titleScreen": "assets/images/Nintendo - Nintendo Entertainment System/Named_Titles/Super Mario Bros. (USA).png",
+          "gamePicture": "assets/images/Nintendo - Nintendo Entertainment System/Named_Snaps/Super Mario Bros. (USA).png"
+        }
+      }
+    ],
+    "sega-cd": [
+      {
+        "libretroName": "Ecco the Dolphin (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - Mega-CD - Sega CD/Named_Boxarts/Ecco the Dolphin (USA).png",
+          "titleScreen": "assets/images/Sega - Mega-CD - Sega CD/Named_Titles/Ecco the Dolphin (USA).png",
+          "gamePicture": "assets/images/Sega - Mega-CD - Sega CD/Named_Snaps/Ecco the Dolphin (USA).png"
+        }
+      },
+      {
+        "libretroName": "Lunar - The Silver Star (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - Mega-CD - Sega CD/Named_Boxarts/Lunar - The Silver Star (USA).png"
+        }
+      },
+      {
+        "libretroName": "Sonic CD (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - Mega-CD - Sega CD/Named_Boxarts/Sonic CD (USA).png"
+        }
+      }
+    ],
+    "sega-32x": [
+      {
+        "libretroName": "After Burner Complete (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/After Burner Complete (Europe).png"
+        }
+      },
+      {
+        "libretroName": "BC Racers (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/BC Racers (USA).png"
+        }
+      },
+      {
+        "libretroName": "Blackthorne (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Blackthorne (USA).png"
+        }
+      },
+      {
+        "libretroName": "Cosmic Carnage (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Cosmic Carnage (Europe).png"
+        }
+      },
+      {
+        "libretroName": "Doom (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Doom (Europe).png",
+          "titleScreen": "assets/images/Sega - 32X/Named_Titles/Doom (Europe).png",
+          "gamePicture": "assets/images/Sega - 32X/Named_Snaps/Doom (Europe).png"
+        }
+      },
+      {
+        "libretroName": "Knuckles' Chaotix (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Knuckles' Chaotix (Europe).png"
+        }
+      },
+      {
+        "libretroName": "Kolibri (USA, Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Kolibri (USA, Europe).png"
+        }
+      },
+      {
+        "libretroName": "Metal Head (Europe) (En,Ja)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Metal Head (Europe) (En,Ja).png"
+        }
+      },
+      {
+        "libretroName": "Mortal Kombat II (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Mortal Kombat II (Europe).png"
+        }
+      },
+      {
+        "libretroName": "Virtua Fighter (Europe)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Virtua Fighter (Europe).png"
+        }
+      },
+      {
+        "libretroName": "Virtua Racing Deluxe (USA)",
+        "images": {
+          "boxArt": "assets/images/Sega - 32X/Named_Boxarts/Virtua Racing Deluxe (USA).png"
+        }
+      }
+    ]
+  }
+}

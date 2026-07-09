@@ -1,6 +1,4 @@
-import { gameByPlatformAndRaId as imageEntryForGame } from "./data/games.js";
 import { platforms } from "./data/platforms.js";
-import { isRetailRelease } from "./retailFilter.js";
 
 /**
  * @typedef {Object} GameImages
@@ -12,12 +10,12 @@ import { isRetailRelease } from "./retailFilter.js";
 /**
  * @typedef {Object} Game
  * @property {string} platformId
+ * @property {string} libretroName
  * @property {string} name
- * @property {number} raGameId
  * @property {GameImages} images
  */
 
-/** @type {Record<string, { name: string, raGameId: number }[]>|null} */
+/** @type {Record<string, Game[]>|null} */
 let byPlatform = null;
 
 /** @type {Promise<void>|null} */
@@ -26,46 +24,62 @@ let loadPromise = null;
 export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
 export const GAME_SEARCH_BROWSE_LIMIT = 10;
-const LOCAL_GAME_CATALOG_URL = "assets/data/games-by-platform.json";
-const S3_GAME_CATALOG_URL = "https://zaparoo.therealbenforce.com/assets/data/games-by-platform.json";
-const S3_CATALOG_TIMEOUT_MS = 4000;
+const LOCAL_MANIFEST_URL = "assets/data/image-manifest.json";
+const S3_MANIFEST_URL = "https://zaparoo.therealbenforce.com/assets/data/image-manifest.json";
+const S3_MANIFEST_TIMEOUT_MS = 4000;
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const data = await loadCatalogPayload();
-    /** @type {Record<string, { name: string, raGameId: number }[]>} */
-    const platforms = {};
+    const data = await loadManifestPayload();
+    /** @type {Record<string, Game[]>} */
+    const platformsById = {};
 
     for (const [platformId, entries] of Object.entries(data.platforms ?? {})) {
       if (!Array.isArray(entries)) continue;
-      platforms[platformId] = entries.filter((entry) => isRetailRelease(entry.name));
+      platformsById[platformId] = entries
+        .filter((entry) => entry.libretroName && entry.images)
+        .map((entry) => toGame(platformId, entry))
+        .filter((game) => gameHasImage(game));
     }
 
-    byPlatform = platforms;
+    byPlatform = platformsById;
   })();
 
   return loadPromise;
 }
 
 /**
- * Prefer live S3 catalog for production, then fallback to bundled JSON.
- * @returns {Promise<{ platforms?: Record<string, { name: string, raGameId: number }[]> }>}
+ * @param {string} platformId
+ * @param {{ libretroName: string, images: GameImages }} entry
+ * @returns {Game}
  */
-async function loadCatalogPayload() {
-  if (shouldUseS3CatalogFirst()) {
+function toGame(platformId, entry) {
+  return {
+    platformId,
+    libretroName: entry.libretroName,
+    name: entry.libretroName,
+    images: entry.images ?? {},
+  };
+}
+
+/**
+ * @returns {Promise<{ platforms?: Record<string, { libretroName: string, images: GameImages }[]> }>}
+ */
+async function loadManifestPayload() {
+  if (shouldUseRemoteManifestFirst()) {
     try {
-      return await fetchJsonPayload(S3_GAME_CATALOG_URL, "game catalog", {
-        timeoutMs: S3_CATALOG_TIMEOUT_MS,
+      return await fetchJsonPayload(S3_MANIFEST_URL, "image manifest", {
+        timeoutMs: S3_MANIFEST_TIMEOUT_MS,
       });
     } catch (error) {
-      console.warn("Could not load game catalog from S3, using bundled catalog instead.", error);
+      console.warn("Could not load image manifest from S3, using bundled manifest instead.", error);
     }
   }
 
-  return fetchJsonPayload(LOCAL_GAME_CATALOG_URL, "game catalog");
+  return fetchJsonPayload(LOCAL_MANIFEST_URL, "image manifest");
 }
 
 /**
@@ -95,7 +109,7 @@ async function fetchJsonPayload(url, payloadLabel, options = {}) {
   }
 }
 
-function shouldUseS3CatalogFirst() {
+function shouldUseRemoteManifestFirst() {
   const host = globalThis.location?.hostname?.toLowerCase() ?? "";
   return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
 }
@@ -105,8 +119,7 @@ function shouldUseS3CatalogFirst() {
  * @returns {Game[]}
  */
 export function gamesForPlatform(platformId) {
-  const entries = byPlatform?.[platformId] ?? [];
-  return entries.map((entry) => withImages(platformId, entry)).filter((game) => gameHasImage(game));
+  return byPlatform?.[platformId] ?? [];
 }
 
 /**
@@ -122,57 +135,44 @@ export function gameCountForPlatform(platformId) {
  * @returns {number}
  */
 export function catalogCountForPlatform(platformId) {
-  return byPlatform?.[platformId]?.length ?? 0;
+  return gameCountForPlatform(platformId);
 }
 
-/** Platforms that have at least one retail game in the catalog JSON. */
 export function platformsWithCatalogGames() {
   return platforms.filter((platform) => catalogCountForPlatform(platform.id) > 0);
 }
 
-/** Platforms that have at least one game with artwork indexed in games.js. */
 export function platformsWithArtwork() {
-  return platforms.filter((platform) => gameCountForPlatform(platform.id) > 0);
+  return platformsWithCatalogGames();
 }
 
-/** @returns {string} */
 export function firstPlatformWithArtwork() {
   return platformsWithArtwork()[0]?.id ?? "";
 }
 
-/** @returns {string} */
 export function firstPlatformWithCatalogGames() {
   return platformsWithCatalogGames()[0]?.id ?? platforms[0]?.id ?? "nes";
 }
 
-/**
- * @param {string} platformId
- * @returns {boolean}
- */
 export function platformHasCatalogGames(platformId) {
   return catalogCountForPlatform(platformId) > 0;
 }
 
-/**
- * @param {string} platformId
- * @returns {boolean}
- */
 export function platformHasArtwork(platformId) {
-  return gameCountForPlatform(platformId) > 0;
+  return platformHasCatalogGames(platformId);
 }
 
 /**
  * @param {string} platformId
- * @param {number} raGameId
+ * @param {string} libretroName
  */
-export function gameByPlatformAndRaId(platformId, raGameId) {
-  const entry = byPlatform?.[platformId]?.find((g) => g.raGameId === raGameId);
-  return entry ? withImages(platformId, entry) : undefined;
+export function gameByPlatformAndLibretroName(platformId, libretroName) {
+  return gamesForPlatform(platformId).find((game) => game.libretroName === libretroName);
 }
 
-/** @param {{ platformId: string, raGameId: number }} card */
+/** @param {{ platformId: string, libretroName: string }} card */
 export function gameForCard(card) {
-  return gameByPlatformAndRaId(card.platformId, card.raGameId);
+  return gameByPlatformAndLibretroName(card.platformId, card.libretroName);
 }
 
 /**
@@ -252,21 +252,6 @@ function compareSearchResults(a, b, query) {
   const bStarts = bName.startsWith(query) ? 0 : 1;
   if (aStarts !== bStarts) return aStarts - bStarts;
   return aName.localeCompare(bName, undefined, { sensitivity: "base" });
-}
-
-/**
- * @param {string} platformId
- * @param {{ name: string, raGameId: number }} entry
- * @returns {Game}
- */
-function withImages(platformId, entry) {
-  const imageEntry = imageEntryForGame(platformId, entry.raGameId);
-  return {
-    platformId,
-    name: entry.name,
-    raGameId: entry.raGameId,
-    images: imageEntry?.images ?? {},
-  };
 }
 
 /**

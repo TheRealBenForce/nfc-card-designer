@@ -93,6 +93,9 @@
       </p>
     </main>
 
-    <script type="module" src="assets/js/developer.js"></script>
+    <script type="module">
+      import { initDeveloperPage } from "./assets/js/developer.js";
+      initDeveloperPage().catch((err) => console.error(err));
+    </script>
   </body>
 </html>

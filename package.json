@@ -4,11 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "npx --yes serve src -l 8000",
-    "test-ra-auth": "node scripts/test-ra-auth.mjs",
-    "fetch-game-list": "node scripts/fetch-game-list.mjs",
-    "export-games-json": "node scripts/export-games-json.mjs",
     "fetch-images": "node scripts/fetch-images.mjs",
-    "sync-image-paths": "node scripts/sync-image-paths.mjs",
+    "sync-image-manifest": "node scripts/sync-image-manifest.mjs",
     "sync-s3-sample-images": "node scripts/sync-s3-sample-images.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
     "deploy": "node scripts/deploy.mjs",
@@ -25,7 +22,7 @@
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
-    "test:sync-image-paths": "node scripts/test-sync-image-paths.mjs",
+    "test:sync-image-manifest": "node scripts/test-sync-image-paths.mjs",
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {

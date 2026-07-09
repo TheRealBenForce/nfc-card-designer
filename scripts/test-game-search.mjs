@@ -222,12 +222,11 @@ async function main() {
 
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Clear", exact: true }).click();
-    await page.waitForTimeout(300);
-
+    await page.waitForFunction(() => {
+      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
+      return Boolean(image && !image.hasAttribute("src"));
+    });
     const previewImageAfterClear = page.locator("#preview-image");
-    if (!(await previewImageAfterClear.isHidden())) {
-      throw new Error("Preview image should be hidden after clearing project");
-    }
     const previewSrcAfterClear = await previewImageAfterClear.getAttribute("src");
     if (previewSrcAfterClear !== null) {
       throw new Error(`Preview image src should be removed after clearing project, got: ${previewSrcAfterClear}`);

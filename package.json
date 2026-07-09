@@ -16,6 +16,7 @@
     "test:platform-search": "node scripts/test-platform-search.mjs",
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
+    "generate:test-pdf": "node scripts/generate-test-pdf.mjs",
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
@@ -25,7 +26,8 @@
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.856.0"

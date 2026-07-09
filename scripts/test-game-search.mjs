@@ -129,7 +129,7 @@ async function main() {
 
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
-    await page.getByRole("button", { name: "SNES", exact: true }).click();
+    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
     await page.waitForTimeout(200);
 
     const searchAfterPlatformChange = await page.locator("#game-search").inputValue();

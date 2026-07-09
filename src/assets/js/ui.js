@@ -6,8 +6,8 @@ import {
   pickGameFromCatalog,
   gameCountForPlatform,
   catalogCountForPlatform,
-  platformsWithCatalogGames,
-  platformHasCatalogGames,
+  platformsWithArtwork,
+  platformHasArtwork,
   MIN_GAME_SEARCH_CHARS,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
@@ -234,7 +234,7 @@ let gameSearchFocused = false;
 function getActivePlatformId() {
   const selectedPlatformId = getSettings().selectedPlatformId;
   if (!selectedPlatformId) return null;
-  if (!platformHasCatalogGames(selectedPlatformId)) return null;
+  if (!platformHasArtwork(selectedPlatformId)) return null;
   return selectedPlatformId;
 }
 
@@ -812,7 +812,7 @@ function renderPlatformResults() {
   const settings = getSettings();
   platformResultsEl.innerHTML = "";
 
-  const visiblePlatforms = [...platformsWithCatalogGames()].sort((a, b) =>
+  const visiblePlatforms = [...platformsWithArtwork()].sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
   );
   visiblePlatforms.forEach((platform) => {
@@ -995,7 +995,7 @@ function currentHeaderSettingsSnapshot() {
 function syncPlatformControls() {
   syncGlobalSettingsControls();
   const selectedPlatformId = getSettings().selectedPlatformId;
-  if (selectedPlatformId && !platformHasCatalogGames(selectedPlatformId)) {
+  if (selectedPlatformId && !platformHasArtwork(selectedPlatformId)) {
     updateSettings({ selectedPlatformId: "" });
     saveSettings(getSettings());
   }

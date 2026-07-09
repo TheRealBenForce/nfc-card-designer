@@ -130,6 +130,16 @@ export function platformsWithCatalogGames() {
   return platforms.filter((platform) => catalogCountForPlatform(platform.id) > 0);
 }
 
+/** Platforms that have at least one game with artwork indexed in games.js. */
+export function platformsWithArtwork() {
+  return platforms.filter((platform) => gameCountForPlatform(platform.id) > 0);
+}
+
+/** @returns {string} */
+export function firstPlatformWithArtwork() {
+  return platformsWithArtwork()[0]?.id ?? "";
+}
+
 /** @returns {string} */
 export function firstPlatformWithCatalogGames() {
   return platformsWithCatalogGames()[0]?.id ?? platforms[0]?.id ?? "nes";
@@ -141,6 +151,14 @@ export function firstPlatformWithCatalogGames() {
  */
 export function platformHasCatalogGames(platformId) {
   return catalogCountForPlatform(platformId) > 0;
+}
+
+/**
+ * @param {string} platformId
+ * @returns {boolean}
+ */
+export function platformHasArtwork(platformId) {
+  return gameCountForPlatform(platformId) > 0;
 }
 
 /**

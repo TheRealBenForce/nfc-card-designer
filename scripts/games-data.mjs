@@ -95,13 +95,18 @@ export async function writeGamesByPlatformJson(games, meta = {}) {
 }
 
 /** @param {import("../src/assets/js/data/games.js").Game[]} games */
-export async function writeGamesJs(games) {
+export async function writeGamesJs(games, options = {}) {
+  const syncByPlatformJson = options.syncByPlatformJson !== false;
+
   await writeFile(
     gamesPath,
     `${GAMES_HEADER}export const games = ${JSON.stringify(games, null, 2)};
 ${GAMES_FOOTER}`,
   );
-  await writeGamesByPlatformJson(games, { retailOnly: true });
+
+  if (syncByPlatformJson) {
+    await writeGamesByPlatformJson(games, { retailOnly: true });
+  }
 }
 
 /** @param {string} platformId @param {number} raGameId @param {string} type */

@@ -131,7 +131,12 @@ async function main() {
     };
   });
 
-  await writeGamesJs(finalGames);
+  if (updatedGames === 0 && clearedGames === 0) {
+    console.log("\nNo image path changes — games.js was not modified.");
+    return;
+  }
+
+  await writeGamesJs(finalGames, { syncByPlatformJson: false });
 
   console.log(
     `\nUpdated ${gamesPath}\n` +

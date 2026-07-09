@@ -71,7 +71,7 @@ Options:
 
 The script loads `.env` automatically (like other maintainer scripts). It will **not** clear existing `games.js` image paths unless `--prune` is passed.
 
-By default the script merges local disk **and** S3 listings, then writes updated paths into `games.js` and rebuilds `games-by-platform.json`.
+By default the script merges local disk **and** S3 listings, then writes updated image paths into `games.js` only. It does **not** rewrite `games-by-platform.json` (that file is unchanged by image-path sync). If nothing changed, `games.js` is not written at all.
 
 ### Pull a local random sample cache from S3 (for CORS-safe previewing)
 
@@ -97,7 +97,7 @@ Runs syntax checks, layout/unit tests, and Playwright smoke tests (starts a temp
 5. `npm run fetch-images -- --platform=<id>` **or** upload PNGs to S3 and `npm run sync-image-paths -- --platform=<id>`
 6. Commit `games.js`, `games-by-platform.json`, and platform icons (not game PNGs — those live in S3).
 
-Platforms with **zero catalog games** are hidden from the platform selector automatically.
+Platforms with **zero indexed artwork** are hidden from the platform selector automatically.
 
 ## Settings & export format
 

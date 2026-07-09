@@ -20,6 +20,7 @@
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
     "test:fetch-images-skip": "node scripts/test-fetch-images-skip.mjs",
+    "test:fetch-images-local-libretro": "node scripts/test-fetch-images-local-libretro.mjs",
     "test:platform-visibility": "node scripts/test-platform-visibility.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
     "test:game-filters": "node scripts/test-game-filters.mjs",

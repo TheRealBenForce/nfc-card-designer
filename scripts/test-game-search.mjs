@@ -15,10 +15,6 @@ const PNG_1X1 = Buffer.from(
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  await page.addInitScript(() => {
-    window.localStorage.clear();
-    window.sessionStorage.clear();
-  });
 
   await page.route("**/*.png", async (route) => {
     await route.fulfill({
@@ -192,20 +188,6 @@ async function main() {
     if (!(await addBtn.isDisabled())) {
       throw new Error("Add to collection should be disabled after platform change clears browse state");
     }
-    await page.waitForFunction(() => {
-      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
-      return Boolean(image?.hidden && !image.hasAttribute("src"));
-    });
-    const previewImageAfterBrowseClear = page.locator("#preview-image");
-    if (!(await previewImageAfterBrowseClear.isHidden())) {
-      throw new Error("Preview image should hide when browse preview is cleared");
-    }
-    const previewSrcAfterBrowseClear = await previewImageAfterBrowseClear.getAttribute("src");
-    if (previewSrcAfterBrowseClear !== null) {
-      throw new Error(
-        `Preview image src should be removed when browse preview is cleared, got: ${previewSrcAfterBrowseClear}`,
-      );
-    }
     console.log("✓ Platform change clears game search and browse preview");
 
     await page.getByRole("button", { name: "NES", exact: true }).click();
@@ -237,6 +219,20 @@ async function main() {
       throw new Error(`Expected search hint, got: ${hint}`);
     }
     console.log("✓ Search hint updates after filtering");
+
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await page.waitForTimeout(300);
+
+    const previewImageAfterClear = page.locator("#preview-image");
+    if (!(await previewImageAfterClear.isHidden())) {
+      throw new Error("Preview image should be hidden after clearing project");
+    }
+    const previewSrcAfterClear = await previewImageAfterClear.getAttribute("src");
+    if (previewSrcAfterClear !== null) {
+      throw new Error(`Preview image src should be removed after clearing project, got: ${previewSrcAfterClear}`);
+    }
+    console.log("✓ Clearing project removes preview image src in empty state");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

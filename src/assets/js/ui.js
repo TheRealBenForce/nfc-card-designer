@@ -245,7 +245,7 @@ function logStatus(message, isError = false) {
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(1.3, Math.max(0.7, value));
+  return Math.min(3, Math.max(0.5, value));
 }
 
 function loadPreviewCalibrationScale() {
@@ -335,7 +335,7 @@ function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDis
  */
 function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
   if (zoomEl) zoomEl.value = String(artworkDisplay.zoom);
-  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom + 100}%`;
+  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom}%`;
 }
 
 /**

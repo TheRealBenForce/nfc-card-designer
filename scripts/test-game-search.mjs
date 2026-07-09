@@ -152,18 +152,26 @@ async function main() {
     }
     console.log("✓ Artwork display controls are visible while browsing");
 
-    const previewZoom = page.locator("#preview-artwork-zoom");
-    if ((await previewZoom.getAttribute("min")) !== "-50") {
-      throw new Error("Preview artwork zoom min should be -50 (50% scale)");
+    const calibrationInput = page.locator("#preview-calibration-input");
+    if ((await calibrationInput.getAttribute("min")) !== "50") {
+      throw new Error("Screen calibration min should be 50");
     }
-    if ((await previewZoom.getAttribute("max")) !== "200") {
-      throw new Error("Preview artwork zoom max should be 200 (300% scale)");
+    if ((await calibrationInput.getAttribute("max")) !== "300") {
+      throw new Error("Screen calibration max should be 300");
     }
-    const previewZoomValue = await page.locator("#preview-artwork-zoom-value").textContent();
-    if (previewZoomValue?.trim() !== "100%") {
-      throw new Error(`Preview artwork zoom should default to 100%, got: ${previewZoomValue}`);
+    await calibrationInput.fill("50");
+    await page.waitForTimeout(100);
+    const calibrationValueMin = await page.locator("#preview-calibration-value").textContent();
+    if (calibrationValueMin?.trim() !== "50%") {
+      throw new Error(`Screen calibration should show 50%, got: ${calibrationValueMin}`);
     }
-    console.log("✓ Artwork zoom range supports 50% to 300%");
+    await calibrationInput.fill("300");
+    await page.waitForTimeout(100);
+    const calibrationValueMax = await page.locator("#preview-calibration-value").textContent();
+    if (calibrationValueMax?.trim() !== "300%") {
+      throw new Error(`Screen calibration should show 300%, got: ${calibrationValueMax}`);
+    }
+    console.log("✓ Screen calibration supports 50% to 300%");
 
     await page.route("**/*.png", async (route) => route.abort());
     await page.fill("#game-search", "met");

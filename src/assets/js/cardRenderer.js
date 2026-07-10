@@ -19,10 +19,10 @@ import {
 import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
-const BLUR_RADIUS_PX = 18;
-const BLUR_FALLBACK_SCALE_STEP = 0.68;
-const BLUR_FALLBACK_PASS_COUNT = Math.max(2, Math.min(5, Math.round(BLUR_RADIUS_PX / 5)));
-const BLUR_FALLBACK_MIN_SIDE_PX = 96;
+const BLUR_RADIUS_PX = 28;
+const BLUR_FALLBACK_SCALE_STEP = 0.6;
+const BLUR_FALLBACK_PASS_COUNT = Math.max(3, Math.min(7, Math.round(BLUR_RADIUS_PX / 4)));
+const BLUR_FALLBACK_MIN_SIDE_PX = 72;
 
 /** @type {boolean | undefined} */
 let cachedCanvasBlurFilterSupport;

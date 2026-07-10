@@ -20,7 +20,9 @@ import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
 const BLUR_RADIUS_PX = 18;
-const BLUR_FALLBACK_DOWNSCALE = Math.max(4, Math.round(BLUR_RADIUS_PX / 2));
+const BLUR_FALLBACK_SCALE_STEP = 0.68;
+const BLUR_FALLBACK_PASS_COUNT = Math.max(2, Math.min(5, Math.round(BLUR_RADIUS_PX / 5)));
+const BLUR_FALLBACK_MIN_SIDE_PX = 96;
 
 /** @type {boolean | undefined} */
 let cachedCanvasBlurFilterSupport;
@@ -69,24 +71,50 @@ function supportsCanvasBlurFilter() {
  * @param {HTMLCanvasElement} source
  */
 function drawBlurredImageBackgroundFallback(ctx, rect, source) {
-  const lowRes = document.createElement("canvas");
-  lowRes.width = Math.max(1, Math.round(rect.w / BLUR_FALLBACK_DOWNSCALE));
-  lowRes.height = Math.max(1, Math.round(rect.h / BLUR_FALLBACK_DOWNSCALE));
-  const lowResCtx = lowRes.getContext("2d");
-  if (!lowResCtx) {
-    ctx.drawImage(source, rect.x, rect.y, rect.w, rect.h);
-    return;
+  /**
+   * @param {HTMLCanvasElement} layer
+   * @param {number} width
+   * @param {number} height
+   * @returns {HTMLCanvasElement | null}
+   */
+  const resample = (layer, width, height) => {
+    const output = document.createElement("canvas");
+    output.width = Math.max(1, width);
+    output.height = Math.max(1, height);
+    const outputCtx = output.getContext("2d");
+    if (!outputCtx) return null;
+    outputCtx.imageSmoothingEnabled = true;
+    outputCtx.imageSmoothingQuality = "high";
+    outputCtx.drawImage(layer, 0, 0, output.width, output.height);
+    return output;
+  };
+
+  /** @type {{ width: number, height: number }[]} */
+  const levels = [{ width: source.width, height: source.height }];
+  let blurredLayer = source;
+  for (let pass = 0; pass < BLUR_FALLBACK_PASS_COUNT; pass += 1) {
+    const nextWidth = Math.max(1, Math.round(blurredLayer.width * BLUR_FALLBACK_SCALE_STEP));
+    const nextHeight = Math.max(1, Math.round(blurredLayer.height * BLUR_FALLBACK_SCALE_STEP));
+    if (Math.min(nextWidth, nextHeight) < BLUR_FALLBACK_MIN_SIDE_PX) {
+      break;
+    }
+    const next = resample(blurredLayer, nextWidth, nextHeight);
+    if (!next) break;
+    blurredLayer = next;
+    levels.push({ width: nextWidth, height: nextHeight });
   }
 
-  lowResCtx.imageSmoothingEnabled = true;
-  lowResCtx.imageSmoothingQuality = "high";
-  lowResCtx.drawImage(source, 0, 0, lowRes.width, lowRes.height);
+  for (let i = levels.length - 2; i >= 0; i -= 1) {
+    const restored = resample(blurredLayer, levels[i].width, levels[i].height);
+    if (!restored) break;
+    blurredLayer = restored;
+  }
 
   const prevSmoothingEnabled = ctx.imageSmoothingEnabled;
   const prevSmoothingQuality = ctx.imageSmoothingQuality;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(lowRes, rect.x, rect.y, rect.w, rect.h);
+  ctx.drawImage(blurredLayer, rect.x, rect.y, rect.w, rect.h);
   ctx.imageSmoothingEnabled = prevSmoothingEnabled;
   ctx.imageSmoothingQuality = prevSmoothingQuality;
 }

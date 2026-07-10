@@ -20,6 +20,76 @@ import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
 const BLUR_RADIUS_PX = 18;
+const BLUR_FALLBACK_DOWNSCALE = Math.max(4, Math.round(BLUR_RADIUS_PX / 2));
+
+/** @type {boolean | undefined} */
+let cachedCanvasBlurFilterSupport;
+
+/**
+ * iPad Safari can expose `ctx.filter` but still skip blur on `drawImage`.
+ * Detect real blur output once, then cache the result.
+ *
+ * @returns {boolean}
+ */
+function supportsCanvasBlurFilter() {
+  if (typeof cachedCanvasBlurFilterSupport === "boolean") {
+    return cachedCanvasBlurFilterSupport;
+  }
+
+  const source = document.createElement("canvas");
+  source.width = 24;
+  source.height = 24;
+  const sourceCtx = source.getContext("2d");
+  const target = document.createElement("canvas");
+  target.width = 24;
+  target.height = 24;
+  const targetCtx = target.getContext("2d");
+  if (!sourceCtx || !targetCtx) {
+    cachedCanvasBlurFilterSupport = false;
+    return cachedCanvasBlurFilterSupport;
+  }
+
+  sourceCtx.fillStyle = "#fff";
+  sourceCtx.fillRect(0, 0, 12, 24);
+  sourceCtx.fillStyle = "#000";
+  sourceCtx.fillRect(12, 0, 12, 24);
+
+  targetCtx.filter = "blur(4px)";
+  targetCtx.drawImage(source, 0, 0);
+
+  const leftSample = targetCtx.getImageData(10, 12, 1, 1).data[0];
+  const rightSample = targetCtx.getImageData(13, 12, 1, 1).data[0];
+  cachedCanvasBlurFilterSupport = Math.abs(leftSample - rightSample) < 200;
+  return cachedCanvasBlurFilterSupport;
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {HTMLCanvasElement} source
+ */
+function drawBlurredImageBackgroundFallback(ctx, rect, source) {
+  const lowRes = document.createElement("canvas");
+  lowRes.width = Math.max(1, Math.round(rect.w / BLUR_FALLBACK_DOWNSCALE));
+  lowRes.height = Math.max(1, Math.round(rect.h / BLUR_FALLBACK_DOWNSCALE));
+  const lowResCtx = lowRes.getContext("2d");
+  if (!lowResCtx) {
+    ctx.drawImage(source, rect.x, rect.y, rect.w, rect.h);
+    return;
+  }
+
+  lowResCtx.imageSmoothingEnabled = true;
+  lowResCtx.imageSmoothingQuality = "high";
+  lowResCtx.drawImage(source, 0, 0, lowRes.width, lowRes.height);
+
+  const prevSmoothingEnabled = ctx.imageSmoothingEnabled;
+  const prevSmoothingQuality = ctx.imageSmoothingQuality;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(lowRes, rect.x, rect.y, rect.w, rect.h);
+  ctx.imageSmoothingEnabled = prevSmoothingEnabled;
+  ctx.imageSmoothingQuality = prevSmoothingQuality;
+}
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -267,9 +337,13 @@ function drawBlurredImageBackground(ctx, rect, img) {
   ctx.beginPath();
   ctx.rect(rect.x, rect.y, rect.w, rect.h);
   ctx.clip();
-  ctx.filter = `blur(${BLUR_RADIUS_PX}px)`;
-  ctx.drawImage(scratch, rect.x, rect.y, rect.w, rect.h);
-  ctx.filter = "none";
+  if (supportsCanvasBlurFilter()) {
+    ctx.filter = `blur(${BLUR_RADIUS_PX}px)`;
+    ctx.drawImage(scratch, rect.x, rect.y, rect.w, rect.h);
+    ctx.filter = "none";
+  } else {
+    drawBlurredImageBackgroundFallback(ctx, rect, scratch);
+  }
   ctx.restore();
 }
 

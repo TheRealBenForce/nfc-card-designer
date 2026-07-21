@@ -82,13 +82,12 @@ Help people design and print **52 × 84 mm NFC card labels** — quickly, consis
 | **Designer** (home) | `index.html` | Brand link | Main card designer — search, preview, collection, PDF |
 | **Supplies** | `supplies.html` | Yes | Shopping / materials guide for printing and NFC blanks |
 | **Recognition** | `recognition.html` | Yes | Credits for artwork, logos, and data sources |
-| **Thanks** | `thanks.html` | No | Post-support thank-you landing (linked externally) |
 | **Colors** | `colors.html` | No | Internal palette reference (accent + platform default colors) |
 | **Developer** | `developer.html` | No | Local dev tools (image delay, local artwork index, collection JSON) |
 
 ### Global header (site chrome)
 
-Present on: **Designer**, **Supplies**, **Recognition**, **Thanks**, **Developer**.  
+Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.  
 **Not present on:** `colors.html`.
 
 | Element | Position | Behavior |
@@ -99,7 +98,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Thanks**, **Developer
 
 **Alignment:** Nav is a horizontal flex row, `align-items: baseline`, `gap: 1rem`, with `padding-left: 0.5rem`. Header has bottom border and surface background. Static content pages wrap body copy in `.site-container` (max-width, centered); the designer page header spans full width above the 3-column grid.
 
-**Not in nav (by design today):** Developer, Colors, Thanks. Add nav links here only after updating this section and acceptance criteria.
+**Not in nav (by design today):** Developer, Colors. Add nav links here only after updating this section and acceptance criteria.
 
 ---
 
@@ -224,17 +223,6 @@ Vertically top-aligned, content centered horizontally.
 4. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
 
 **Footer:** Back link to designer.
-
----
-
-### Thanks — `thanks.html`
-
-**Status:** Shipped  
-**Nav:** Standard header (no page marked current).
-
-**Content:** Thank-you message for project support; primary CTA “Back to designer”, secondary “View supplies”.
-
-**Use:** Landing page after external support/donation flow (not linked from main nav).
 
 ---
 

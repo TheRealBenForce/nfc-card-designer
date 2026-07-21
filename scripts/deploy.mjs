@@ -25,11 +25,11 @@ function run(cmd, args) {
 /**
  * Return static route names backed by src HTML files.
  * Uploading each file as a route index document allows CloudFront+S3 origins
- * to resolve URLs like /supplies and /thanks.
+ * to resolve URLs like /supplies and /recognition.
  * @returns {string[]}
  */
 function getExtensionlessRouteAliases() {
-  return ["recognition", "supplies", "thanks"];
+  return ["recognition", "supplies"];
 }
 
 async function main() {

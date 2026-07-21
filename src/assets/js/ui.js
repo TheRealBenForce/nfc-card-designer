@@ -81,6 +81,35 @@ import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
 
+const ARTWORK_ZOOM_BASE_PERCENT = 100;
+const MIN_ARTWORK_ZOOM_PERCENT = ARTWORK_ZOOM_BASE_PERCENT + MIN_ARTWORK_ZOOM;
+const MAX_ARTWORK_ZOOM_PERCENT = ARTWORK_ZOOM_BASE_PERCENT + MAX_ARTWORK_ZOOM;
+
+/**
+ * @param {number} zoom
+ * @returns {number}
+ */
+function artworkZoomToPercent(zoom) {
+  return Math.min(
+    MAX_ARTWORK_ZOOM_PERCENT,
+    Math.max(MIN_ARTWORK_ZOOM_PERCENT, Math.round(ARTWORK_ZOOM_BASE_PERCENT + zoom)),
+  );
+}
+
+/**
+ * @param {string} rawPercent
+ * @returns {number}
+ */
+function artworkPercentToZoom(rawPercent) {
+  const parsed = Number(rawPercent);
+  const safePercent = Number.isFinite(parsed) ? parsed : ARTWORK_ZOOM_BASE_PERCENT;
+  const clampedPercent = Math.min(
+    MAX_ARTWORK_ZOOM_PERCENT,
+    Math.max(MIN_ARTWORK_ZOOM_PERCENT, Math.round(safePercent)),
+  );
+  return clampedPercent - ARTWORK_ZOOM_BASE_PERCENT;
+}
+
 /** @type {HTMLElement|null} */
 let platformResultsEl = null;
 /** @type {HTMLElement|null} */
@@ -336,8 +365,9 @@ function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDis
  * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
 function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
-  if (zoomEl) zoomEl.value = String(artworkDisplay.zoom);
-  if (valueEl) valueEl.textContent = `${artworkDisplay.zoom}%`;
+  const zoomPercent = artworkZoomToPercent(artworkDisplay.zoom);
+  if (zoomEl) zoomEl.value = String(zoomPercent);
+  if (valueEl) valueEl.textContent = `${zoomPercent}%`;
 }
 
 /**
@@ -1635,10 +1665,7 @@ function bindEvents() {
   platformArtworkZoomEl?.addEventListener("input", (e) => {
     const activePlatformId = getActivePlatformId();
     if (!activePlatformId) return;
-    const zoom = Math.min(
-      MAX_ARTWORK_ZOOM,
-      Math.max(MIN_ARTWORK_ZOOM, Number(/** @type {HTMLInputElement} */ (e.target).value)),
-    );
+    const zoom = artworkPercentToZoom(/** @type {HTMLInputElement} */ (e.target).value);
     setPlatformArtworkDisplay(activePlatformId, { zoom });
     saveSettings(getSettings());
     syncPlatformArtworkDisplayControls();
@@ -1652,10 +1679,7 @@ function bindEvents() {
   });
 
   previewArtworkZoomEl?.addEventListener("input", (e) => {
-    const zoom = Math.min(
-      MAX_ARTWORK_ZOOM,
-      Math.max(MIN_ARTWORK_ZOOM, Number(/** @type {HTMLInputElement} */ (e.target).value)),
-    );
+    const zoom = artworkPercentToZoom(/** @type {HTMLInputElement} */ (e.target).value);
     applyPreviewArtworkPatch({ zoom });
   });
 

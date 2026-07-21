@@ -58,7 +58,6 @@ npm run verify
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `deploy.yml` | `push` to `main`, `workflow_dispatch` | Build catalog → deploy static site to S3 + CloudFront |
 | `pages.yml` | `push` to `main`, `workflow_dispatch` | Build catalog → deploy `src/` to GitHub Pages |
 
 ## Adding a platform
@@ -94,4 +93,3 @@ Platforms with **zero catalog entries** are hidden from the platform selector au
 | `npm run build-game-catalog` | GitHub API → `game-catalog.json` |
 | `npm run verify` | Full pre-merge check |
 | `npm run fetch-platform-icons` | Carbon theme SVGs → `src/assets/images/platforms/` |
-| `npm run deploy` | Static site to S3 + CloudFront invalidation |

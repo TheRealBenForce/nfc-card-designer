@@ -5,6 +5,7 @@ Permanent records of **why** we chose an approach. These are not implementation 
 | File | Topic | Status |
 |------|-------|--------|
 | [0001-github-raw-artwork.md](./0001-github-raw-artwork.md) | Game artwork URLs + generated game catalog | Accepted |
+| [0002-github-pages-static-hosting.md](./0002-github-pages-static-hosting.md) | GitHub Pages as sole static-site host | Accepted |
 
 ## When to add a decision doc
 

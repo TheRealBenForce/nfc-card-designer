@@ -6,7 +6,6 @@
     "start": "npx --yes serve src -l 8000",
     "build-game-catalog": "node scripts/build-game-catalog.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
-    "deploy": "node scripts/deploy.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",

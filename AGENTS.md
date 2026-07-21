@@ -69,4 +69,3 @@ Game artwork loads from **libretro-thumbnails on GitHub** (`raw.githubuserconten
 ### Gotchas
 - **`game-catalog.json` is gitignored.** Fresh clones need `npm run build-game-catalog` before `npm start`, or run `npm run verify` (which copies a small fixture for tests).
 - Card previews need **GitHub raw URLs** with CORS (`crossOrigin = "anonymous"`). Do not point artwork at `thumbnails.libretro.com` (no CORS for canvas/PDF).
-- AWS deploy (`npm run deploy`) syncs the **static site only** — it does not host game PNGs. Set credentials in `.env` (see `.env.example`).

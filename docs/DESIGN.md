@@ -385,7 +385,7 @@ Features below are **not yet built** unless marked otherwise. Add new items at t
   - **Game catalog:** **`build-game-catalog.mjs`** generates `game-catalog.json` (names only). **Not committed** — run locally for dev (`npm run build-game-catalog`) and automatically in deploy CI. No runtime fetch in the browser.
   - **AWS:** S3+CloudFront remains a **static site** deploy target (HTML/JS/CSS + generated catalog). It does **not** host images. Same app binary as GitHub Pages.
 - **Open questions:** None — ready for implementation go-ahead.
-- **Notes:** Full implementation plan in [Proposed implementation plan](#proposed-implementation-plan) below.
+- **Notes:** Full step-by-step coding instructions: [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md). High-level plan below.
 
 #### Architecture decision: artwork from GitHub raw URLs only
 
@@ -601,7 +601,7 @@ src/index.html
 
 ## Open questions (global)
 
-- None. Feature [GitHub Pages + libretro GitHub raw URLs](#github-pages--libretro-github-raw-urls-zero-image-hosting) is **Ready to build** pending explicit go-ahead.
+- None. Feature is **Ready to build**. Coding agents should follow [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md).
 
 ---
 
@@ -612,6 +612,7 @@ src/index.html
 | [`AGENTS.md`](../AGENTS.md) | How AI assistants should run, test, and navigate this repo |
 | [`README.md`](../README.md) | Quick start, card layout diagrams, deploy overview |
 | [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts, platform onboarding |
+| [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md) | Step-by-step coding handoff for GitHub-raw artwork migration |
 | `docs/adr/` *(optional, future)* | Architecture Decision Records — one file per significant technical choice |
 
 ### Document types (reference)
@@ -642,3 +643,4 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 | 2026-07-21 | Reverted runtime fetch: `build-game-catalog.mjs` + bundled `game-catalog.json`, generated at deploy |
 | 2026-07-21 | `game-catalog.json` is a generated deploy artifact only — not committed to git |
 | 2026-07-21 | Artwork always from GitHub raw; S3/CloudFront is static site hosting only — no image mirroring |
+| 2026-07-21 | Added `docs/IMPLEMENTATION-GITHUB-RAW.md` coding-agent handoff (file-level instructions) |

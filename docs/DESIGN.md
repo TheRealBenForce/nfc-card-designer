@@ -93,48 +93,252 @@ Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** fo
 
 ---
 
-## Shipped features
+## Site map & navigation
 
-### Card designer (main app)
+### Pages
 
-- **Status:** Shipped
-- **Summary:** Single-page designer at `index.html` for building a card collection.
-- **User flow:**
-  1. Select platform (or search across platforms).
-  2. Type 3+ letters to search games from the manifest.
-  3. Browse box art / title screen / in-game snapshots in preview.
-  4. Adjust global settings (header height, card dimensions, sticker inset).
-  5. Add cards to collection; multi-select, delete, per-card overrides.
-  6. Export print-ready letter PDF (3×3 cards per page with cut marks).
-- **Acceptance criteria (baseline):**
-  - [x] Search requires minimum 3 characters.
-  - [x] Preview updates for artwork type and alignment controls.
-  - [x] Collection persists across reload via `localStorage`.
-  - [x] JSON export/import round-trips settings and cards.
-  - [x] PDF export produces US letter layout with cut marks.
+| Page | File | In nav? | Purpose |
+|------|------|---------|---------|
+| **Designer** (home) | `index.html` | Brand link | Main card designer — search, preview, collection, PDF |
+| **Supplies** | `supplies.html` | Yes | Shopping / materials guide for printing and NFC blanks |
+| **Recognition** | `recognition.html` | Yes | Credits for artwork, logos, and data sources |
+| **Thanks** | `thanks.html` | No | Post-support thank-you landing (linked externally) |
+| **Colors** | `colors.html` | No | Internal palette reference (accent + platform default colors) |
+| **Developer** | `developer.html` | No | Local dev tools (image delay, local artwork index, collection JSON) |
+
+### Global header (site chrome)
+
+Present on: **Designer**, **Supplies**, **Recognition**, **Thanks**, **Developer**.  
+**Not present on:** `colors.html`.
+
+| Element | Position | Behavior |
+|---------|----------|----------|
+| **Brand** | Left | `Zaparoo NFC Designer` → links to `./` (designer home) |
+| **Supplies** | After brand | Link to `supplies.html`; shown as muted text (current page) on Supplies |
+| **Recognition** | After Supplies | Link to `recognition.html`; shown as muted text on Recognition |
+
+**Alignment:** Nav is a horizontal flex row, `align-items: baseline`, `gap: 1rem`, with `padding-left: 0.5rem`. Header has bottom border and surface background. Static content pages wrap body copy in `.site-container` (max-width, centered); the designer page header spans full width above the 3-column grid.
+
+**Not in nav (by design today):** Developer, Colors, Thanks. Add nav links here only after updating this section and acceptance criteria.
+
+---
+
+## Page specifications (shipped)
+
+### Designer — `index.html`
+
+**Status:** Shipped  
+**Title:** Zaparoo NFC Designer
+
+#### Overall layout
+
+Three-column CSS grid (`.app`), left → center → right:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  HEADER: Brand | Supplies | Recognition                                  │
+├──────────────┬────────────────────────────────────┬───────────────────────┤
+│  CONTROLS    │  PREVIEW                           │  COLLECTION           │
+│  (left)      │  (center)                          │  (right)              │
+│  260–320px   │  flex / 1fr                        │  220–280px            │
+└──────────────┴────────────────────────────────────┴───────────────────────┘
+```
+
+- **Desktop:** `grid-template-columns: minmax(260px, 320px) 1fr minmax(220px, 280px)`; full viewport height minus header.
+- **≤ 960px:** Stacks to a single column — Controls → Preview → Collection (top to bottom).
+- Panels are separated by vertical borders; collection panel has left border only (no right border).
+
+#### Left column — Controls (`panel--controls`)
+
+Top to bottom:
+
+1. **Global Settings** (collapsible `<details>`, collapsed by default)
+   - Header Height — range 5–40%, default 15%
+   - Card Width (mm) — default 52
+   - Card Height (mm) — default 84
+   - Sticker Inset (mm) — default 2
+
+2. **Platform Settings** (collapsible `<details>`, collapsed by default)
+   - Accent color (color picker)
+   - Artwork priority — ordered list (box art / title screen / in-game); drag to reorder
+   - Artwork rotation — per-orientation defaults
+   - Artwork alignment — 3×3 grid, default top-center
+   - Artwork zoom — 50–200%, default 100%
+   - Artwork background — mode select + optional eyedropper color
+
+3. **Platform** (always visible section)
+   - Scrollable list of platforms with artwork in manifest
+   - Selecting a platform filters game search to that platform
+
+4. **Game** (always visible section)
+   - Search input (`Search games…`)
+   - Hint line (contextual): select platform, type N more chars, match count, etc.
+   - Results list (hidden until platform selected and user interacts)
+   - Search requires **3+ characters** for filtered search; shorter input can still browse A–Z list
+
+5. **Project actions** (bottom section)
+   - **Export** — download `nfc-card-designer.json`
+   - **Import** — load JSON backup
+   - **Clear** — wipe settings + collection (with confirmation)
+
+#### Center column — Preview (`panel--preview`)
+
+Vertically top-aligned, content centered horizontally.
+
+| Block | Contents |
+|-------|----------|
+| **Preview meta** | Status line (e.g. “Search for a game to preview artwork.”) |
+| **Preview layout** | Flex row: main preview + artwork controls sidebar |
+| **Preview main** | Artwork type tabs → card frame (life-size preview) → screen calibration slider → **Add to collection** (primary, disabled until a game is browsed) |
+| **Artwork controls** | Per-preview overrides: alignment, zoom, rotation, background, reset to platform defaults; **Card customization** checkboxes (Show Header, Show Platform Accents) |
+
+**Preview frame:** Renders card at physical dimensions (52 × 84 mm default) with optional calibration scale (70–130%). Shows loading skeleton while artwork fetches. Sticker inset visible as inner guide on card.
+
+**Add flow:** User selects platform → searches/browses game → previews artwork type → adjusts if needed → **Add to collection**. Editing an existing collection card reopens browse mode for that card.
+
+#### Right column — Collection (`panel--collection`)
+
+| Block | Contents |
+|-------|----------|
+| **Header** | “Collection” title + selection meta (“No cards selected”, “N cards selected”) |
+| **Selection actions** | Select All / Deselect All |
+| **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
+| **Collection list** | Grouped by platform (`<details>` per platform, open by default). Each card row: edit (✎), select toggle, label `Game Name - Artwork Type`, optional “placeholder” badge if image failed |
+
+**Empty state:** “Search for a game and press Enter to add cards.”
+
+**Print PDF:** Exports US Letter sheet, 3×3 cards per page, cut marks (see [Card layout](#card-layout-print)).
+
+---
+
+### Supplies — `supplies.html`
+
+**Status:** Shipped  
+**Nav:** Supplies shown as current page.
+
+**Layout:** `.static-page` inside `.site-container` (centered, max content width).
+
+**Sections:**
+
+1. **Lead** — PDF is 9 labels per letter sheet; links to Zaparoo app for writing tags; Amazon search links are non-affiliate.
+2. **Essentials** — NTAG215 blank cards; matte vinyl sticker paper (US Letter).
+3. **Cutting & finishing** — R3 corner rounder; cutting mat / ruler / craft knife.
+4. **3D-printed sticker applicator** — TapTo Sticker Applicator (Printables link, usage steps, CA glue).
+5. **Official Zaparoo shop** — link to shop.zaparoo.com.
+
+**Footer:** “← Back to Zaparoo NFC Designer” link to home.
+
+---
+
+### Recognition — `recognition.html`
+
+**Status:** Shipped  
+**Nav:** Recognition shown as current page.
+
+**Layout:** Same static page pattern as Supplies.
+
+**Sections:**
+
+1. **Lead** — Acknowledgment of bundled third-party assets.
+2. **Platform logos** — Carbon EmulationStation theme (RetroPie), system SVG paths.
+3. **Game artwork** — libretro thumbnail CDN, hosted on S3 for this app.
+4. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
+
+**Footer:** Back link to designer.
+
+---
+
+### Thanks — `thanks.html`
+
+**Status:** Shipped  
+**Nav:** Standard header (no page marked current).
+
+**Content:** Thank-you message for project support; primary CTA “Back to designer”, secondary “View supplies”.
+
+**Use:** Landing page after external support/donation flow (not linked from main nav).
+
+---
+
+### Colors — `colors.html`
+
+**Status:** Shipped (internal / unlisted)  
+**Nav:** None — standalone page, no site header.
+
+**Content:** Grid of color swatches — site accent (`--accent` CSS variable) plus each platform’s `defaultColor` from `platforms.js`. Read-only reference for design/debug.
+
+---
+
+### Developer — `developer.html`
+
+**Status:** Shipped (internal / unlisted)  
+**Nav:** Custom header — brand “NFC Card Designer”, **Developer** as current, plus Supplies + Recognition. Uses `.site-container` on header (slightly different from other pages).
+
+**Sections:**
+
+1. **Image load delay** — Artificial preview lag (0–10 000 ms) stored in `localStorage`; tests skeleton/loading UX.
+2. **Local games with artwork** — Refreshable list from image manifest / local index.
+3. **Collection JSON** — Live readout of `localStorage` collection key (same data as Export).
+
+**Footer:** Back to designer.
+
+---
+
+## Card layout (print)
+
+**Status:** Shipped
+
+Portrait default — **52 × 84 mm** card, **2 mm** sticker inset default.
+
+```
+┌──────────────────────────────┐
+│  LOGO (75%)   │ COLOR (25%)  │  ← platform strip, top ~15% (default)
+├──────────────────────────────┤
+│                              │
+│        ARTWORK (85%)         │
+│                              │
+└──────────────────────────────┘
+```
+
+- **Global:** Header height %, show/hide header, show/hide platform color strip.
+- **Per platform:** Accent color, artwork priority, rotation, alignment, zoom, background.
+- **Per card:** Overrides via preview artwork controls when browsing/editing.
+- **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap, cut marks outside card edges.
+
+Landscape variant uses the same long-edge split rules (documented in `README.md`).
+
+---
+
+## Cross-cutting behavior (shipped)
 
 ### Platform catalog
 
-- **Status:** Shipped
-- **Summary:** 17 retro platforms (Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine, Neo Geo, Arcade).
-- **Behavior:** Platforms with zero indexed artwork are hidden from the selector.
-
-### Universal card layout
-
-- **Status:** Shipped
-- **Summary:** Portrait default — top platform strip (~15% height): logo (75%) + color (25%); bottom artwork (~85%). Landscape variant follows the same long-edge split rules documented in `README.md`.
-- **Configurable:** Global header height, show/hide header and platform color, per-card header and artwork display overrides.
+- **17 platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine CD, Neo Geo, Arcade.
+- Platforms with **zero indexed artwork** are hidden from the platform list.
 
 ### Artwork pipeline
 
-- **Status:** Shipped
-- **Summary:** Libretro paths on S3; manifest generated by `sync-image-manifest`. Maintainer scripts upload from a local libretro mirror.
-- **Image types:** Box art, title screen, in-game (priority order configurable).
+- Libretro paths on S3; inventory in `image-manifest.json`.
+- **Image types:** Box art (`Named_Boxarts`), title screen (`Named_Titles`), in-game (`Named_Snaps`).
+- Global and per-platform priority order configurable.
 
-### Supporting pages
+### Persistence
 
-- **Status:** Shipped
-- **Pages:** `supplies.html` (materials), `recognition.html` (credits), `thanks.html`, `colors.html`, `developer.html` (dev tools).
+- `localStorage` keys: `nfc-card-designer-settings`, `nfc-card-designer-collection`.
+- Export file: `nfc-card-designer.json` (project version 6).
+
+---
+
+## Shipped features (summary)
+
+High-level checklist — detail lives in [Page specifications](#page-specifications-shipped) above.
+
+- [x] Three-column designer: controls | preview | collection
+- [x] Game search (3+ chars) scoped to selected platform
+- [x] Artwork browse (box / title / in-game) with per-card overrides
+- [x] Collection grouped by platform; multi-select; PDF export
+- [x] JSON export/import; localStorage persistence
+- [x] Supplies and Recognition static pages in global nav
+- [x] Unlisted Developer and Colors pages for maintainers
 
 ---
 
@@ -195,3 +399,4 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 | Date | Change |
 |------|--------|
 | 2026-07-21 | Initial design document and AI collaboration workflow |
+| 2026-07-21 | Added site map, navigation, and per-page layout specifications |

@@ -1,10 +1,15 @@
 # Zaparoo NFC Card Designer — Design Document
 
-**Status:** Living document  
+**Status:** Living document (current product state)  
 **Last updated:** 2026-07-21  
 **Audience:** Product owner + AI assistant collaboration
 
-This is the single source of truth for *what* we are building and *why*. Implementation details and maintainer runbooks live elsewhere (see [Related documents](#related-documents)).
+This document describes **what the app is today** and **what we plan to build next**. It is not a history of removed systems or in-flight implementation steps.
+
+- **Current behavior** → here and in [Shipped features](#shipped-features-summary)
+- **Why we chose an approach** → [`docs/decisions/`](./decisions/)
+- **How to implement active work** → [`docs/plans/`](./plans/) (temporary; delete when shipped)
+- **How the code works** → [`docs/MAINTAINER.md`](./MAINTAINER.md)
 
 ---
 
@@ -12,10 +17,17 @@ This is the single source of truth for *what* we are building and *why*. Impleme
 
 ### Workflow
 
-1. **Branch first** — Open a feature branch when you want to change direction or add scope. Commit edits to `docs/DESIGN.md` on that branch.
-2. **Design before build** — Describe the idea here (or ask the AI to draft a section). Iterate until the **Acceptance criteria** and **Open questions** feel right.
-3. **Explicit go-ahead** — The AI should **not** implement until you say something like *"go ahead and build it"* or mark the feature **Ready to build**.
-4. **Diff-driven implementation** — On a branch with design changes, the AI compares this document to `main`, identifies affected features, and proposes or executes an implementation plan.
+1. **Branch first** — One branch per feature (design + code + PR together).
+2. **Design before build** — Draft or extend a [Backlog](#backlog) entry. Iterate until acceptance criteria are clear.
+3. **Explicit go-ahead** — Do not implement until the product owner says to build (or status is **Ready to build**).
+4. **Implementation plan** — For non-trivial work, add `docs/plans/<feature-slug>.md` on the same branch. Delete it when the feature ships.
+5. **Ship** — Update this file to reflect **current** behavior (status **Shipped**). Record lasting rationale in `docs/decisions/` if needed. Remove the plan file.
+
+### Document rules
+
+- **Describe what exists**, not what we removed. Do not keep “migration”, “replace X”, or “remove legacy Y” language after a feature ships.
+- **Backlog** is for **future** work only. Move shipped items into the relevant shipped sections; do not leave completed features in Backlog.
+- **Plans are temporary.** If `docs/plans/` contains anything except `README.md`, that work is still in flight or cleanup was missed.
 
 ### Status labels
 
@@ -49,13 +61,10 @@ When adding a new idea, copy this block under [Backlog](#backlog):
 
 ### AI assistant instructions
 
-When working in this repository:
-
-- **Read `docs/DESIGN.md` first** when the user mentions features, roadmap, or "the design doc."
-- **Update this file** when the user describes new intent in conversation — draft or extend the relevant section, set status to **In design**, and ask clarifying questions before coding.
-- **On a branch with design-doc changes**, summarize the delta vs `main` and list implementation tasks; wait for explicit approval unless the user already said to build.
-- **Do not contradict Shipped behavior** unless this document is updated to change it.
-- **Prefer small, verifiable acceptance criteria** over vague goals.
+- **Read `docs/DESIGN.md` first** when the user mentions features, roadmap, or the design doc.
+- **Update this file** when intent changes — draft Backlog entries for future work; update shipped sections when behavior changes.
+- **Do not contradict Shipped behavior** unless this document is updated first.
+- **On merge**, delete any `docs/plans/*.md` for the feature and ensure Backlog has no shipped items left behind.
 
 ---
 
@@ -169,7 +178,7 @@ Top to bottom:
    - Artwork background — mode select + optional eyedropper color
 
 3. **Platform** (always visible section)
-   - Scrollable list of platforms with artwork in manifest
+   - Scrollable list of platforms with games in the catalog
    - Selecting a platform filters game search to that platform
 
 4. **Game** (always visible section)
@@ -317,13 +326,13 @@ Landscape variant uses the same long-edge split rules (documented in `README.md`
 - **17 platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine CD, Neo Geo, Arcade.
 - Platforms with **zero games in the catalog** are hidden from the platform list.
 
-### Artwork pipeline *(target — see [backlog](#github-pages--libretro-github-raw-urls-zero-image-hosting))*
+### Artwork & game catalog
 
-- **Images:** `raw.githubusercontent.com/libretro-thumbnails/…` — never stored or served from our infrastructure.
+- **Images:** `raw.githubusercontent.com/libretro-thumbnails/…` — loaded at runtime; not stored in this repo or on our deploy buckets.
 - **Search index:** `game-catalog.json` (names only), generated by `build-game-catalog.mjs` at deploy or locally — not committed to git.
 - **Image types:** Box art (`Named_Boxarts`), title screen (`Named_Titles`), in-game (`Named_Snaps`).
 - Global and per-platform priority order configurable.
-- **Hosting is irrelevant to artwork** — whether the static app is on GitHub Pages, S3+CloudFront, or `localhost`, it always pulls PNGs from GitHub.
+- **Hosting is irrelevant to artwork** — GitHub Pages, S3+CloudFront, and local dev all use the same GitHub raw URLs.
 
 ### Persistence
 
@@ -339,269 +348,27 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Three-column designer: controls | preview | collection
 - [x] Game search (3+ chars) scoped to selected platform
 - [x] Artwork browse (box / title / in-game) with per-card overrides
+- [x] Artwork from libretro-thumbnails GitHub raw URLs (CORS-safe for canvas/PDF)
+- [x] Generated `game-catalog.json` for search (build-time; not in git)
 - [x] Collection grouped by platform; multi-select; PDF export
 - [x] JSON export/import; localStorage persistence
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
+- [x] Deploy to GitHub Pages and/or AWS S3+CloudFront (static site only)
 
 ---
 
 ## Backlog
 
-Features below are **not yet built** unless marked otherwise. Add new items at the top of this section.
+Features below are **not yet built**. Add new items at the top. When something ships, move it into [Shipped features](#shipped-features-summary) and delete any matching `docs/plans/` file.
 
-### GitHub Pages + libretro GitHub raw URLs (zero image hosting)
-
-- **Status:** Ready to build — **awaiting explicit “go ahead and build” from product owner**
-- **Problem:** The app still carries legacy image-hosting machinery (S3 uploads, manifest sync, fetch scripts) from when artwork was mirrored. That pipeline is unnecessary — libretro thumbnails already live on GitHub.
-- **Proposal:** Load game artwork **only** from GitHub raw URLs. Remove all image storage and sync code. Generate `game-catalog.json` at deploy (or locally). Publish the static `src/` site to **GitHub Pages** and/or **existing AWS S3+CloudFront** — both serve the same app; **both pull images from GitHub**. Keep the **17 platforms** in `platforms.js`.
-- **Acceptance criteria:**
-  - [ ] Site deploys to GitHub Pages from `src/` on push to `main` (no AWS credentials in Pages CI).
-  - [ ] Game search works for all **17 curated platforms** using a bundled `src/assets/data/game-catalog.json` (game names only — no image paths, no runtime GitHub API calls in the browser).
-  - [ ] `game-catalog.json` is **not committed to git** — generated by `build-game-catalog.mjs` locally or in deploy CI, then gitignored.
-  - [ ] `scripts/build-game-catalog.mjs` queries the libretro-thumbnails GitHub API for the 17 platforms, applies retail filtering, and writes `game-catalog.json`.
-  - [ ] Deploy workflows (GitHub Pages and AWS) run `npm run build-game-catalog` before publishing the site.
-  - [ ] `npm run verify` runs `build-game-catalog` (or uses a fixture) so tests pass on a clean checkout.
-  - [ ] Card preview, collection thumbnails, and letter-sheet export render artwork from `https://raw.githubusercontent.com/libretro-thumbnails/<repo>/master/<Named_*>/<filename>.png`.
-  - [ ] `imageAvailability` probes GitHub raw URLs to determine which artwork types exist for a game (box / title / in-game).
-  - [ ] **PDF** letter-sheet export at ~300 DPI with cut marks for selected collection cards (keep existing `pdfExport.js` flow; no PNG sheet export).
-  - [ ] Platforms with zero catalog entries are hidden from the platform selector (same as today).
-  - [ ] Retail-title filtering is applied when **building** the catalog (same rules as `retailFilter.js`).
-  - [ ] Recognition page credits libretro-thumbnails on GitHub.
-  - [ ] `npm run verify` passes without image mirrors or legacy manifest/S3 image paths.
-  - [ ] README / `AGENTS.md` / `MAINTAINER.md` reflect the simplified architecture (implementation follow-up).
-- **Out of scope:**
-  - Adding libretro platforms beyond the current 17.
-  - Bundling artwork PNGs or `game-catalog.json` in git (generated artifact only).
-  - Runtime GitHub API calls from the browser for game search (build-time only).
-  - User accounts, server-side image proxy, or backend API.
-  - Self-hosting a libretro mirror or CDN.
-  - Storing game artwork in our deploy buckets (S3 is static **site** hosting only).
-  - Changing card layout, collection UX, or localStorage export format (except any version bump if required).
-  - **AWS decommission** — keep S3+CloudFront for site deploy; it serves the same GitHub-sourced app. DNS/hosting cleanup is a separate branch later.
-  - Migrating custom domain DNS in this iteration.
-- **Decisions (product owner, 2026-07-21):**
-  - **Print format:** **PDF** — keep existing letter-size PDF export with cut marks; no PNG sheet download.
-  - **Game catalog:** **`build-game-catalog.mjs`** generates `game-catalog.json` (names only). **Not committed** — run locally for dev (`npm run build-game-catalog`) and automatically in deploy CI. No runtime fetch in the browser.
-  - **AWS:** S3+CloudFront remains a **static site** deploy target (HTML/JS/CSS + generated catalog). It does **not** host images. Same app binary as GitHub Pages.
-- **Open questions:** None — ready for implementation go-ahead.
-- **Notes:** Full step-by-step coding instructions: [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md). High-level plan below.
-
-#### Architecture decision: artwork from GitHub raw URLs only
-
-| Option | CORS for canvas/PDF? | Our hosting burden | Verdict |
-|--------|---------------------|-------------------|---------|
-| **Self-hosted image mirror** (legacy) | Yes if same-origin | High — fetch, sync, storage | **Remove** |
-| **`thumbnails.libretro.com` CDN** | **No** | None | Rejected |
-| **`raw.githubusercontent.com` / libretro-thumbnails** | **Yes** (`Access-Control-Allow-Origin: *`) | None for images | **Selected** |
-| **Artwork PNGs in git** | Yes | Absurd repo size | Rejected |
-
-**Site hosting** (GitHub Pages, S3+CloudFront, local `npm start`) is separate from **artwork hosting** (always GitHub). Deploy target does not change image URLs.
-
-**Rationale:** The app draws artwork onto `<canvas>` for preview blur, card composition, and letter-sheet export (`imageProvider.js` → `cardRenderer.js` → `pdfExport.js`). That requires CORS-permitted image loads (`crossOrigin = "anonymous"`). GitHub’s raw content host sends `Access-Control-Allow-Origin: *` on libretro-thumbnail PNGs; `thumbnails.libretro.com` does not.
-
-**URL shape** (one repo per libretro system under [libretro-thumbnails](https://github.com/libretro-thumbnails)):
-
-```
-https://raw.githubusercontent.com/libretro-thumbnails/<libretroGitHubRepo>/master/<Named_Boxarts|Named_Titles|Named_Snaps>/<libretroName>.png
-```
-
-Example:
-
-```
-https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Entertainment_System/master/Named_Boxarts/Super%20Mario%20Bros.%20(USA).png
-```
-
-**Repo naming:** GitHub repos use underscores instead of spaces (`Nintendo - Nintendo Entertainment System` → `Nintendo_-_Nintendo_Entertainment_System`). Store `libretroGitHubRepo` internally in `platforms.js` — **never shown in the UI**. Users continue to see friendly names (`NES`, `Sega Genesis`) from the existing `name` field. Derive repo slugs from `libretroPlaylist` via a small helper (` - ` → `_-_`, spaces → `_`) with explicit overrides only where the formula fails validation.
-
-**Platform scope:** Only the 17 platforms already defined in `platforms.js`. The libretro-thumbnails org has 100+ systems; none of the others are added to the app selector or catalog build.
-
-**Planned `libretroGitHubRepo` values** (to add alongside existing `libretroPlaylist`):
-
-| `platformId` | `libretroGitHubRepo` |
-|--------------|----------------------|
-| `atari-2600` | `Atari_-_2600` |
-| `nes` | `Nintendo_-_Nintendo_Entertainment_System` |
-| `master-system` | `Sega_-_Master_System_-_Mark_III` |
-| `game-boy` | `Nintendo_-_Game_Boy` |
-| `game-boy-color` | `Nintendo_-_Game_Boy_Color` |
-| `snes` | `Nintendo_-_Super_Nintendo_Entertainment_System` |
-| `genesis` | `Sega_-_Mega_Drive_-_Genesis` |
-| `sega-cd` | `Sega_-_Mega-CD_-_Sega_CD` |
-| `sega-32x` | `Sega_-_32X` |
-| `turbo-grafx` | `NEC_-_PC_Engine_-_TurboGrafx_16` |
-| `pc-engine-cd` | `NEC_-_PC_Engine_CD_-_TurboGrafx-CD` |
-| `saturn` | `Sega_-_Saturn` |
-| `n64` | `Nintendo_-_Nintendo_64` |
-| `neo-geo` | `SNK_-_Neo_Geo` |
-| `playstation` | `Sony_-_PlayStation` |
-| `dos` | `DOS` |
-| `arcade` | `FBNeo_-_Arcade_Games` |
-
-Validate repo names against the live [libretro-thumbnails org](https://github.com/orgs/libretro-thumbnails/repositories) during implementation (one typo breaks an entire platform).
-
-#### PDF vs PNG tradeoffs
-
-**Decision: PDF.** Rationale: multi-page collections (&gt; 9 cards) are common; vector cut marks; existing `pdfExport.js` already works. PNG sheet export is out of scope.
-
-<details>
-<summary>Reference — why PDF was chosen over PNG</summary>
-
-| | **PDF** (selected) | **PNG** (rejected) |
-|--|-------------------|-------------------|
-| **Multi-page decks** | Natural — one PDF, many letter pages | Awkward — multiple files |
-| **Cut marks** | Vector — stay crisp | Raster at export DPI |
-| **Dependencies** | `jspdf` (already used) | None extra |
-| **Simplicity** | Existing code path | Slightly simpler export step |
-
-</details>
-
-#### Game catalog — build script + bundled JSON
-
-Libretro catalogs are large (NES ~13k boxarts, Arcade even more). **Do not fetch at runtime** — keep the browser simple.
-
-**Approach:**
-
-1. **`scripts/build-game-catalog.mjs`** — Node script (runs locally or in CI):
-   - For each of the 17 platforms, call GitHub API:  
-     `GET /repos/libretro-thumbnails/{libretroGitHubRepo}/git/trees/master?recursive=1`
-   - Extract `Named_Boxarts/*.png` → filename stems → `isRetailRelease()` → sort.
-   - Write `src/assets/data/game-catalog.json`.
-   - If a repo’s recursive tree is too large (Arcade), fall back to paginated Contents API on `Named_Boxarts/`.
-2. **`npm run build-game-catalog`** — maintainer/CI entry point.
-3. **Deploy** — both GitHub Pages and AWS workflows run `build-game-catalog` before uploading `src/`.
-4. **Git** — **do not commit** `game-catalog.json`. Add to `.gitignore`. Fresh clones and local dev run `npm run build-game-catalog` once (or rely on `npm run verify` / `npm start` pre-step to generate it).
-5. **Browser** — `gameCatalog.js` loads the static JSON once at init (same pattern as today’s manifest load). No `sessionStorage`, no background prefetch, no client-side GitHub API.
-
-**`game-catalog.json` shape** (names only — no image paths):
-
-```json
-{
-  "version": 1,
-  "generatedAt": "…",
-  "platforms": {
-    "nes": [{ "libretroName": "Super Mario Bros. (USA)" }],
-    "arcade": [{ "libretroName": "Pac-Man (USA)" }]
-  }
-}
-```
-
-Image URLs are computed at runtime from `libretroName` + `imageType` + platform repo slug.
-
-#### Proposed runtime architecture
-
-```
-src/index.html
-  └── assets/js/main.js
-        ├── gameCatalog.js       # load bundled game-catalog.json (static fetch)
-        ├── libretroThumbnails.js # GitHub raw URL builders + repo slug helper
-        ├── imageProvider.js     # resolve GitHub raw URL for platform + libretroName + imageType
-        ├── imageAvailability.js # probe which types exist on GitHub raw
-        ├── cardRenderer.js      # canvas preview + print tiles (unchanged flow)
-        └── pdfExport.js         # letter PDF + cut marks (unchanged)
-```
-
-**Why replace `image-manifest.json`?** Legacy file listed games plus self-hosted image paths. New catalog is **names only**; image URLs always point at GitHub raw.
-
-**Image resolution flow:**
-
-1. User picks a game (`libretroName` from catalog).
-2. `imageProvider.js` builds `https://raw.githubusercontent.com/libretro-thumbnails/…` URLs per image type.
-3. `imageAvailability.js` probes those URLs; cache in memory.
-4. Collection cards store `platformId`, `libretroName`, `imageType` — no stored image URLs.
-
-**Hosting:** GitHub Pages workflow added for `src/`. Existing AWS workflow **kept** — uploads static site only, runs `build-game-catalog` first. Neither host stores artwork.
-
-#### Proposed implementation plan
-
-*Do not implement until this section is approved.*
-
-**1. Data & platform config**
-
-| Action | Detail |
-|--------|--------|
-| Add repo slug helper | `libretroPlaylist` → `libretroGitHubRepo` (underscore rules + explicit overrides if needed) |
-| Add `build-game-catalog.mjs` | GitHub API → retail filter → `game-catalog.json` |
-| Add `game-catalog.json` | Output at `src/assets/data/`; **gitignored**; produced by build script |
-| Remove `image-manifest.json` | Replaced by generated `game-catalog.json` |
-| Add `.gitignore` entry | `src/assets/data/game-catalog.json` |
-
-**2. Browser modules**
-
-| File | Change |
-|------|--------|
-| `libretroThumbnails.js` | Add `LIBRETRO_GITHUB_RAW_BASE`, `libretroGitHubRawUrl()`, `playlistToGitHubRepo()` |
-| `gameCatalog.js` | Load generated `game-catalog.json`; remove all legacy remote-manifest / self-hosted image path logic |
-| `imageProvider.js` | Resolve GitHub raw URLs from platform + `libretroName` + `imageType` |
-| `imageAvailability.js` | No structural change — probes new URLs |
-| `developer.js` / `developer.html` | Read game catalog (not image manifest) |
-
-**3. Remove (scripts, CI, infra, deps)**
-
-| Remove | Reason |
-|--------|--------|
-| `scripts/fetch-images.mjs` | Legacy image upload — remove |
-| `scripts/sync-image-manifest.mjs` | Legacy manifest sync — remove |
-| `scripts/image-manifest.mjs` | Legacy format — remove |
-| `scripts/libretro-image-paths.mjs` | Legacy self-hosted path keys — remove |
-| `scripts/sync-s3-sample-images.mjs` | Legacy local image cache — remove |
-| `scripts/s3-storage.mjs` | Image upload client — remove |
-| `scripts/local-libretro-source.mjs` | Local libretro mirror — remove |
-| `scripts/deploy.mjs` | **Keep** — static site sync to S3 (no image excludes needed beyond deleting image dirs) |
-| `infrastructure/`, `.env.example`, `@aws-sdk/client-s3` | **Keep** for static site deploy |
-| `npm run deploy` | **Keep** — static site only; add `build-game-catalog`; remove image scripts |
-| `.github/workflows/deploy.yml` | Run `build-game-catalog` then deploy `src/` (remove old sync-manifest job) |
-| `.github/workflows/sync-image-manifest.yml` | Remove — replaced by catalog build step |
-| Add `.github/workflows/pages.yml` | Run `build-game-catalog` then deploy `src/` to GitHub Pages |
-
-**4. Tests & verify**
-
-| Action | Detail |
-|--------|--------|
-| Update / remove | `test-fetch-images-*`, `test-sync-image-manifest`, tests asserting legacy image paths |
-| Add | `build-game-catalog.mjs` tests; `libretroGitHubRawUrl()` / `playlistToGitHubRepo()` tests |
-| Update | Playwright smoke tests to tolerate network fetches to `raw.githubusercontent.com` (or mock) |
-| `verify.mjs` | Run `build-game-catalog` before tests (or ship a small committed test fixture separate from production catalog) |
-
-**5. Docs & static pages**
-
-| File | Change |
-|------|--------|
-| `recognition.html` | Credit libretro-thumbnails on GitHub |
-| `README.md` | GitHub raw artwork; deploy overview (Pages + optional static S3) |
-| `AGENTS.md` | Remove legacy image-hosting gotchas; document catalog build + GitHub raw |
-| `docs/MAINTAINER.md` | Rewrite for simplified architecture (or fold into DESIGN post-ship) |
-| `supplies.html` | Minor copy if export button label changes (PDF → PNG) |
-
-**6. Keep (unchanged or lightly touched)**
-
-| Keep | Why |
-|------|-----|
-| `platforms.js` platform list (17 only) | Product scope |
-| `fetch-platform-icons.mjs` | Platform SVGs still bundled in git |
-| `src/assets/images/platforms/` | Local platform icons + favicon |
-| `retailFilter.js` | Used by `build-game-catalog.mjs` when generating JSON |
-| Card layout, collection, localStorage, PDF/print layout math | Core product |
-| `npm start`, `npm run verify` | Dev workflow |
-
-#### Risks & mitigations
-
-| Risk | Mitigation |
-|------|------------|
-| GitHub API rate limit during catalog build | Runs in CI with `GITHUB_TOKEN` (5000 req/hr); 17 repos per deploy |
-| Large tree response (Arcade) | Paginated Contents API fallback in build script |
-| Stale game names | Re-deploy or run `npm run build-game-catalog` locally when libretro adds titles |
-| Clean checkout / local dev | Document `npm run build-game-catalog` before `npm start`; optional `prestart` npm script |
-| Generated file missing at runtime | Clear error in UI if catalog fetch 404s; README lists one-time setup step |
-| GitHub raw availability | Static URLs; probe cache in `imageAvailability` |
-| `libretroName` must match filename exactly | Catalog stores exact stems from build script |
-| Project Pages base path (`/repo-name/`) | Relative asset paths; audit absolute `/assets/…` links |
+*(No open backlog items.)*
 
 ---
 
 ## Open questions (global)
 
-- None. Feature is **Ready to build**. Coding agents should follow [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md).
+*(None.)*
 
 ---
 
@@ -609,25 +376,11 @@ src/index.html
 
 | Document | Purpose |
 |----------|---------|
-| [`AGENTS.md`](../AGENTS.md) | How AI assistants should run, test, and navigate this repo |
+| [`AGENTS.md`](../AGENTS.md) | How AI assistants run, test, and navigate this repo |
 | [`README.md`](../README.md) | Quick start, card layout diagrams, deploy overview |
-| [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts, platform onboarding |
-| [`docs/IMPLEMENTATION-GITHUB-RAW.md`](./IMPLEMENTATION-GITHUB-RAW.md) | Step-by-step coding handoff for GitHub-raw artwork migration |
-| `docs/adr/` *(optional, future)* | Architecture Decision Records — one file per significant technical choice |
-
-### Document types (reference)
-
-| Name | Typical filename | Use when |
-|------|------------------|----------|
-| **Design document** | `docs/DESIGN.md` | Living product spec — features, UX, acceptance criteria *(this file)* |
-| **Agent instructions** | `AGENTS.md` | Tooling, test commands, repo conventions for AI |
-| **README** | `README.md` | Onboarding humans; keep concise |
-| **Maintainer / architecture notes** | `docs/MAINTAINER.md` | How the code and data pipelines work |
-| **PRD** | `docs/PRD.md` | Optional formal product requirements for stakeholders |
-| **Technical spec** | `docs/SPEC.md` | Optional deep implementation contract for large features |
-| **ADR** | `docs/adr/0001-….md` | Record a single architectural decision and its rationale |
-
-For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: design intent here, execution rules in `AGENTS.md`.
+| [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts |
+| [`docs/decisions/`](./decisions/) | Permanent “why we chose X” records |
+| [`docs/plans/`](./plans/) | Temporary implementation handoffs (delete when shipped) |
 
 ---
 
@@ -635,12 +388,5 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 
 | Date | Change |
 |------|--------|
-| 2026-07-21 | Initial design document and AI collaboration workflow |
-| 2026-07-21 | Added site map, navigation, and per-page layout specifications |
-| 2026-07-21 | Backlog: GitHub Pages + libretro GitHub raw URLs — architecture decision, removal plan, implementation outline (awaiting review) |
-| 2026-07-21 | Product review: runtime GitHub API game list (no catalog JSON), keep AWS deploy, clarify PDF/PNG and UI naming |
-| 2026-07-21 | Decisions locked: PDF export; background prefetch all platforms on page load (Arcade priority) |
-| 2026-07-21 | Reverted runtime fetch: `build-game-catalog.mjs` + bundled `game-catalog.json`, generated at deploy |
-| 2026-07-21 | `game-catalog.json` is a generated deploy artifact only — not committed to git |
-| 2026-07-21 | Artwork always from GitHub raw; S3/CloudFront is static site hosting only — no image mirroring |
-| 2026-07-21 | Added `docs/IMPLEMENTATION-GITHUB-RAW.md` coding-agent handoff (file-level instructions) |
+| 2026-07-21 | Initial design document and page specifications |
+| 2026-07-21 | GitHub raw artwork + generated catalog shipped; doc split into current state / decisions / plans |

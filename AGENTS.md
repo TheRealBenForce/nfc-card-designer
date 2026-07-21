@@ -1,17 +1,29 @@
 # AGENTS.md
 
-## Design document workflow
+## Documentation workflow
 
-Product intent and feature specs live in **[`docs/DESIGN.md`](docs/DESIGN.md)**. Use it as the collaboration surface before implementing new behavior.
+| Document | Lifetime | Purpose |
+|----------|----------|---------|
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Permanent | **Current product state** + future Backlog only |
+| [`docs/decisions/`](docs/decisions/) | Permanent | Why we chose X (ADRs); link from DESIGN when relevant |
+| [`docs/plans/`](docs/plans/) | **Temporary** | Step-by-step implementation handoff while work is active |
+| [`docs/MAINTAINER.md`](docs/MAINTAINER.md) | Permanent | How the code and pipelines work today |
 
-- **Read `docs/DESIGN.md`** when the user discusses features, roadmap, or design-doc changes.
-- **Update `docs/DESIGN.md`** when the user describes new intent — draft or extend the relevant section, set status to **In design**, and clarify open questions.
-- **Wait for explicit go-ahead** (e.g. "build it", or status **Ready to build**) before implementing design-doc changes unless the user already asked you to implement.
-- **Use one branch per feature** — keep design-doc edits and implementation on the **same branch** and the **same PR**. Do not split design and code across parallel branches.
-- **On that branch**, summarize the delta vs `main` and propose an implementation plan from the acceptance criteria before coding.
+### Rules
 
-Technical architecture and maintainer procedures: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).  
-Implementation handoff for the GitHub-raw migration: [`docs/IMPLEMENTATION-GITHUB-RAW.md`](docs/IMPLEMENTATION-GITHUB-RAW.md) (if present).
+- **`DESIGN.md` describes what exists now** — not removed systems, migration plans, or “replace legacy X” language after a feature ships.
+- **One branch per feature** — design edits, code, and the PR stay together.
+- **Plans are deleted when the feature ships** — in the same PR that merges the implementation. Distill lasting rationale into `docs/decisions/` first if needed.
+- **`docs/plans/` should only contain `README.md` between features.** Any other file means work is in flight or cleanup was missed.
+
+### Feature lifecycle
+
+1. Draft a Backlog entry in `docs/DESIGN.md` (status **In design**).
+2. When ready to build, add `docs/plans/<feature-slug>.md` on the feature branch.
+3. Implement on the same branch; wait for explicit go-ahead unless the user already asked to build.
+4. Before merge: update `DESIGN.md` to current state, add/update a decision doc if warranted, **delete the plan file**, run `npm run verify`.
+
+Technical architecture and maintainer procedures: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).
 
 ## Cursor Cloud specific instructions
 

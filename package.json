@@ -16,6 +16,8 @@
     "test:platform-visibility": "node scripts/test-platform-visibility.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
     "test:game-filters": "node scripts/test-game-filters.mjs",
+    "test:libretro-title": "node scripts/test-libretro-title.mjs",
+    "test:region-dedup": "node scripts/test-region-dedup.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
     "verify": "node scripts/verify.mjs",

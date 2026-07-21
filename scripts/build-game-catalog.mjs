@@ -7,6 +7,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { isRetailRelease } from "./game-filters.mjs";
+import {
+  buildArtworkIndex,
+  buildArtworkIndexFromBoxartNames,
+  dedupeRegionalVariants,
+} from "./region-dedup.mjs";
 import { playlistToGitHubRepo } from "../src/assets/js/libretroThumbnails.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,12 +38,12 @@ export function parseBoxartNamesFromTree(tree) {
 
 /**
  * @param {string[]} names
+ * @param {Map<string, Set<string>>} artworkIndex
  * @returns {string[]}
  */
-export function filterRetailBoxartNames(names) {
-  return [...new Set(names.filter((name) => isRetailRelease(name)))].sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" }),
-  );
+export function filterRetailBoxartNames(names, artworkIndex) {
+  const retail = [...new Set(names.filter((name) => isRetailRelease(name)))];
+  return dedupeRegionalVariants(retail, artworkIndex);
 }
 
 /**
@@ -116,10 +121,13 @@ async function fetchPlatformBoxartNames(platform, token) {
 
   try {
     const tree = await fetchRecursiveTree(repo, token);
-    return filterRetailBoxartNames(parseBoxartNamesFromTree(tree));
+    const artworkIndex = buildArtworkIndex(tree);
+    return filterRetailBoxartNames(parseBoxartNamesFromTree(tree), artworkIndex);
   } catch (error) {
     console.warn(`  ${platform.id}: recursive tree failed (${error.message}), trying contents API…`);
-    return filterRetailBoxartNames(await fetchBoxartsViaContents(repo, token));
+    const names = await fetchBoxartsViaContents(repo, token);
+    const artworkIndex = buildArtworkIndexFromBoxartNames(names);
+    return filterRetailBoxartNames(names, artworkIndex);
   }
 }
 

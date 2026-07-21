@@ -1,4 +1,5 @@
 import { platforms } from "./data/platforms.js";
+import { retailDisplayName } from "./retailFilter.js";
 
 /**
  * @typedef {Object} Game
@@ -49,7 +50,7 @@ function toGame(platformId, entry) {
   return {
     platformId,
     libretroName: entry.libretroName,
-    name: entry.libretroName,
+    name: retailDisplayName(entry.libretroName),
   };
 }
 

@@ -5,7 +5,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { access, copyFile, readdir } from "node:fs/promises";
+import { access, copyFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -51,6 +51,7 @@ async function ensureGameCatalog() {
     return;
   } catch {
     console.log("→ game-catalog.json missing — copying test fixture…");
+    await mkdir(path.dirname(catalogPath), { recursive: true });
     await copyFile(catalogFixture, catalogPath);
   }
 }
@@ -91,6 +92,12 @@ async function main() {
 
   console.log("→ Retail filters…");
   await run("node", ["scripts/test-game-filters.mjs"]);
+
+  console.log("→ Libretro title parsing…");
+  await run("node", ["scripts/test-libretro-title.mjs"]);
+
+  console.log("→ Regional dedupe…");
+  await run("node", ["scripts/test-region-dedup.mjs"]);
 
   console.log("→ Image settings…");
   await run("node", ["scripts/test-image-settings.mjs"]);

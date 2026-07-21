@@ -1,6 +1,6 @@
 # AWS infrastructure
 
-Static hosting for Zaparoo NFC Card Designer at `zaparoo.therealbenforce.com`.
+Static hosting for NFC Card Designer at `nfc-card-designer.therealbenforce.com`.
 
 ## Stack (`cloudformation.yaml`)
 
@@ -19,10 +19,10 @@ Creates:
 ```bash
 aws cloudformation deploy \
   --region us-east-1 \
-  --stack-name zaparoo-nfc-card-designer \
+  --stack-name nfc-card-designer \
   --template-file infrastructure/cloudformation.yaml \
   --parameter-overrides \
-    DomainName=zaparoo.therealbenforce.com \
+    DomainName=nfc-card-designer.therealbenforce.com \
     HostedZoneId=Z0123456789ABCDEFGHIJ \
   --capabilities CAPABILITY_IAM
 ```
@@ -43,10 +43,10 @@ If you already deployed the stack before the deploy user was added:
 ```bash
 aws cloudformation deploy \
   --region us-east-1 \
-  --stack-name zaparoo-nfc-card-designer \
+  --stack-name nfc-card-designer \
   --template-file infrastructure/cloudformation.yaml \
   --parameter-overrides \
-    DomainName=zaparoo.therealbenforce.com \
+    DomainName=nfc-card-designer.therealbenforce.com \
     HostedZoneId=Z0123456789ABCDEFGHIJ \
   --capabilities CAPABILITY_IAM
 ```
@@ -57,7 +57,7 @@ ACM DNS validation records are created automatically when `HostedZoneId` is supp
 
 ### Deploy IAM user permissions
 
-The `zaparoo-github-deploy` user (name configurable via `DeployUserName`) can:
+The `nfc-card-designer-github-deploy` user (name configurable via `DeployUserName`) can:
 
 | Action | Purpose |
 |--------|---------|
@@ -90,19 +90,19 @@ Game artwork is **not** stored on S3 — PNGs load from libretro-thumbnails on G
 
 Created automatically by the CloudFormation stack — see **Deploy IAM user permissions** above. No manual policy attachment needed.
 
-If you use a separate workstation IAM user (for example, `ZaparooUploader`) and want `npm run deploy` to invalidate CloudFront too, attach an identity policy that includes `cloudfront:CreateInvalidation`.
+If you use a separate workstation IAM user (for example, `NfcCardDesignerUploader`) and want `npm run deploy` to invalidate CloudFront too, attach an identity policy that includes `cloudfront:CreateInvalidation`.
 
 Example policy JSON:
 
-`infrastructure/policies/zaparoo-uploader-policy.json`
+`infrastructure/policies/nfc-card-designer-uploader-policy.json`
 
 Apply it with AWS CLI:
 
 ```bash
 aws iam put-user-policy \
-  --user-name ZaparooUploader \
-  --policy-name ZaparooUploaderInline \
-  --policy-document file://infrastructure/policies/zaparoo-uploader-policy.json
+  --user-name NfcCardDesignerUploader \
+  --policy-name NfcCardDesignerUploaderInline \
+  --policy-document file://infrastructure/policies/nfc-card-designer-uploader-policy.json
 ```
 
 ## Local commands

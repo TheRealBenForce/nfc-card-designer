@@ -35,7 +35,7 @@ function getExtensionlessRouteAliases() {
 async function main() {
   const bucket = process.env.S3_BUCKET?.trim();
   if (!bucket) {
-    throw new Error("S3_BUCKET is required (e.g. zaparoo.therealbenforce.com)");
+    throw new Error("S3_BUCKET is required (e.g. nfc-card-designer.therealbenforce.com)");
   }
 
   console.log(`→ Syncing site from ${siteRoot} to s3://${bucket}/`);

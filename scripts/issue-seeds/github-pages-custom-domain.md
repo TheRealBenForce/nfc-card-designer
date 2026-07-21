@@ -4,11 +4,11 @@
 
 ## Problem
 
-Production may still use `zaparoo.therealbenforce.com` on CloudFront while GitHub Pages workflow deploys to the default `*.github.io` URL. We want one canonical host without maintaining duplicate deploy targets long term.
+Production may still use `nfc-card-designer.therealbenforce.com` on CloudFront while GitHub Pages workflow deploys to the default `*.github.io` URL. We want one canonical host without maintaining duplicate deploy targets long term.
 
 ## Proposal
 
-Configure GitHub Pages custom domain (`zaparoo.therealbenforce.com`), validate HTTPS, and update DNS (Route53) to point at GitHub Pages.
+Configure GitHub Pages custom domain (`nfc-card-designer.therealbenforce.com`), validate HTTPS, and update DNS (Route53) to point at GitHub Pages.
 
 ## Acceptance criteria
 

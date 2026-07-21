@@ -1,6 +1,6 @@
 # NFC Card Designer
 
-A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card labels**, optimized for **US letter sticker paper**. Built with vanilla HTML, CSS, and JavaScript — no build step required for the site itself.
+A client-side single-page app for designing **52 × 84 mm NFC card labels**, optimized for **US letter sticker paper**. Built with vanilla HTML, CSS, and JavaScript — no build step required for the site itself.
 
 ## Features
 
@@ -88,7 +88,7 @@ npm run deploy
 
 Set AWS credentials in `.env` (see `.env.example`). Infrastructure: [`infrastructure/cloudformation.yaml`](infrastructure/cloudformation.yaml)
 
-Live site: https://zaparoo.therealbenforce.com
+Live site: https://nfc-card-designer.therealbenforce.com
 
 ## Card layout
 

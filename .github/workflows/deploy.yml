@@ -11,8 +11,8 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  S3_BUCKET: zaparoo.therealbenforce.com
-  SITE_URL: https://zaparoo.therealbenforce.com
+  S3_BUCKET: nfc-card-designer.therealbenforce.com
+  SITE_URL: https://nfc-card-designer.therealbenforce.com
 
 jobs:
   deploy:

@@ -1,19 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Zaparoo NFC Card Designer — S3 static site with CloudFront, ACM, and Route53
+Description: NFC Card Designer — S3 static site with CloudFront, ACM, and Route53
 
 # Deploy this stack in us-east-1 (required for CloudFront ACM certificates).
 
 Parameters:
   DomainName:
     Type: String
-    Default: zaparoo.therealbenforce.com
+    Default: nfc-card-designer.therealbenforce.com
     Description: Full hostname for the site (also used as the S3 bucket name)
   HostedZoneId:
     Type: String
     Description: Route53 hosted zone ID for the parent domain (e.g. therealbenforce.com)
   DeployUserName:
     Type: String
-    Default: zaparoo-github-deploy
+    Default: nfc-card-designer-github-deploy
     Description: IAM user for GitHub Actions deploy and workstation fetch-images uploads
   CreateDeployAccessKey:
     Type: String
@@ -97,7 +97,7 @@ Resources:
     Properties:
       OriginAccessControlConfig:
         Name: !Sub "${AWS::StackName}-oac"
-        Description: OAC for Zaparoo NFC Card Designer bucket
+        Description: OAC for NFC Card Designer bucket
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -132,7 +132,7 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        Comment: !Sub "Zaparoo NFC Card Designer (${DomainName})"
+        Comment: !Sub "NFC Card Designer (${DomainName})"
         HttpVersion: http2and3
         DefaultRootObject: index.html
         Aliases:

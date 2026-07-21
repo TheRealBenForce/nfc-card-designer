@@ -1,4 +1,4 @@
-# Zaparoo NFC Card Designer — Design Document
+# NFC Card Designer — Design Document
 
 **Status:** Living document (current product state)  
 **Last updated:** 2026-07-21  
@@ -39,11 +39,11 @@ This document describes **what the app is today**. Planned work lives in **[GitH
 
 ## Vision
 
-Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** for Zaparoo hardware — quickly, consistently, and without leaving the browser.
+Help people design and print **52 × 84 mm NFC card labels** — quickly, consistently, and without leaving the browser.
 
 ### Users
 
-- **Primary:** Zaparoo owners printing sticker sheets at home on US letter paper.
+- **Primary:** People printing NFC sticker sheets at home on US letter paper.
 - **Secondary:** Maintainers updating the bundled game-name catalog or platform list (infrequent).
 
 ### Goals
@@ -93,7 +93,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Thanks**, **Developer
 
 | Element | Position | Behavior |
 |---------|----------|----------|
-| **Brand** | Left | `Zaparoo NFC Designer` → links to `./` (designer home) |
+| **Brand** | Left | `NFC Card Designer` → links to `./` (designer home) |
 | **Supplies** | After brand | Link to `supplies.html`; shown as muted text (current page) on Supplies |
 | **Recognition** | After Supplies | Link to `recognition.html`; shown as muted text on Recognition |
 
@@ -108,7 +108,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Thanks**, **Developer
 ### Designer — `index.html`
 
 **Status:** Shipped  
-**Title:** Zaparoo NFC Designer
+**Title:** NFC Card Designer
 
 #### Overall layout
 
@@ -200,13 +200,12 @@ Vertically top-aligned, content centered horizontally.
 
 **Sections:**
 
-1. **Lead** — PDF is 9 labels per letter sheet; links to Zaparoo app for writing tags; Amazon search links are non-affiliate.
+1. **Lead** — PDF is 9 labels per letter sheet; mentions writing tags with common NFC apps; Amazon search links are non-affiliate.
 2. **Essentials** — NTAG215 blank cards; matte vinyl sticker paper (US Letter).
 3. **Cutting & finishing** — R3 corner rounder; cutting mat / ruler / craft knife.
 4. **3D-printed sticker applicator** — TapTo Sticker Applicator (Printables link, usage steps, CA glue).
-5. **Official Zaparoo shop** — link to shop.zaparoo.com.
 
-**Footer:** “← Back to Zaparoo NFC Designer” link to home.
+**Footer:** “← Back to NFC Card Designer” link to home.
 
 ---
 
@@ -345,4 +344,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 |------|--------|
 | 2026-07-21 | Initial design document and page specifications |
 | 2026-07-21 | GitHub raw artwork + generated catalog shipped |
-| 2026-07-21 | Backlog moved to GitHub Issues; DESIGN.md is current state only |
+| 2026-07-21 | Rebranded product as NFC Card Designer |

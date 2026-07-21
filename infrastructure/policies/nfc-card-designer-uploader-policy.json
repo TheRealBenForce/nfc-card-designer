@@ -2,16 +2,16 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowZaparooUploaderListBucket",
+      "Sid": "AllowNfcCardDesignerUploaderListBucket",
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket",
         "s3:GetBucketLocation"
       ],
-      "Resource": "arn:aws:s3:::zaparoo.therealbenforce.com"
+      "Resource": "arn:aws:s3:::nfc-card-designer.therealbenforce.com"
     },
     {
-      "Sid": "AllowZaparooUploaderObjectReadWrite",
+      "Sid": "AllowNfcCardDesignerUploaderObjectReadWrite",
       "Effect": "Allow",
       "Action": [
         "s3:GetObject",
@@ -19,10 +19,10 @@
         "s3:DeleteObject",
         "s3:AbortMultipartUpload"
       ],
-      "Resource": "arn:aws:s3:::zaparoo.therealbenforce.com/*"
+      "Resource": "arn:aws:s3:::nfc-card-designer.therealbenforce.com/*"
     },
     {
-      "Sid": "AllowZaparooUploaderCreateInvalidation",
+      "Sid": "AllowNfcCardDesignerUploaderCreateInvalidation",
       "Effect": "Allow",
       "Action": [
         "cloudfront:CreateInvalidation"

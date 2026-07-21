@@ -7,7 +7,8 @@ Product intent and feature specs live in **[`docs/DESIGN.md`](docs/DESIGN.md)**.
 - **Read `docs/DESIGN.md`** when the user discusses features, roadmap, or design-doc changes.
 - **Update `docs/DESIGN.md`** when the user describes new intent — draft or extend the relevant section, set status to **In design**, and clarify open questions.
 - **Wait for explicit go-ahead** (e.g. "build it", or status **Ready to build**) before implementing design-doc changes unless the user already asked you to implement.
-- **On a branch with design-doc edits**, summarize the delta vs `main` and propose an implementation plan from the acceptance criteria.
+- **Use one branch per feature** — keep design-doc edits and implementation on the **same branch** and the **same PR**. Do not split design and code across parallel branches.
+- **On that branch**, summarize the delta vs `main` and propose an implementation plan from the acceptance criteria before coding.
 
 Technical architecture and maintainer procedures: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).  
 Implementation handoff for the GitHub-raw migration: [`docs/IMPLEMENTATION-GITHUB-RAW.md`](docs/IMPLEMENTATION-GITHUB-RAW.md) (if present).

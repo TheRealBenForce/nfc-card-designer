@@ -1,0 +1,325 @@
+{
+  "atari-2600": {
+    "color": "#e2622b",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "nes": {
+    "color": "#d6262a",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "master-system": {
+    "color": "#2e6db4",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "game-boy": {
+    "color": "#8bac0f",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "game-boy-color": {
+    "color": "#e0459c",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "snes": {
+    "color": "#d6262a",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 90,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "genesis": {
+    "color": "#2e6db4",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "sega-cd": {
+    "color": "#2e6db4",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "sega-32x": {
+    "color": "#2e6db4",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "turbo-grafx": {
+    "color": "#e6376a",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "pc-engine-cd": {
+    "color": "#c42d5a",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "saturn": {
+    "color": "#5b5ea6",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "n64": {
+    "color": "#2d8f2d",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 90,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "neo-geo": {
+    "color": "#d4a017",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "playstation": {
+    "color": "#003791",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "dos": {
+    "color": "#000000",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
+  "arcade": {
+    "color": "#ff3d57",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "select",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  }
+}

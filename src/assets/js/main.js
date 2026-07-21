@@ -1,8 +1,12 @@
 import { loadGameCatalog } from "./gameCatalog.js";
+import { loadPlatformDefaultsSeed } from "./platformDefaults.js";
+import { reloadSettingsFromStorage } from "./state.js";
 import { initUI } from "./ui.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    await loadPlatformDefaultsSeed();
+    reloadSettingsFromStorage();
     await loadGameCatalog();
     await initUI();
   } catch (err) {

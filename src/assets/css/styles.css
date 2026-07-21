@@ -780,6 +780,118 @@ body {
   max-height: 220px;
 }
 
+.platform-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.platform-row:last-child {
+  border-bottom: none;
+}
+
+.platform-row__select {
+  flex: 1;
+  border-bottom: none;
+}
+
+.platform-row__edit-btn {
+  flex-shrink: 0;
+  width: 2rem;
+  margin: 0.35rem 0.35rem 0.35rem 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.platform-row__edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.platform-row__edit-btn:focus-visible {
+  outline: 2px solid rgba(108, 140, 255, 0.65);
+  outline-offset: 1px;
+}
+
+.platform-settings-modal {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  max-width: min(32rem, calc(100vw - 2rem));
+  width: 100%;
+}
+
+.platform-settings-modal::backdrop {
+  background: rgba(8, 10, 18, 0.72);
+}
+
+.platform-settings-modal__panel {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.platform-settings-modal__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.platform-settings-modal__close {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.platform-settings-modal__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.platform-settings-modal__body {
+  padding: 1rem;
+  overflow: auto;
+}
+
+.platform-settings-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
 .list-more-hint {
   margin: 0;
   padding: 0.5rem 0.75rem;

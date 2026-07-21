@@ -68,6 +68,11 @@ export function getSettings() {
   return settings;
 }
 
+export function reloadSettingsFromStorage() {
+  settings = loadSettings();
+  emit("settings");
+}
+
 /** @deprecated Use getCollection */
 export function getDeck() {
   return collection;

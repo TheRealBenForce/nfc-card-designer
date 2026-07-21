@@ -24,12 +24,10 @@ import {
   normalizeStickerInsetMm,
   resolveCardSizing,
 } from "./cardSizing.js";
-import { movePriorityItem } from "./imageSettings.js";
 import {
   getEffectiveImageTypePriority,
   getPlatformArtworkDisplay,
   normalizeRotationDegrees,
-  ROTATION_OPTIONS,
 } from "./platformDefaults.js";
 import {
   ARTWORK_ALIGNMENT_ORDER,
@@ -51,10 +49,6 @@ import {
   getSelectedCards,
   getPreviewCard,
   updateSettings,
-  setPlatformColor,
-  setPlatformImageRotation,
-  setPlatformImageTypePriority,
-  setPlatformArtworkDisplay,
   setCardArtworkDisplay,
   clearCardArtworkDisplay,
   setCardImageRotation,
@@ -80,6 +74,10 @@ import {
 import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
+import {
+  initPlatformSettingsModal,
+  openPlatformSettingsModal,
+} from "./platformSettingsModal.js";
 
 const ARTWORK_ZOOM_BASE_PERCENT = 100;
 const MIN_ARTWORK_ZOOM_PERCENT = ARTWORK_ZOOM_BASE_PERCENT + MIN_ARTWORK_ZOOM;
@@ -143,8 +141,6 @@ let gameSearchInput = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
-let platformColorInput = null;
-/** @type {HTMLInputElement|null} */
 let globalShowHeaderInput = null;
 /** @type {HTMLInputElement|null} */
 let globalShowPlatformColorInput = null;
@@ -159,25 +155,9 @@ let globalCardHeightInput = null;
 /** @type {HTMLInputElement|null} */
 let globalStickerInsetInput = null;
 /** @type {HTMLElement|null} */
-let platformRotationFieldsEl = null;
-/** @type {HTMLOListElement|null} */
-let platformPriorityListEl = null;
-/** @type {HTMLElement|null} */
 let previewTypeTabsEl = null;
 /** @type {HTMLButtonElement|null} */
 let addBrowsedGameBtn = null;
-/** @type {HTMLElement|null} */
-let platformArtworkAlignmentGridEl = null;
-/** @type {HTMLSelectElement|null} */
-let platformArtworkBackgroundModeEl = null;
-/** @type {HTMLInputElement|null} */
-let platformArtworkBackgroundColorEl = null;
-/** @type {HTMLButtonElement|null} */
-let platformArtworkColorToolBtn = null;
-/** @type {HTMLInputElement|null} */
-let platformArtworkZoomEl = null;
-/** @type {HTMLElement|null} */
-let platformArtworkZoomValueEl = null;
 /** @type {HTMLElement|null} */
 let previewArtworkControlsEl = null;
 /** @type {HTMLElement|null} */
@@ -435,43 +415,6 @@ function mountArtworkBackgroundModeSelect(selectEl) {
   }
 }
 
-function syncPlatformArtworkDisplayControls() {
-  const settings = getSettings();
-  const activePlatformId = getActivePlatformId();
-  const artworkDisplay = activePlatformId
-    ? getPlatformArtworkDisplay(settings.platformDefaults, activePlatformId)
-    : normalizeArtworkDisplay();
-
-  syncArtworkAlignmentGrid(platformArtworkAlignmentGridEl, artworkDisplay);
-  syncArtworkBackgroundControls(
-    platformArtworkBackgroundModeEl,
-    platformArtworkBackgroundColorEl,
-    platformArtworkColorToolBtn,
-    artworkDisplay,
-  );
-  syncArtworkZoomControl(
-    platformArtworkZoomEl,
-    platformArtworkZoomValueEl,
-    artworkDisplay,
-  );
-
-  const controlsDisabled = !activePlatformId;
-  if (platformArtworkAlignmentGridEl) {
-    for (const btn of platformArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
-      /** @type {HTMLButtonElement} */ (btn).disabled = controlsDisabled;
-    }
-  }
-  if (platformArtworkBackgroundModeEl) {
-    platformArtworkBackgroundModeEl.disabled = controlsDisabled;
-  }
-  if (platformArtworkZoomEl) {
-    platformArtworkZoomEl.disabled = controlsDisabled;
-  }
-  if (platformArtworkColorToolBtn && controlsDisabled) {
-    platformArtworkColorToolBtn.disabled = true;
-  }
-}
-
 function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
   const activePlatformId = getActivePlatformId();
@@ -684,56 +627,6 @@ function getEditingCard() {
   return getCollection().find((card) => card.id === browseState.targetCardId) ?? null;
 }
 
-/**
- * @param {HTMLOListElement} listEl
- * @param {string[]} priority
- * @param {(next: string[]) => void} onChange
- */
-function mountPriorityList(listEl, priority, onChange) {
-  listEl.innerHTML = "";
-
-  priority.forEach((type, index) => {
-    const item = document.createElement("li");
-    item.className = "priority-item";
-
-    const rank = document.createElement("span");
-    rank.className = "priority-item__rank";
-    rank.textContent = String(index + 1);
-
-    const label = document.createElement("span");
-    label.className = "priority-item__label";
-    label.textContent = IMAGE_TYPES[type]?.label ?? type;
-
-    const actions = document.createElement("div");
-    actions.className = "priority-item__actions";
-
-    const upBtn = document.createElement("button");
-    upBtn.type = "button";
-    upBtn.className = "priority-item__btn";
-    upBtn.textContent = "▲";
-    upBtn.disabled = index === 0;
-    upBtn.addEventListener("click", () => {
-      onChange(movePriorityItem(priority, index, -1));
-    });
-
-    const downBtn = document.createElement("button");
-    downBtn.type = "button";
-    downBtn.className = "priority-item__btn";
-    downBtn.textContent = "▼";
-    downBtn.disabled = index === priority.length - 1;
-    downBtn.addEventListener("click", () => {
-      onChange(movePriorityItem(priority, index, 1));
-    });
-
-    actions.appendChild(upBtn);
-    actions.appendChild(downBtn);
-    item.appendChild(rank);
-    item.appendChild(label);
-    item.appendChild(actions);
-    listEl.appendChild(item);
-  });
-}
-
 function refreshSearchViews() {
   renderPlatformResults();
   filterGames(gameSearchInput?.value ?? "");
@@ -846,14 +739,30 @@ function renderPlatformResults() {
     a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
   );
   visiblePlatforms.forEach((platform) => {
+    const row = document.createElement("div");
+    row.className = "platform-row";
+
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "list-item";
+    btn.className = "list-item platform-row__select";
     if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
-
     btn.textContent = platform.name;
     btn.addEventListener("click", () => selectPlatform(platform.id));
-    platformResultsEl.appendChild(btn);
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "platform-row__edit-btn";
+    editBtn.textContent = "✎";
+    editBtn.title = `Edit ${platform.name} defaults`;
+    editBtn.setAttribute("aria-label", `Edit ${platform.name} defaults`);
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openPlatformSettingsModal(platform.id);
+    });
+
+    row.appendChild(btn);
+    row.appendChild(editBtn);
+    platformResultsEl.appendChild(row);
   });
 }
 
@@ -1031,16 +940,6 @@ function syncPlatformControls() {
   }
 
   const activePlatformId = getActivePlatformId();
-  const currentSettings = getSettings();
-  const platform = activePlatformId ? platformById[activePlatformId] : null;
-  const platformDefaults = activePlatformId
-    ? currentSettings.platformDefaults[activePlatformId]
-    : null;
-
-  if (platformColorInput) {
-    platformColorInput.value = platform && platformDefaults ? platformDefaults.color : "#000000";
-    platformColorInput.disabled = !activePlatformId;
-  }
   if (gameSearchInput) {
     gameSearchInput.disabled = !activePlatformId;
     gameSearchInput.placeholder = activePlatformId ? "Search games..." : "Select a platform first";
@@ -1050,87 +949,7 @@ function syncPlatformControls() {
   }
 
   renderPlatformResults();
-  renderPlatformImagePriorityList();
-  renderPlatformRotationFields();
-  syncPlatformArtworkDisplayControls();
   filterGames(gameSearchInput?.value ?? "");
-}
-
-function renderPlatformImagePriorityList() {
-  if (!platformPriorityListEl) return;
-  const activePlatformId = getActivePlatformId();
-  if (!activePlatformId) {
-    platformPriorityListEl.innerHTML = "";
-    return;
-  }
-
-  const settings = getSettings();
-  const platformDefaults = settings.platformDefaults[activePlatformId];
-  if (!platformDefaults) return;
-
-  mountPriorityList(platformPriorityListEl, platformDefaults.imageTypePriority, (next) => {
-    setPlatformImageTypePriority(activePlatformId, next);
-    saveSettings(getSettings());
-    renderPlatformImagePriorityList();
-    renderPlatformRotationFields();
-    applyPlatformPriorityToBrowse();
-  });
-}
-
-function renderPlatformRotationFields() {
-  if (!platformRotationFieldsEl) return;
-  const activePlatformId = getActivePlatformId();
-  if (!activePlatformId) {
-    platformRotationFieldsEl.innerHTML = "";
-    return;
-  }
-
-  const settings = getSettings();
-  const platformDefaults = settings.platformDefaults[activePlatformId];
-  platformRotationFieldsEl.innerHTML = "";
-
-  if (!platformDefaults) return;
-
-  for (const type of platformDefaults.imageTypePriority) {
-    const meta = IMAGE_TYPES[type];
-    if (!meta) continue;
-
-    const field = document.createElement("label");
-    field.className = "rotation-field";
-
-    const label = document.createElement("span");
-    label.className = "rotation-field__label";
-    label.textContent = `${meta.label} rotation`;
-
-    const select = document.createElement("select");
-    select.className = "rotation-field__select";
-    select.dataset.imageType = type;
-
-    for (const degrees of ROTATION_OPTIONS) {
-      const option = document.createElement("option");
-      option.value = String(degrees);
-      option.textContent = `${degrees}°`;
-      select.appendChild(option);
-    }
-
-    select.value = String(platformDefaults.imageRotation?.[type] ?? 0);
-    select.addEventListener("change", (e) => {
-      const target = /** @type {HTMLSelectElement} */ (e.target);
-      const imageType = target.dataset.imageType;
-      if (!imageType) return;
-      setPlatformImageRotation(
-        activePlatformId,
-        imageType,
-        Number(target.value),
-      );
-      saveSettings(getSettings());
-      refreshPreview();
-    });
-
-    field.appendChild(label);
-    field.appendChild(select);
-    platformRotationFieldsEl.appendChild(field);
-  }
 }
 
 async function applyPlatformPriorityToBrowse() {
@@ -1642,36 +1461,6 @@ function bindEvents() {
     refreshPreview();
   });
 
-  platformColorInput?.addEventListener("input", (e) => {
-    const activePlatformId = getActivePlatformId();
-    if (!activePlatformId) return;
-    setPlatformColor(activePlatformId, /** @type {HTMLInputElement} */ (e.target).value);
-    saveSettings(getSettings());
-    refreshPreview();
-  });
-
-  platformArtworkBackgroundModeEl?.addEventListener("change", (e) => {
-    const activePlatformId = getActivePlatformId();
-    if (!activePlatformId) return;
-    setPlatformArtworkDisplay(
-      activePlatformId,
-      { backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value },
-    );
-    saveSettings(getSettings());
-    syncPlatformArtworkDisplayControls();
-    refreshPreview();
-  });
-
-  platformArtworkZoomEl?.addEventListener("input", (e) => {
-    const activePlatformId = getActivePlatformId();
-    if (!activePlatformId) return;
-    const zoom = artworkPercentToZoom(/** @type {HTMLInputElement} */ (e.target).value);
-    setPlatformArtworkDisplay(activePlatformId, { zoom });
-    saveSettings(getSettings());
-    syncPlatformArtworkDisplayControls();
-    refreshPreview();
-  });
-
   previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
     applyPreviewArtworkPatch({
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
@@ -1871,30 +1660,11 @@ export async function initUI() {
   globalStickerInsetInput = /** @type {HTMLInputElement|null} */ (
     document.getElementById("global-sticker-inset")
   );
-  platformColorInput = /** @type {HTMLInputElement|null} */ (document.getElementById("platform-color"));
-  platformRotationFieldsEl = document.getElementById("platform-rotation-fields");
-  platformPriorityListEl = /** @type {HTMLOListElement|null} */ (
-    document.getElementById("platform-priority-list")
-  );
   previewTypeTabsEl = document.getElementById("preview-type-tabs");
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("add-browsed-game")
   );
   if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
-  platformArtworkAlignmentGridEl = document.getElementById("platform-artwork-alignment-grid");
-  platformArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
-    document.getElementById("platform-artwork-background-mode")
-  );
-  platformArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("platform-artwork-background-color")
-  );
-  platformArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
-    document.getElementById("platform-artwork-color-tool")
-  );
-  platformArtworkZoomEl = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("platform-artwork-zoom")
-  );
-  platformArtworkZoomValueEl = document.getElementById("platform-artwork-zoom-value");
   previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
   previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
   previewArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
@@ -1918,16 +1688,12 @@ export async function initUI() {
     document.getElementById("preview-artwork-rotate")
   );
 
-  if (platformArtworkAlignmentGridEl) {
-    mountArtworkAlignmentGrid(platformArtworkAlignmentGridEl, (alignment) => {
-      const activePlatformId = getActivePlatformId();
-      if (!activePlatformId) return;
-      setPlatformArtworkDisplay(activePlatformId, { alignment });
-      saveSettings(getSettings());
-      syncPlatformArtworkDisplayControls();
+  initPlatformSettingsModal({
+    onChange: () => {
+      void applyPlatformPriorityToBrowse();
       refreshPreview();
-    });
-  }
+    },
+  });
 
   if (previewArtworkAlignmentGridEl) {
     mountArtworkAlignmentGrid(previewArtworkAlignmentGridEl, (alignment) => {
@@ -1935,25 +1701,8 @@ export async function initUI() {
     });
   }
 
-  if (platformArtworkBackgroundModeEl) {
-    mountArtworkBackgroundModeSelect(platformArtworkBackgroundModeEl);
-  }
   if (previewArtworkBackgroundModeEl) {
     mountArtworkBackgroundModeSelect(previewArtworkBackgroundModeEl);
-  }
-
-  if (platformArtworkColorToolBtn && platformArtworkBackgroundColorEl) {
-    bindColorToolButton(platformArtworkColorToolBtn, platformArtworkBackgroundColorEl, (color) => {
-      const activePlatformId = getActivePlatformId();
-      if (!activePlatformId) return;
-      setPlatformArtworkDisplay(activePlatformId, {
-        backgroundColor: color,
-        backgroundMode: "select",
-      });
-      saveSettings(getSettings());
-      syncPlatformArtworkDisplayControls();
-      refreshPreview();
-    });
   }
 
   if (previewArtworkColorToolBtn && previewArtworkBackgroundColorEl) {
@@ -1965,7 +1714,6 @@ export async function initUI() {
     });
   }
 
-  syncPlatformArtworkDisplayControls();
   syncPreviewArtworkControls();
   syncBrowseActionButton();
   syncGlobalSettingsControls();

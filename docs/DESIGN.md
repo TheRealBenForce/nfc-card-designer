@@ -352,15 +352,17 @@ Features below are **not yet built** unless marked otherwise. Add new items at t
 
 ### GitHub Pages + libretro GitHub raw URLs (zero image hosting)
 
-- **Status:** In design — **awaiting product-owner review before implementation**
+- **Status:** Ready to build — **awaiting explicit “go ahead and build” from product owner**
 - **Problem:** Operating the app requires AWS (S3 + CloudFront), maintainer scripts (`fetch-images`, `sync-image-manifest`), CI manifest sync, and ongoing image mirroring. This is heavy for a static client-side tool whose artwork already exists in the public [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) organization on GitHub.
 - **Proposal:** Host the static site on **GitHub Pages** and load game artwork directly from **GitHub raw URLs**. Remove all image storage, S3 deploy, and sync pipelines. Keep the existing **17 platforms** in `platforms.js`; do not expose libretro’s full platform list.
 - **Acceptance criteria:**
   - [ ] Site deploys to GitHub Pages from `src/` on push to `main` (no AWS credentials in Pages CI).
-  - [ ] Game search works for all **17 curated platforms** by fetching game names from the libretro-thumbnails GitHub API when the user selects a platform (no bundled `image-manifest.json` or `game-catalog.json`).
+  - [ ] Game search works for all **17 curated platforms** using game names fetched from the libretro-thumbnails GitHub API (no bundled `image-manifest.json` or `game-catalog.json`).
+  - [ ] On first page load, the app **prefetches game lists in the background** for all 17 platforms (priority: selected platform first, then Arcade and other large repos, then the rest) so Arcade and NES feel instant when selected.
+  - [ ] Prefetched lists are cached in `sessionStorage` for the browser session; revisiting a platform does not re-fetch.
   - [ ] Card preview, collection thumbnails, and letter-sheet export render artwork from `https://raw.githubusercontent.com/libretro-thumbnails/<repo>/master/<Named_*>/<filename>.png`.
   - [ ] `imageAvailability` probes GitHub raw URLs to determine which artwork types exist for a game (box / title / in-game).
-  - [ ] Letter-size print output still works at ~300 DPI with cut marks for selected collection cards.
+  - [ ] **PDF** letter-sheet export at ~300 DPI with cut marks for selected collection cards (keep existing `pdfExport.js` flow; no PNG sheet export).
   - [ ] Platforms that fail to load a game list show an error state and remain usable after retry; empty lists hide the platform (same as today).
   - [ ] Retail-title filtering is applied client-side after fetching filenames (same rules as `retailFilter.js` today).
   - [ ] Recognition page credits libretro-thumbnails on GitHub (not “hosted on S3”).
@@ -375,12 +377,11 @@ Features below are **not yet built** unless marked otherwise. Add new items at t
   - **AWS decommission** — keep existing S3/CloudFront deploy running; migrate DNS/hosting in a separate branch later.
   - Migrating custom domain DNS in this iteration.
 - **Decisions (product owner, 2026-07-21):**
-  - **Print format:** See [PDF vs PNG tradeoffs](#pdf-vs-png-tradeoffs) below — pick one at implementation time.
-  - **Catalog build script / `game-catalog.json`:** **Not needed.** Fetch game names from GitHub when the user selects a platform; cache per session.
+  - **Print format:** **PDF** — keep existing letter-size PDF export with cut marks; no PNG sheet download.
+  - **Catalog build script / `game-catalog.json`:** **Not needed.** Fetch game names from GitHub API; cache per session.
+  - **Game list loading:** **Background prefetch on page load** for all 17 platforms so large catalogs (Arcade, NES, PlayStation) are ready before the user selects them.
   - **AWS:** Do **not** decommission in this branch. GitHub Pages can be added alongside existing AWS hosting.
-  - **Arcade size:** No special caps beyond existing search limits unless performance testing shows problems (see [Arcade / large catalogs](#arcade--large-catalogs-plain-language)).
-- **Open questions:**
-  - **PDF vs PNG** for letter-sheet export — awaiting final pick after reading tradeoffs below.
+- **Open questions:** None — ready for implementation go-ahead.
 - **Notes:** Full implementation plan in [Proposed implementation plan](#proposed-implementation-plan) below.
 
 #### Architecture decision: use GitHub raw URLs (not libretro CDN, not S3)
@@ -436,52 +437,53 @@ Validate repo names against the live [libretro-thumbnails org](https://github.co
 
 #### PDF vs PNG tradeoffs
 
-Both use the same canvas render path today; only the final export step differs.
+**Decision: PDF.** Rationale: multi-page collections (&gt; 9 cards) are common; vector cut marks; existing `pdfExport.js` already works. PNG sheet export is out of scope.
 
-| | **PDF** (current) | **PNG** (single sheet image) |
-|--|-------------------|------------------------------|
-| **Print quality** | Excellent — embeds ~300 DPI raster cards; vector cut marks stay crisp | Excellent at 300 DPI — cut marks are raster too |
-| **Multi-page decks** | Natural — one PDF, many letter pages | Awkward — multiple PNGs or one huge image |
-| **User workflow** | Open PDF → print at 100% / “Actual size” | Open image → print at 100% / disable “fit to page” |
-| **Inkjet sticker paper** | Works well | Works well; some drivers treat photos slightly differently |
-| **Dependencies** | `jspdf` (already loaded from esm.sh) | None beyond canvas |
-| **File size** | Moderate (compressed images per page) | Large for full letter at 300 DPI (~2550×3300 px) |
-| **Simplicity** | Slightly more code (`pdfExport.js`) | Simpler — `canvas.toBlob()` download |
+<details>
+<summary>Reference — why PDF was chosen over PNG</summary>
 
-**Recommendation:** Keep **PDF** if multi-page printing matters (collections &gt; 9 cards). Switch to **PNG** only if you want fewer moving parts and rarely print more than one sheet. Offering both is low cost but adds UI clutter.
+| | **PDF** (selected) | **PNG** (rejected) |
+|--|-------------------|-------------------|
+| **Multi-page decks** | Natural — one PDF, many letter pages | Awkward — multiple files |
+| **Cut marks** | Vector — stay crisp | Raster at export DPI |
+| **Dependencies** | `jspdf` (already used) | None extra |
+| **Simplicity** | Existing code path | Slightly simpler export step |
 
-#### Arcade / large catalogs (plain language)
+</details>
 
-Libretro’s **Arcade** repo (and even **NES**) contains **thousands** of box-art filenames — including hacks, betas, and regional variants. The old open question was whether Arcade needs extra limits so search doesn’t feel overwhelming or slow.
+#### Arcade / large catalogs — background prefetch
 
-With **runtime GitHub fetch**, the practical concerns are:
+Libretro’s **Arcade** repo (and **NES**, **PlayStation**, etc.) contain **thousands** of box-art filenames. Fetching only on platform select would mean a noticeable wait the first time you tap Arcade.
 
-1. **Load time** — First time you pick a platform, the app downloads a list of filenames (one GitHub API call per platform, cached for the browser session). NES is ~13k names (~few MB JSON); Arcade is larger and may be slower or hit API size limits.
-2. **Search noise** — Retail filter removes most junk, but Arcade still has more titles than a console. Existing **3+ character search** and **100-result cap** already keep the UI manageable.
+**Approach:** Start loading **all 17 platform game lists in the background** as soon as the designer page loads (non-blocking):
 
-No special Arcade-only rules are required unless testing shows problems; we can add a loading indicator and session cache first.
+1. **Priority order:** (a) currently selected platform, if any; (b) `arcade`, `playstation`, `nes`, `snes`, `genesis` (largest catalogs); (c) remaining platforms.
+2. **Concurrency:** Limit to **2–3 parallel** GitHub API requests so we don’t spike the browser or hit rate limits.
+3. **Cache:** Store parsed, retail-filtered name lists in memory + `sessionStorage` (keyed by `platformId`).
+4. **UI:** Page is fully usable immediately. Game search shows a spinner only if the user selects a platform whose list isn’t ready yet (should be rare after prefetch).
+5. **Failure:** Per-platform retry; don’t block other platforms. If Arcade’s recursive tree exceeds GitHub API limits, fall back to paginated `Contents` API on `Named_Boxarts/`.
+
+Search noise is unchanged: retail filter + 3+ char search + 100-result cap. No Arcade-only search caps.
 
 #### Proposed runtime architecture
 
 ```
 src/index.html
   └── assets/js/main.js
-        ├── gameCatalog.js       # on platform select → GitHub API → in-memory game list (session cache)
+        ├── gameCatalog.js       # background prefetch all platforms on load; session cache; GitHub API
         ├── libretroThumbnails.js # GitHub raw URL builders + repo slug helper + filename helpers
         ├── imageProvider.js     # resolve GitHub raw URL for platform + libretroName + imageType
         ├── imageAvailability.js # probe which types exist on GitHub raw
         ├── cardRenderer.js      # canvas preview + print tiles (unchanged flow)
-        └── pdfExport.js         # letter sheet + cut marks (or pngExport.js if PNG chosen)
+        └── pdfExport.js         # letter PDF + cut marks (unchanged)
 ```
 
 **Game list (search index) — no bundled JSON:**
 
-1. User selects a platform.
-2. If not cached in memory / `sessionStorage`, call GitHub API:
-   `GET /repos/libretro-thumbnails/{libretroGitHubRepo}/git/trees/master?recursive=1`
-3. Extract `Named_Boxarts/*.png` paths → filename stems → apply `isRetailRelease()` → sort → store in memory.
-4. Search/filter runs against that in-memory list (same UX as today).
-5. Show a loading state during fetch; on failure, show retry (rate limit, network, oversized tree).
+1. On designer page load, `gameCatalog.js` starts **background prefetch** for all 17 platforms (see [Arcade / large catalogs](#arcade--large-catalogs--background-prefetch)).
+2. Each fetch: `GET /repos/libretro-thumbnails/{libretroGitHubRepo}/git/trees/master?recursive=1` → extract `Named_Boxarts/*.png` → retail filter → sort → cache.
+3. When user selects a platform, search uses the cached list (or waits with spinner if prefetch still in flight).
+4. Search/filter UX unchanged from today.
 
 **Why not scrape HTML?** Use the **GitHub REST API**, not libretro directory HTML pages — more stable and structured.
 
@@ -513,7 +515,8 @@ src/index.html
 | File | Change |
 |------|--------|
 | `libretroThumbnails.js` | Add `LIBRETRO_GITHUB_RAW_BASE`, `libretroGitHubRawUrl()`, `playlistToGitHubRepo()` |
-| `gameCatalog.js` | Fetch game names from GitHub API on platform select; session cache; remove S3 manifest loading |
+| `gameCatalog.js` | Background prefetch all platforms on load; priority queue; `sessionStorage` cache; remove S3 manifest loading |
+| `main.js` | Kick off prefetch after init (non-blocking) |
 | `imageProvider.js` | Resolve GitHub raw URLs from platform + `libretroName` + `imageType` |
 | `imageAvailability.js` | No structural change — probes new URLs |
 | `ui.js` | Loading indicator while platform game list fetches |
@@ -569,8 +572,8 @@ src/index.html
 
 | Risk | Mitigation |
 |------|------------|
-| GitHub API rate limit (60 req/hr unauthenticated per IP) | One fetch per platform per session; cache in `sessionStorage`; show friendly message on 403 |
-| Large tree response (NES ~13k boxarts) | Loading UI; parse once; retail filter reduces noise; search still capped at 100 results |
+| GitHub API rate limit (60 req/hr unauthenticated per IP) | 17 calls once per session; 2–3 concurrent max; `sessionStorage` cache avoids repeat visits |
+| Large tree response (NES ~13k boxarts, Arcade larger) | Background prefetch on load; priority queue; spinner only if user beats prefetch |
 | Arcade tree may exceed API limits | Fall back to paginated Contents API on `Named_Boxarts/` if recursive tree fails |
 | GitHub raw availability | Static URLs; probe cache in `imageAvailability` |
 | `libretroName` must match filename exactly | Store exact stem from API listing; collection persists `libretroName` |
@@ -580,7 +583,7 @@ src/index.html
 
 ## Open questions (global)
 
-- **PDF vs PNG** for letter-sheet export — see [tradeoffs](#pdf-vs-png-tradeoffs); product owner to confirm before build.
+- None. Feature [GitHub Pages + libretro GitHub raw URLs](#github-pages--libretro-github-raw-urls-zero-image-hosting) is **Ready to build** pending explicit go-ahead.
 
 ---
 
@@ -616,4 +619,5 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 | 2026-07-21 | Initial design document and AI collaboration workflow |
 | 2026-07-21 | Added site map, navigation, and per-page layout specifications |
 | 2026-07-21 | Backlog: GitHub Pages + libretro GitHub raw URLs — architecture decision, removal plan, implementation outline (awaiting review) |
-| 2026-07-21 | Product review: runtime GitHub API game list (no catalog JSON), keep AWS deploy, clarify PDF/PNG and Arcade |
+| 2026-07-21 | Product review: runtime GitHub API game list (no catalog JSON), keep AWS deploy, clarify PDF/PNG and UI naming |
+| 2026-07-21 | Decisions locked: PDF export; background prefetch all platforms on page load (Arcade priority) |

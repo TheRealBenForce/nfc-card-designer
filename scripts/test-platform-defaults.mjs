@@ -108,6 +108,11 @@ if (zoomNormalized.zoom !== 100) {
   throw new Error("Artwork zoom should clamp to 100");
 }
 
+const zoomZoomedOut = normalizeArtworkDisplay({ zoom: -80 });
+if (zoomZoomedOut.zoom !== -50) {
+  throw new Error("Artwork zoom should clamp to -50");
+}
+
 const zoomInvalid = normalizeArtworkDisplay({ zoom: "bad" });
 if (zoomInvalid.zoom !== 0) {
   throw new Error("Invalid artwork zoom should fall back to 0");

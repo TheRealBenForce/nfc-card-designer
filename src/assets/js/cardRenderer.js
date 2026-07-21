@@ -19,7 +19,146 @@ import {
 import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
-const BLUR_RADIUS_PX = 18;
+const BLUR_RADIUS_PX = 36;
+const BLUR_FALLBACK_RADIUS_PX = 72;
+const BLUR_FALLBACK_SCALE_STEP = 0.5;
+const BLUR_FALLBACK_PASS_COUNT = 5;
+const BLUR_FALLBACK_MIN_SIDE_PX = 32;
+
+/** @type {boolean | undefined} */
+let cachedCanvasBlurFilterSupport;
+
+/** @type {Promise<{ canvasRGBA: typeof import("stackblur-canvas").canvasRGBA }> | null} */
+let stackBlurModulePromise = null;
+
+/**
+ * @returns {Promise<{ canvasRGBA: typeof import("stackblur-canvas").canvasRGBA }>}
+ */
+function loadStackBlurModule() {
+  if (!stackBlurModulePromise) {
+    stackBlurModulePromise = import("https://esm.sh/stackblur-canvas@3.0.1");
+  }
+  return stackBlurModulePromise;
+}
+
+/**
+ * iPad Safari can expose `ctx.filter` but still skip blur on `drawImage`.
+ * Detect real blur output once, then cache the result.
+ *
+ * @returns {boolean}
+ */
+function supportsCanvasBlurFilter() {
+  if (typeof cachedCanvasBlurFilterSupport === "boolean") {
+    return cachedCanvasBlurFilterSupport;
+  }
+
+  const source = document.createElement("canvas");
+  source.width = 24;
+  source.height = 24;
+  const sourceCtx = source.getContext("2d");
+  const target = document.createElement("canvas");
+  target.width = 24;
+  target.height = 24;
+  const targetCtx = target.getContext("2d");
+  if (!sourceCtx || !targetCtx) {
+    cachedCanvasBlurFilterSupport = false;
+    return cachedCanvasBlurFilterSupport;
+  }
+
+  sourceCtx.fillStyle = "#fff";
+  sourceCtx.fillRect(0, 0, 12, 24);
+  sourceCtx.fillStyle = "#000";
+  sourceCtx.fillRect(12, 0, 12, 24);
+
+  targetCtx.filter = "blur(4px)";
+  targetCtx.drawImage(source, 0, 0);
+
+  const leftSample = targetCtx.getImageData(10, 12, 1, 1).data[0];
+  const rightSample = targetCtx.getImageData(13, 12, 1, 1).data[0];
+  cachedCanvasBlurFilterSupport = Math.abs(leftSample - rightSample) < 200;
+  return cachedCanvasBlurFilterSupport;
+}
+
+/**
+ * Last-resort blur when StackBlur cannot be loaded (offline/CDN failure).
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {HTMLCanvasElement} source
+ */
+function drawBlurredImageBackgroundResampleFallback(ctx, rect, source) {
+  /**
+   * @param {HTMLCanvasElement} layer
+   * @param {number} width
+   * @param {number} height
+   * @returns {HTMLCanvasElement | null}
+   */
+  const resample = (layer, width, height) => {
+    const output = document.createElement("canvas");
+    output.width = Math.max(1, width);
+    output.height = Math.max(1, height);
+    const outputCtx = output.getContext("2d");
+    if (!outputCtx) return null;
+    outputCtx.imageSmoothingEnabled = true;
+    outputCtx.imageSmoothingQuality = "high";
+    outputCtx.drawImage(layer, 0, 0, output.width, output.height);
+    return output;
+  };
+
+  /** @type {{ width: number, height: number }[]} */
+  const levels = [{ width: source.width, height: source.height }];
+  let blurredLayer = source;
+  for (let pass = 0; pass < BLUR_FALLBACK_PASS_COUNT; pass += 1) {
+    const nextWidth = Math.max(1, Math.round(blurredLayer.width * BLUR_FALLBACK_SCALE_STEP));
+    const nextHeight = Math.max(1, Math.round(blurredLayer.height * BLUR_FALLBACK_SCALE_STEP));
+    if (Math.min(nextWidth, nextHeight) < BLUR_FALLBACK_MIN_SIDE_PX) {
+      break;
+    }
+    const next = resample(blurredLayer, nextWidth, nextHeight);
+    if (!next) break;
+    blurredLayer = next;
+    levels.push({ width: nextWidth, height: nextHeight });
+  }
+
+  for (let i = levels.length - 2; i >= 0; i -= 1) {
+    const restored = resample(blurredLayer, levels[i].width, levels[i].height);
+    if (!restored) break;
+    blurredLayer = restored;
+  }
+
+  const prevSmoothingEnabled = ctx.imageSmoothingEnabled;
+  const prevSmoothingQuality = ctx.imageSmoothingQuality;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(blurredLayer, rect.x, rect.y, rect.w, rect.h);
+  ctx.imageSmoothingEnabled = prevSmoothingEnabled;
+  ctx.imageSmoothingQuality = prevSmoothingQuality;
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {HTMLCanvasElement} source
+ */
+async function drawBlurredImageBackgroundFallback(ctx, rect, source) {
+  try {
+    const { canvasRGBA } = await loadStackBlurModule();
+    const blurred = document.createElement("canvas");
+    blurred.width = source.width;
+    blurred.height = source.height;
+    const blurredCtx = blurred.getContext("2d");
+    if (!blurredCtx) {
+      drawBlurredImageBackgroundResampleFallback(ctx, rect, source);
+      return;
+    }
+
+    blurredCtx.drawImage(source, 0, 0);
+    canvasRGBA(blurred, 0, 0, blurred.width, blurred.height, BLUR_FALLBACK_RADIUS_PX);
+    ctx.drawImage(blurred, rect.x, rect.y, rect.w, rect.h);
+  } catch {
+    drawBlurredImageBackgroundResampleFallback(ctx, rect, source);
+  }
+}
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -248,7 +387,7 @@ function drawNearestEdgeBackground(ctx, rect, img, rotationDeg, align, zoom = 0)
  * @param {import('./cardLayout.js').Rect} rect
  * @param {HTMLImageElement} img
  */
-function drawBlurredImageBackground(ctx, rect, img) {
+async function drawBlurredImageBackground(ctx, rect, img) {
   const scratch = document.createElement("canvas");
   scratch.width = rect.w;
   scratch.height = rect.h;
@@ -267,9 +406,13 @@ function drawBlurredImageBackground(ctx, rect, img) {
   ctx.beginPath();
   ctx.rect(rect.x, rect.y, rect.w, rect.h);
   ctx.clip();
-  ctx.filter = `blur(${BLUR_RADIUS_PX}px)`;
-  ctx.drawImage(scratch, rect.x, rect.y, rect.w, rect.h);
-  ctx.filter = "none";
+  if (supportsCanvasBlurFilter()) {
+    ctx.filter = `blur(${BLUR_RADIUS_PX}px)`;
+    ctx.drawImage(scratch, rect.x, rect.y, rect.w, rect.h);
+    ctx.filter = "none";
+  } else {
+    await drawBlurredImageBackgroundFallback(ctx, rect, scratch);
+  }
   ctx.restore();
 }
 
@@ -329,7 +472,7 @@ async function drawArtBackground(
     const imageType = BLURRED_BACKGROUND_IMAGE_TYPES[backgroundMode];
     const bgImg = await loadCardImageType(card, imageType);
     if (bgImg) {
-      drawBlurredImageBackground(ctx, rect, bgImg);
+      await drawBlurredImageBackground(ctx, rect, bgImg);
       return;
     }
   }

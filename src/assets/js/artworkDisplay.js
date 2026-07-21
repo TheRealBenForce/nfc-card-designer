@@ -61,7 +61,7 @@ export const ARTWORK_BACKGROUND_MODES = {
 export const DEFAULT_ARTWORK_BACKGROUND_MODE = "select";
 export const DEFAULT_ARTWORK_BACKGROUND_COLOR = "#000000";
 export const DEFAULT_ARTWORK_ZOOM = 0;
-export const MIN_ARTWORK_ZOOM = 0;
+export const MIN_ARTWORK_ZOOM = -50;
 export const MAX_ARTWORK_ZOOM = 100;
 
 /** @type {Record<string, string>} */

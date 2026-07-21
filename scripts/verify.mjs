@@ -5,13 +5,15 @@
  */
 
 import { spawn } from "node:child_process";
-import { readdir } from "node:fs/promises";
+import { access, copyFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = process.env.VERIFY_PORT ?? "8765";
 const BASE = `http://localhost:${PORT}`;
+const catalogPath = path.join(root, "src/assets/data/game-catalog.json");
+const catalogFixture = path.join(root, "scripts/fixtures/game-catalog.sample.json");
 
 /** @param {string} cmd @param {string[]} args @param {import('node:child_process').SpawnOptions} [opts] */
 function run(cmd, args, opts = {}) {
@@ -43,6 +45,16 @@ function stopServer(server) {
   if (!server.killed) server.kill("SIGTERM");
 }
 
+async function ensureGameCatalog() {
+  try {
+    await access(catalogPath);
+    return;
+  } catch {
+    console.log("→ game-catalog.json missing — copying test fixture…");
+    await copyFile(catalogFixture, catalogPath);
+  }
+}
+
 async function main() {
   console.log("→ Syntax check…");
   const jsFiles = [
@@ -53,6 +65,11 @@ async function main() {
     await run("node", ["--check", file]);
   }
   console.log(`  ${jsFiles.length} files OK\n`);
+
+  await ensureGameCatalog();
+
+  console.log("→ Build game catalog helpers…");
+  await run("node", ["scripts/test-build-game-catalog.mjs"]);
 
   console.log("→ PDF layout…");
   await run("node", ["scripts/test-pdf-layout.mjs"]);
@@ -66,15 +83,6 @@ async function main() {
   console.log("→ Libretro thumbnails…");
   await run("node", ["scripts/test-libretro-thumbnails.mjs"]);
 
-  console.log("→ Fetch-images skip logic…");
-  await run("node", ["scripts/test-fetch-images-skip.mjs"]);
-
-  console.log("→ Fetch-images limit and cleanup…");
-  await run("node", ["scripts/test-fetch-images-limit.mjs"]);
-
-  console.log("→ Fetch-images local libretro source…");
-  await run("node", ["scripts/test-fetch-images-local-libretro.mjs"]);
-
   console.log("→ Platform visibility…");
   await run("node", ["scripts/test-platform-visibility.mjs"]);
 
@@ -86,9 +94,6 @@ async function main() {
 
   console.log("→ Image settings…");
   await run("node", ["scripts/test-image-settings.mjs"]);
-
-  console.log("→ Sync image manifest helpers…");
-  await run("node", ["scripts/test-sync-image-paths.mjs"]);
 
   console.log("→ Platform defaults…");
   await run("node", ["scripts/test-platform-defaults.mjs"]);

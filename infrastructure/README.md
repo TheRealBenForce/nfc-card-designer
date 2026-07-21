@@ -62,7 +62,7 @@ The `zaparoo-github-deploy` user (name configurable via `DeployUserName`) can:
 | Action | Purpose |
 |--------|---------|
 | `s3:ListBucket` | `aws s3 sync` and `HeadObject` prefix listing |
-| `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` | Site deploy + `fetch-images` uploads |
+| `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` | Static site deploy |
 | `cloudfront:CreateInvalidation` | Bust cache after deploy |
 
 Permissions are scoped to this stack's bucket and CloudFront distribution only.
@@ -73,9 +73,10 @@ Workflow: `.github/workflows/deploy.yml`
 
 Runs on every push to `main`:
 
-1. `node scripts/deploy.mjs` — `aws s3 sync` site files + CloudFront invalidation
+1. `npm run build-game-catalog` — refresh game name inventory from GitHub
+2. `node scripts/deploy.mjs` — `aws s3 sync` site files + CloudFront invalidation
 
-**Game images are not fetched in CI.** Run `npm run fetch-images` from your workstation when you need to upload thumbnails to S3.
+Game artwork is **not** stored on S3 — PNGs load from libretro-thumbnails on GitHub at runtime.
 
 ### Required repository secrets
 
@@ -110,9 +111,8 @@ aws iam put-user-policy \
 cp .env.example .env
 # fill AWS_* and S3_BUCKET
 
-npm run fetch-images          # download + upload missing images to S3
-npm run fetch-images -- --local-only   # disk only, no S3
-npm run fetch-images -- --s3-only      # S3 only, no local image files
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails.libretro.com --s3-only
-npm run deploy                # sync site to S3 + invalidate CloudFront (excludes assets/images/*)
+npm run build-game-catalog   # refresh game name inventory from GitHub (optional locally)
+npm run deploy               # sync site to S3 + invalidate CloudFront
 ```
+
+Game artwork is loaded from libretro-thumbnails on GitHub at runtime — it is not stored on S3.

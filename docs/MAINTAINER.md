@@ -6,10 +6,11 @@ Internal reference for data pipelines, search, and artwork handling.
 
 ```
 src/index.html
-  └── assets/js/main.js          # loads manifest, then initUI
-        ├── gameCatalog.js       # search from image-manifest.json
+  └── assets/js/main.js          # loads catalog, then initUI
+        ├── gameCatalog.js       # search from game-catalog.json
+        ├── libretroThumbnails.js # GitHub raw URL builders
+        ├── imageProvider.js     # resolve GitHub raw URLs for a card
         ├── imageAvailability.js # runtime cache of probed image types for preview
-        ├── imageProvider.js     # resolve libretro image paths for a card
         ├── cardRenderer.js      # canvas preview/PDF tiles
         ├── ui.js                # all DOM / events
         ├── state.js             # in-memory settings + collection
@@ -18,66 +19,31 @@ src/index.html
 
 Node-only scripts live in `scripts/`. They are **not** imported by the site at runtime.
 
-## Image manifest (inventory only)
+## Game catalog
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
-| `src/assets/data/image-manifest.json` | `sync-image-manifest`, GitHub Actions | `gameCatalog.js` | Games with artwork in S3/local, keyed by `libretroName` |
+| `src/assets/data/game-catalog.json` | `build-game-catalog` (local or CI) | `gameCatalog.js` | Retail-filtered game names per platform (`libretroName` only) |
 
-Search only includes games present in the manifest. There is no runtime S3 probing for search.
+**Not committed to git** — listed in `.gitignore`. Deploy workflows run `npm run build-game-catalog` before publishing.
 
-**S3 / local image paths** mirror libretro:
-
-```
-assets/images/<libretroPlaylist>/Named_Boxarts/<libretro filename>.png
-assets/images/<libretroPlaylist>/Named_Titles/<libretro filename>.png
-assets/images/<libretroPlaylist>/Named_Snaps/<libretro filename>.png
-```
-
-Lookups use **`platformId` + `libretroName`**.
+Search only includes games present in the catalog. Image URLs are computed at runtime from platform + `libretroName` + `imageType` → GitHub raw URL.
 
 ## Typical maintainer workflows
 
-### Upload artwork from a local libretro mirror
+### Build or refresh the game catalog
 
 ```bash
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes --max-games=25
-npm run sync-image-manifest -- --local-only
+npm run build-game-catalog
 ```
 
-`fetch-images` requires `--libretro-dir`. Optional `--max-games=<n>` limits retail boxart titles per platform (alphabetical). After each platform, empty folders under `src/assets/images/<playlist>/` are removed. Run `sync-image-manifest` afterward so `image-manifest.json` reflects the inventory.
+Optional: `GITHUB_TOKEN` in the environment for higher GitHub API rate limits.
 
-| Flag | Effect |
-|------|--------|
-| `--libretro-dir=<path>` | Local libretro thumbnails root (required) |
-| `--platform=<id>` | Process one platform |
-| `--max-games=<n>` | Sync only the first N retail boxart games (A–Z) per platform |
-| `--local-only` | Copy into `src/assets/images/` only (no S3) |
-| `--force` | Re-copy/upload even when the file already exists |
-| `--include-non-retail` | Include hacks, betas, and other filtered titles |
-
-### Refresh manifest after direct S3 changes
+For local dev after a fresh clone:
 
 ```bash
-npm run sync-image-manifest -- --s3-only
-```
-
-Options:
-
-| Flag | Effect |
-|------|--------|
-| `--platform=<id>` | Limit scan to one platform's libretro playlist |
-| `--s3-only` | Read S3 only (requires `S3_BUCKET` in `.env`, environment, or `--bucket=`) |
-| `--local-only` | Read `src/assets/images/` only |
-| `--bucket=<name>` | Override S3 bucket |
-
-By default (no flags), the script merges local disk **and** S3 listings.
-
-### Pull a local random sample cache from S3 (for CORS-safe previewing)
-
-```bash
-npm run sync-s3-sample-images
-npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
+npm run build-game-catalog
+npm start
 ```
 
 ### Before merging UI or script changes
@@ -86,25 +52,25 @@ npm run sync-s3-sample-images -- --platform=nes,genesis --count=5
 npm run verify
 ```
 
+`verify` copies `scripts/fixtures/game-catalog.sample.json` if the catalog file is missing.
+
 ## GitHub Actions
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `sync-image-manifest.yml` | `workflow_dispatch`, `workflow_call` | Scan S3 → write `image-manifest.json` artifact |
-| `deploy.yml` | `push` to `main`, `workflow_dispatch` | Calls sync-manifest, then deploys site |
-
-Deploy uploads the freshly generated manifest with the site. Game PNGs remain on S3 only (`deploy.mjs` excludes `assets/images/*` except what is bundled under `src/assets/data/`).
+| `deploy.yml` | `push` to `main`, `workflow_dispatch` | Build catalog → deploy static site to S3 + CloudFront |
+| `pages.yml` | `push` to `main`, `workflow_dispatch` | Build catalog → deploy `src/` to GitHub Pages |
 
 ## Adding a platform
 
 1. Add entry to `src/assets/js/data/platforms.js` (`id`, `name`, `emoji`, `defaultColor`, `libretroPlaylist`, optional `searchAliases`).
-2. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
-3. `npm run fetch-platform-icons`
-4. `npm run fetch-images -- --libretro-dir=<path> --platform=<id>`
-5. `npm run sync-image-manifest`
-6. Commit platform icons and updated `image-manifest.json` (not game PNGs).
+2. Verify `playlistToGitHubRepo(libretroPlaylist)` matches the [libretro-thumbnails](https://github.com/orgs/libretro-thumbnails/repositories) repo name.
+3. Add carbon theme mapping in `scripts/fetch-platform-icons.mjs` (or bundled SVG).
+4. `npm run fetch-platform-icons`
+5. `npm run build-game-catalog --` (or `npm run build-game-catalog`)
+6. Commit platform icons only (not `game-catalog.json`).
 
-Platforms with **zero indexed artwork** are hidden from the platform selector automatically.
+Platforms with **zero catalog entries** are hidden from the platform selector automatically.
 
 ## Settings & export format
 
@@ -125,8 +91,7 @@ Platforms with **zero indexed artwork** are hidden from the platform selector au
 | Script | Purpose |
 |--------|---------|
 | `npm start` | Static server :8000 |
+| `npm run build-game-catalog` | GitHub API → `game-catalog.json` |
 | `npm run verify` | Full pre-merge check |
-| `npm run fetch-images` | Local libretro mirror → S3 (and optionally `src/assets/images/`) |
-| `npm run sync-image-manifest` | Scan local disk and/or S3 → `image-manifest.json` |
-| `npm run sync-s3-sample-images` | Pull random sample images from S3 for local dev |
-| `npm run deploy` | Site to S3 + CloudFront invalidation |
+| `npm run fetch-platform-icons` | Carbon theme SVGs → `src/assets/images/platforms/` |
+| `npm run deploy` | Static site to S3 + CloudFront invalidation |

@@ -121,11 +121,11 @@ async function main() {
 
     await page.fill("#game-search", "doo");
     await page.waitForTimeout(300);
-    const doomOption = page.getByRole("option", { name: /Doom \(Europe\)/ });
+    const doomOption = page.getByRole("option", { name: "Doom (Europe)", exact: true });
     await doomOption.waitFor({ state: "visible", timeout: 5000 });
     await doomOption.click();
     await page.waitForTimeout(500);
-    console.log("✓ Search finds games indexed in image-manifest.json");
+    console.log("✓ Search finds games indexed in game-catalog.json");
 
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 

@@ -1,8 +1,11 @@
 /**
- * Libretro thumbnail CDN helpers.
- * @see https://thumbnails.libretro.com/
+ * Libretro thumbnail helpers (GitHub raw URLs for runtime artwork).
  */
 
+export const LIBRETRO_GITHUB_RAW_BASE = "https://raw.githubusercontent.com/libretro-thumbnails";
+export const LIBRETRO_GITHUB_ORG = "libretro-thumbnails";
+
+/** @deprecated Legacy CDN — do not use for canvas/PDF (no CORS). */
 export const LIBRETRO_THUMBNAIL_BASE = "https://thumbnails.libretro.com";
 
 /** @type {Record<string, string>} App image type → libretro folder name */
@@ -23,6 +26,24 @@ export const LIBRETRO_REGION_SUFFIXES = [
 ];
 
 const INVALID_FILENAME_CHARS = /[&*/:\\`<>?|]/g;
+
+/**
+ * @param {string} libretroPlaylist
+ */
+export function playlistToGitHubRepo(libretroPlaylist) {
+  return libretroPlaylist.replaceAll(" - ", "_-_").replaceAll(" ", "_");
+}
+
+/**
+ * @param {string} githubRepo
+ * @param {string} imageFolder
+ * @param {string} filename With or without .png extension
+ */
+export function libretroGitHubRawUrl(githubRepo, imageFolder, filename) {
+  const stem = filename.replace(/\.png$/i, "");
+  const safeName = sanitizeLibretroFilename(stem);
+  return `${LIBRETRO_GITHUB_RAW_BASE}/${githubRepo}/master/${encodeURIComponent(imageFolder)}/${encodeURIComponent(`${safeName}.png`)}`;
+}
 
 /**
  * Characters forbidden in libretro thumbnail filenames become underscores.

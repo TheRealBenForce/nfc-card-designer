@@ -19,13 +19,27 @@ import {
 import { resolveCardSizing, mmToRenderPx } from "./cardSizing.js";
 
 const ALPHA_THRESHOLD = 16;
-const BLUR_RADIUS_PX = 28;
-const BLUR_FALLBACK_SCALE_STEP = 0.6;
-const BLUR_FALLBACK_PASS_COUNT = Math.max(3, Math.min(7, Math.round(BLUR_RADIUS_PX / 4)));
-const BLUR_FALLBACK_MIN_SIDE_PX = 72;
+const BLUR_RADIUS_PX = 36;
+const BLUR_FALLBACK_RADIUS_PX = 72;
+const BLUR_FALLBACK_SCALE_STEP = 0.5;
+const BLUR_FALLBACK_PASS_COUNT = 5;
+const BLUR_FALLBACK_MIN_SIDE_PX = 32;
 
 /** @type {boolean | undefined} */
 let cachedCanvasBlurFilterSupport;
+
+/** @type {Promise<{ canvasRGBA: typeof import("stackblur-canvas").canvasRGBA }> | null} */
+let stackBlurModulePromise = null;
+
+/**
+ * @returns {Promise<{ canvasRGBA: typeof import("stackblur-canvas").canvasRGBA }>}
+ */
+function loadStackBlurModule() {
+  if (!stackBlurModulePromise) {
+    stackBlurModulePromise = import("https://esm.sh/stackblur-canvas@3.0.1");
+  }
+  return stackBlurModulePromise;
+}
 
 /**
  * iPad Safari can expose `ctx.filter` but still skip blur on `drawImage`.
@@ -66,11 +80,13 @@ function supportsCanvasBlurFilter() {
 }
 
 /**
+ * Last-resort blur when StackBlur cannot be loaded (offline/CDN failure).
+ *
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('./cardLayout.js').Rect} rect
  * @param {HTMLCanvasElement} source
  */
-function drawBlurredImageBackgroundFallback(ctx, rect, source) {
+function drawBlurredImageBackgroundResampleFallback(ctx, rect, source) {
   /**
    * @param {HTMLCanvasElement} layer
    * @param {number} width
@@ -117,6 +133,31 @@ function drawBlurredImageBackgroundFallback(ctx, rect, source) {
   ctx.drawImage(blurredLayer, rect.x, rect.y, rect.w, rect.h);
   ctx.imageSmoothingEnabled = prevSmoothingEnabled;
   ctx.imageSmoothingQuality = prevSmoothingQuality;
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('./cardLayout.js').Rect} rect
+ * @param {HTMLCanvasElement} source
+ */
+async function drawBlurredImageBackgroundFallback(ctx, rect, source) {
+  try {
+    const { canvasRGBA } = await loadStackBlurModule();
+    const blurred = document.createElement("canvas");
+    blurred.width = source.width;
+    blurred.height = source.height;
+    const blurredCtx = blurred.getContext("2d");
+    if (!blurredCtx) {
+      drawBlurredImageBackgroundResampleFallback(ctx, rect, source);
+      return;
+    }
+
+    blurredCtx.drawImage(source, 0, 0);
+    canvasRGBA(blurred, 0, 0, blurred.width, blurred.height, BLUR_FALLBACK_RADIUS_PX);
+    ctx.drawImage(blurred, rect.x, rect.y, rect.w, rect.h);
+  } catch {
+    drawBlurredImageBackgroundResampleFallback(ctx, rect, source);
+  }
 }
 
 /**
@@ -346,7 +387,7 @@ function drawNearestEdgeBackground(ctx, rect, img, rotationDeg, align, zoom = 0)
  * @param {import('./cardLayout.js').Rect} rect
  * @param {HTMLImageElement} img
  */
-function drawBlurredImageBackground(ctx, rect, img) {
+async function drawBlurredImageBackground(ctx, rect, img) {
   const scratch = document.createElement("canvas");
   scratch.width = rect.w;
   scratch.height = rect.h;
@@ -370,7 +411,7 @@ function drawBlurredImageBackground(ctx, rect, img) {
     ctx.drawImage(scratch, rect.x, rect.y, rect.w, rect.h);
     ctx.filter = "none";
   } else {
-    drawBlurredImageBackgroundFallback(ctx, rect, scratch);
+    await drawBlurredImageBackgroundFallback(ctx, rect, scratch);
   }
   ctx.restore();
 }
@@ -431,7 +472,7 @@ async function drawArtBackground(
     const imageType = BLURRED_BACKGROUND_IMAGE_TYPES[backgroundMode];
     const bgImg = await loadCardImageType(card, imageType);
     if (bgImg) {
-      drawBlurredImageBackground(ctx, rect, bgImg);
+      await drawBlurredImageBackground(ctx, rect, bgImg);
       return;
     }
   }

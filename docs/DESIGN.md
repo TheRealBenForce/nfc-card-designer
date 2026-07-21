@@ -66,19 +66,21 @@ Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** fo
 ### Users
 
 - **Primary:** Zaparoo owners printing sticker sheets at home on US letter paper.
-- **Secondary:** Maintainers curating libretro artwork inventory on S3.
+- **Secondary:** Maintainers updating the bundled game-name catalog or platform list (infrequent).
 
 ### Goals
 
-- Pick a game, choose artwork, preview a card, collect many cards, export a print-ready PDF.
+- Pick a game, choose artwork, preview a card, collect many cards, export a print-ready letter sheet.
 - Stay **client-side only** — no accounts, no backend, persistence via `localStorage` and JSON export.
-- Use **libretro thumbnail paths** as the canonical artwork naming scheme.
+- Use **libretro thumbnail naming** as the canonical artwork scheme.
 
 ### Non-goals
 
 - User accounts, cloud sync, or multi-device collaboration.
 - Real-time NFC programming from the browser.
-- Bundling full game artwork in git (images live on S3).
+- Bundling game artwork PNGs in git.
+- Hosting or syncing image files on AWS S3 (proposed removal — see [backlog](#github-pages--libretro-github-raw-urls-zero-image-hosting)).
+- Exposing every libretro platform in the app (keep the current **17-platform** curated set).
 - A build step or SPA framework for the main app.
 
 ---
@@ -89,7 +91,7 @@ Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** fo
 2. **Platform consistency** — Every card uses the same layout rules; platform identity comes from logo + color strip.
 3. **Progressive disclosure** — Simple path: search → preview → add. Advanced controls (per-card artwork alignment, header overrides) stay available but tucked away.
 4. **Offline-friendly state** — Collection and settings survive reloads; export/import provides a portable backup.
-5. **Inventory-driven search** — Only games with artwork in `image-manifest.json` appear in search.
+5. **Inventory-driven search** — Only games listed in the bundled game catalog appear in search (today: `image-manifest.json`; proposed: `game-catalog.json` — names only, no image paths).
 
 ---
 
@@ -241,7 +243,7 @@ Vertically top-aligned, content centered horizontally.
 
 1. **Lead** — Acknowledgment of bundled third-party assets.
 2. **Platform logos** — Carbon EmulationStation theme (RetroPie), system SVG paths.
-3. **Game artwork** — libretro thumbnail CDN, hosted on S3 for this app.
+3. **Game artwork** — [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) project on GitHub (proposed: loaded via `raw.githubusercontent.com`; shipped today: mirrored on S3).
 4. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
 
 **Footer:** Back link to designer.
@@ -315,11 +317,13 @@ Landscape variant uses the same long-edge split rules (documented in `README.md`
 - **17 platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine CD, Neo Geo, Arcade.
 - Platforms with **zero indexed artwork** are hidden from the platform list.
 
-### Artwork pipeline
+### Artwork pipeline *(shipped today)*
 
-- Libretro paths on S3; inventory in `image-manifest.json`.
+- Libretro-mirrored paths on S3; inventory in `image-manifest.json` (includes per-game image paths).
 - **Image types:** Box art (`Named_Boxarts`), title screen (`Named_Titles`), in-game (`Named_Snaps`).
 - Global and per-platform priority order configurable.
+
+> **Proposed change:** See [GitHub Pages + libretro GitHub raw URLs](#github-pages--libretro-github-raw-urls-zero-image-hosting) in the backlog. Artwork URLs would be computed at runtime from libretro GitHub raw URLs; S3, sync scripts, and `image-manifest.json` would be removed.
 
 ### Persistence
 
@@ -346,26 +350,214 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 
 Features below are **not yet built** unless marked otherwise. Add new items at the top of this section.
 
-<!-- Copy the feature template from the top of this file for each new idea. -->
+### GitHub Pages + libretro GitHub raw URLs (zero image hosting)
 
-### _(Example) Batch rename games in collection_
-
-- **Status:** In design *(example only — remove or replace when adding real work)*
-- **Problem:** Large collections are hard to scan when libretro names differ from display preferences.
-- **Proposal:** Select multiple cards and apply a display-name pattern or manual rename.
+- **Status:** In design — **awaiting product-owner review before implementation**
+- **Problem:** Operating the app requires AWS (S3 + CloudFront), maintainer scripts (`fetch-images`, `sync-image-manifest`), CI manifest sync, and ongoing image mirroring. This is heavy for a static client-side tool whose artwork already exists in the public [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) organization on GitHub.
+- **Proposal:** Host the static site on **GitHub Pages** and load game artwork directly from **GitHub raw URLs**. Remove all image storage, S3 deploy, and sync pipelines. Keep the existing **17 platforms** in `platforms.js`; do not expose libretro’s full platform list.
 - **Acceptance criteria:**
-  - [ ] User can rename a single card inline in the collection list.
-  - [ ] Renamed `gameName` is preserved in export JSON and PDF labels.
-- **Out of scope:** Renaming libretro manifest entries or S3 objects.
+  - [ ] Site deploys to GitHub Pages from `src/` on push to `main` (no AWS credentials in CI).
+  - [ ] Game search works for all **17 curated platforms** using a bundled name-only catalog (`game-catalog.json` or equivalent).
+  - [ ] Card preview, collection thumbnails, and letter-sheet export render artwork from `https://raw.githubusercontent.com/libretro-thumbnails/<repo>/master/<Named_*>/<filename>.png`.
+  - [ ] `imageAvailability` probes GitHub raw URLs to determine which artwork types exist for a game (box / title / in-game).
+  - [ ] Letter-size print output (PDF today; PNG acceptable) still works at ~300 DPI with cut marks for selected collection cards.
+  - [ ] Platforms with zero catalog entries remain hidden from the platform selector.
+  - [ ] Retail-title filtering is applied when the game catalog is built (same rules as `retailFilter.js` today).
+  - [ ] Recognition page credits libretro-thumbnails on GitHub (not “hosted on S3”).
+  - [ ] `npm run verify` passes without AWS credentials or local artwork mirrors.
+  - [ ] README / `AGENTS.md` / `MAINTAINER.md` reflect the simplified architecture (implementation follow-up).
+- **Out of scope:**
+  - Adding libretro platforms beyond the current 17.
+  - Bundling artwork PNGs in git.
+  - Self-hosting a libretro mirror or CDN.
+  - User accounts, server-side image proxy, or backend API.
+  - Changing card layout, collection UX, or localStorage export format (except any version bump if required).
+  - Migrating custom domain DNS in this iteration (can point `zaparoo.therealbenforce.com` at GitHub Pages later).
 - **Open questions:**
-  - Should rename affect search/display only, or also PDF header text?
-- **Notes:** Delete this example block when adding the first real backlog item.
+  - Keep **PDF** export, switch to **high-res PNG** sheet download, or offer both? (Canvas export is viable with GitHub raw URLs — see decision below.)
+  - How often should maintainers regenerate `game-catalog.json`? (Manual `workflow_dispatch` vs occasional release — not a continuous sync pipeline.)
+  - Decommission AWS stack immediately after Pages go-live, or run both hosts briefly?
+  - Arcade (`FBNeo - Arcade Games`) has a very large catalog — cap browse/search results more aggressively than other platforms?
+- **Notes:** Full implementation plan in [Proposed implementation plan](#proposed-implementation-plan) below.
+
+#### Architecture decision: use GitHub raw URLs (not libretro CDN, not S3)
+
+| Option | CORS for canvas/PDF? | Hosting burden | Verdict |
+|--------|---------------------|----------------|---------|
+| **S3 mirror (shipped)** | Yes (same-origin) | High — fetch, sync, deploy, AWS cost | Replace |
+| **`thumbnails.libretro.com` CDN** | **No** — no `Access-Control-Allow-Origin` | None | Rejected for canvas-based print export |
+| **`raw.githubusercontent.com` / libretro-thumbnails** | **Yes** — `Access-Control-Allow-Origin: *` | None for images | **Selected** |
+| **Artwork in git / GitHub Pages** | Yes (same-origin) | Repo size (hundreds of GB) | Rejected |
+
+**Rationale:** The app draws artwork onto `<canvas>` for preview blur, card composition, and letter-sheet export (`imageProvider.js` → `cardRenderer.js` → `pdfExport.js`). That requires CORS-permitted image loads (`crossOrigin = "anonymous"`). GitHub’s raw content host sends `Access-Control-Allow-Origin: *` on libretro-thumbnail PNGs; `thumbnails.libretro.com` does not.
+
+**URL shape** (one repo per libretro system under [libretro-thumbnails](https://github.com/libretro-thumbnails)):
+
+```
+https://raw.githubusercontent.com/libretro-thumbnails/<libretroGitHubRepo>/master/<Named_Boxarts|Named_Titles|Named_Snaps>/<libretroName>.png
+```
+
+Example:
+
+```
+https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Nintendo_Entertainment_System/master/Named_Boxarts/Super%20Mario%20Bros.%20(USA).png
+```
+
+**Repo naming:** GitHub repos use underscores instead of spaces (`Nintendo - Nintendo Entertainment System` → `Nintendo_-_Nintendo_Entertainment_System`). Add an explicit `libretroGitHubRepo` field to each entry in `platforms.js` rather than deriving at runtime (avoids edge cases for Arcade, DOS, etc.).
+
+**Platform scope:** Only the 17 platforms already defined in `platforms.js`. The libretro-thumbnails org has 100+ systems; none of the others are added to the app selector or catalog build.
+
+**Planned `libretroGitHubRepo` values** (to add alongside existing `libretroPlaylist`):
+
+| `platformId` | `libretroGitHubRepo` |
+|--------------|----------------------|
+| `atari-2600` | `Atari_-_2600` |
+| `nes` | `Nintendo_-_Nintendo_Entertainment_System` |
+| `master-system` | `Sega_-_Master_System_-_Mark_III` |
+| `game-boy` | `Nintendo_-_Game_Boy` |
+| `game-boy-color` | `Nintendo_-_Game_Boy_Color` |
+| `snes` | `Nintendo_-_Super_Nintendo_Entertainment_System` |
+| `genesis` | `Sega_-_Mega_Drive_-_Genesis` |
+| `sega-cd` | `Sega_-_Mega-CD_-_Sega_CD` |
+| `sega-32x` | `Sega_-_32X` |
+| `turbo-grafx` | `NEC_-_PC_Engine_-_TurboGrafx_16` |
+| `pc-engine-cd` | `NEC_-_PC_Engine_CD_-_TurboGrafx-CD` |
+| `saturn` | `Sega_-_Saturn` |
+| `n64` | `Nintendo_-_Nintendo_64` |
+| `neo-geo` | `SNK_-_Neo_Geo` |
+| `playstation` | `Sony_-_PlayStation` |
+| `dos` | `DOS` |
+| `arcade` | `FBNeo_-_Arcade_Games` |
+
+Validate repo names against the live [libretro-thumbnails org](https://github.com/orgs/libretro-thumbnails/repositories) during implementation (one typo breaks an entire platform).
+
+#### Proposed runtime architecture
+
+```
+src/index.html
+  └── assets/js/main.js
+        ├── gameCatalog.js       # search from bundled game-catalog.json (names only)
+        ├── libretroThumbnails.js # GitHub raw URL builders + filename helpers
+        ├── imageProvider.js     # resolve GitHub raw URL for platform + libretroName + imageType
+        ├── imageAvailability.js # HEAD/GET probe which types exist on GitHub raw
+        ├── cardRenderer.js      # canvas preview + print tiles (unchanged flow)
+        └── pdfExport.js         # letter sheet + cut marks (unchanged unless switching to PNG)
+```
+
+**Game catalog (search index):** Replace `image-manifest.json` with a slimmer `game-catalog.json`:
+
+```json
+{
+  "version": 1,
+  "generatedAt": "…",
+  "platforms": {
+    "nes": [{ "libretroName": "Super Mario Bros. (USA)" }],
+    "genesis": [{ "libretroName": "Sonic the Hedgehog (USA)" }]
+  }
+}
+```
+
+- **No image paths** in the catalog — URLs are computed at runtime from `platformId` + `libretroName` + `imageType`.
+- **Built offline** by a single maintainer script (`scripts/build-game-catalog.mjs`) that queries the GitHub API for `Named_Boxarts/*.png` in each of the 17 libretro-thumbnails repos, applies `isRetailRelease()`, and writes JSON. This is **not** a sync pipeline — it is run manually or via optional `workflow_dispatch` when we want fresher game names.
+- **Runtime does not** call the GitHub API for search (avoids rate limits and slow cold starts).
+
+**Image resolution flow:**
+
+1. User picks a game from catalog (`libretroName` is exact filename stem).
+2. `imageProvider.js` builds candidate raw URLs per image type using `libretroGitHubRepo` + `LIBRETRO_IMAGE_FOLDERS`.
+3. `imageAvailability.js` loads/probes URLs (existing pattern); cache results in memory.
+4. Collection cards store `platformId`, `libretroName`, `imageType` (unchanged) — no stored image URLs.
+
+**Hosting:** GitHub Pages serves `src/` as the site root. Replace `.github/workflows/deploy.yml` (AWS) with a Pages deploy workflow. Remove `sync-image-manifest.yml`.
+
+#### Proposed implementation plan
+
+*Do not implement until this section is approved.*
+
+**1. Data & platform config**
+
+| Action | Detail |
+|--------|--------|
+| Add `libretroGitHubRepo` | On all 17 rows in `src/assets/js/data/platforms.js` |
+| Add `game-catalog.json` | `src/assets/data/game-catalog.json` — retail-filtered names per platform |
+| Remove `image-manifest.json` | No longer needed |
+| Add `build-game-catalog.mjs` | One-shot GitHub API scanner for 17 repos → `game-catalog.json` |
+
+**2. Browser modules**
+
+| File | Change |
+|------|--------|
+| `libretroThumbnails.js` | Add `LIBRETRO_GITHUB_RAW_BASE`, `libretroGitHubRawUrl(repo, folder, filename)`; keep filename scoring helpers |
+| `gameCatalog.js` | Load `game-catalog.json` only; remove S3 manifest URL and `shouldUseRemoteManifestFirst()` |
+| `imageProvider.js` | Resolve GitHub raw URLs from platform + `libretroName` + `imageType` (not manifest paths) |
+| `imageAvailability.js` | No structural change — probes new URLs |
+| `developer.js` / `developer.html` | Update “local games” section to read game catalog (not image manifest) |
+
+**3. Remove (scripts, CI, infra, deps)**
+
+| Remove | Reason |
+|--------|--------|
+| `scripts/fetch-images.mjs` | No local/S3 image upload |
+| `scripts/sync-image-manifest.mjs` | No S3/local image inventory |
+| `scripts/sync-s3-sample-images.mjs` | No S3 sample cache |
+| `scripts/s3-storage.mjs` | No AWS SDK usage |
+| `scripts/local-libretro-source.mjs` | No local libretro mirror |
+| `scripts/deploy.mjs` | Replaced by GitHub Pages |
+| `scripts/libretro-image-paths.mjs` | S3/local path keys obsolete (fold GitHub URL helper into `libretroThumbnails.js`) |
+| `scripts/image-manifest.mjs` | Manifest format obsolete |
+| `.github/workflows/sync-image-manifest.yml` | No manifest sync |
+| `.github/workflows/deploy.yml` (AWS) | Replace with Pages workflow |
+| `infrastructure/` (CloudFormation, IAM policies) | No AWS hosting |
+| `.env.example` AWS keys | No deploy credentials |
+| `@aws-sdk/client-s3` dependency | No S3 client |
+| `npm` scripts: `fetch-images`, `sync-image-manifest`, `sync-s3-sample-images`, `deploy` | Obsolete |
+
+**4. Tests & verify**
+
+| Action | Detail |
+|--------|--------|
+| Update / remove | `test-fetch-images-*`, `test-sync-image-manifest`, tests that assert S3/manifest paths |
+| Add | Tests for `libretroGitHubRawUrl()` and catalog loading |
+| Update | Playwright smoke tests to tolerate network fetches to `raw.githubusercontent.com` (or mock) |
+| `verify.mjs` | Drop AWS-dependent steps; keep syntax check + unit + UI smoke |
+
+**5. Docs & static pages**
+
+| File | Change |
+|------|--------|
+| `recognition.html` | Credit libretro-thumbnails GitHub; remove S3 hosting language |
+| `README.md` | GitHub Pages deploy; remove artwork setup / AWS sections |
+| `AGENTS.md` | Remove S3/sync gotchas; document game catalog + GitHub raw |
+| `docs/MAINTAINER.md` | Rewrite for simplified architecture (or fold into DESIGN post-ship) |
+| `supplies.html` | Minor copy if export button label changes (PDF → PNG) |
+
+**6. Keep (unchanged or lightly touched)**
+
+| Keep | Why |
+|------|-----|
+| `platforms.js` platform list (17 only) | Product scope |
+| `fetch-platform-icons.mjs` | Platform SVGs still bundled in git |
+| `src/assets/images/platforms/` | Local platform icons + favicon |
+| `retailFilter.js` | Used when building game catalog |
+| Card layout, collection, localStorage, PDF/print layout math | Core product |
+| `npm start`, `npm run verify` | Dev workflow |
+
+#### Risks & mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| GitHub raw rate limits / availability | Catalog is bundled; images are static CDN URLs; cache probes in `imageAvailability` |
+| GitHub API rate limit when building catalog | Use `workflow_dispatch` with `GITHUB_TOKEN` in CI, or run locally with PAT |
+| Catalog drift (new games on libretro) | Document occasional `npm run build-game-catalog`; not automated sync |
+| Arcade huge game list | Apply stricter search limits; retail filter; optional catalog cap per platform |
+| `libretroName` must match filename exactly | Catalog stores exact stems from `Named_Boxarts`; collection persists `libretroName` |
+| Project Pages base path (`/repo-name/`) | Use relative asset paths consistently; audit `developer.html` absolute `/assets/…` links |
 
 ---
 
 ## Open questions (global)
 
-- None at this time. Add cross-cutting product questions here.
+- See [GitHub Pages + libretro GitHub raw URLs](#github-pages--libretro-github-raw-urls-zero-image-hosting) for active decisions (PDF vs PNG, AWS decommission timing, Arcade catalog size).
 
 ---
 
@@ -400,3 +592,4 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 |------|--------|
 | 2026-07-21 | Initial design document and AI collaboration workflow |
 | 2026-07-21 | Added site map, navigation, and per-page layout specifications |
+| 2026-07-21 | Backlog: GitHub Pages + libretro GitHub raw URLs — architecture decision, removal plan, implementation outline (awaiting review) |

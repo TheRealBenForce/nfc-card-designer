@@ -4,11 +4,11 @@
 **Last updated:** 2026-07-21  
 **Audience:** Product owner + AI assistant collaboration
 
-This document describes **what the app is today** and **what we plan to build next**. It is not a history of removed systems or in-flight implementation steps.
+This document describes **what the app is today**. Planned work lives in **[GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)**.
 
 - **Current behavior** → here and in [Shipped features](#shipped-features-summary)
+- **Backlog & acceptance criteria** → GitHub Issues
 - **Why we chose an approach** → [`docs/decisions/`](./decisions/)
-- **How to implement active work** → [`docs/plans/`](./plans/) (temporary; delete when shipped)
 - **How the code works** → [`docs/MAINTAINER.md`](./MAINTAINER.md)
 
 ---
@@ -17,54 +17,23 @@ This document describes **what the app is today** and **what we plan to build ne
 
 ### Workflow
 
-1. **Branch first** — One branch per feature (design + code + PR together).
-2. **Design before build** — Draft or extend a [Backlog](#backlog) entry. Iterate until acceptance criteria are clear.
-3. **Explicit go-ahead** — Do not implement until the product owner says to build (or status is **Ready to build**).
-4. **Implementation plan** — For non-trivial work, add `docs/plans/<feature-slug>.md` on the same branch. Delete it when the feature ships.
-5. **Ship** — Update this file to reflect **current** behavior (status **Shipped**). Record lasting rationale in `docs/decisions/` if needed. Remove the plan file.
+1. **Open a GitHub Issue** — problem, proposal, acceptance criteria (use the Feature template).
+2. **Discuss in chat** — reference the issue (`#N`); agent fetches with `gh issue view`.
+3. **Update this file on the feature branch** — describe **approved** behavior before or alongside implementation.
+4. **Review PR** — frontier model posts implementation comments; add `docs/decisions/` when the rationale should persist.
+5. **Merge** — `Closes #N`; issue closes; this file already documents the new current state.
 
 ### Document rules
 
-- **Describe what exists**, not what we removed. Do not keep “migration”, “replace X”, or “remove legacy Y” language after a feature ships.
-- **Backlog** is for **future** work only. Move shipped items into the relevant shipped sections; do not leave completed features in Backlog.
-- **Plans are temporary.** If `docs/plans/` contains anything except `README.md`, that work is still in flight or cleanup was missed.
-
-### Status labels
-
-| Status | Meaning |
-|--------|---------|
-| **Shipped** | Live in the app today |
-| **In design** | Being discussed; requirements may change |
-| **Ready to build** | Requirements agreed; waiting for implementation go-ahead |
-| **In progress** | Actively being implemented on a branch |
-| **Deferred** | Agreed idea, not scheduled |
-| **Rejected** | Considered and explicitly out of scope |
-
-### Feature entry template
-
-When adding a new idea, copy this block under [Backlog](#backlog):
-
-```markdown
-### <Feature name>
-
-- **Status:** In design
-- **Problem:** What pain does this solve?
-- **Proposal:** What should happen, from the user's perspective?
-- **Acceptance criteria:**
-  - [ ] Observable outcome 1
-  - [ ] Observable outcome 2
-- **Out of scope:** What we are *not* doing in this iteration
-- **Open questions:**
-  - Question?
-- **Notes:** Optional sketches, links, constraints
-```
+- **Describe what exists**, not what we removed.
+- **Do not duplicate the issue backlog here** — issues are the backlog; this file is the shipped product spec.
+- **Do not contradict Shipped behavior** unless this document is updated first.
 
 ### AI assistant instructions
 
-- **Read `docs/DESIGN.md` first** when the user mentions features, roadmap, or the design doc.
-- **Update this file** when intent changes — draft Backlog entries for future work; update shipped sections when behavior changes.
-- **Do not contradict Shipped behavior** unless this document is updated first.
-- **On merge**, delete any `docs/plans/*.md` for the feature and ensure Backlog has no shipped items left behind.
+- **Read the GitHub issue** when the human references `#N` or an issue URL (`gh issue view <n> --comments`).
+- **Read `docs/DESIGN.md`** for current product behavior before changing the app.
+- **Update shipped sections** when behavior changes; do not add Backlog entries here.
 
 ---
 
@@ -358,29 +327,15 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 
 ---
 
-## Backlog
-
-Features below are **not yet built**. Add new items at the top. When something ships, move it into [Shipped features](#shipped-features-summary) and delete any matching `docs/plans/` file.
-
-*(No open backlog items.)*
-
----
-
-## Open questions (global)
-
-*(None.)*
-
----
-
 ## Related documents
 
 | Document | Purpose |
 |----------|---------|
-| [`AGENTS.md`](../AGENTS.md) | How AI assistants run, test, and navigate this repo |
+| [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues) | Backlog, discussion, acceptance criteria |
+| [`AGENTS.md`](../AGENTS.md) | Issue-driven workflow and agent instructions |
 | [`README.md`](../README.md) | Quick start, card layout diagrams, deploy overview |
 | [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts |
 | [`docs/decisions/`](./decisions/) | Permanent “why we chose X” records |
-| [`docs/plans/`](./plans/) | Temporary implementation handoffs (delete when shipped) |
 
 ---
 
@@ -389,4 +344,5 @@ Features below are **not yet built**. Add new items at the top. When something s
 | Date | Change |
 |------|--------|
 | 2026-07-21 | Initial design document and page specifications |
-| 2026-07-21 | GitHub raw artwork + generated catalog shipped; doc split into current state / decisions / plans |
+| 2026-07-21 | GitHub raw artwork + generated catalog shipped |
+| 2026-07-21 | Backlog moved to GitHub Issues; DESIGN.md is current state only |

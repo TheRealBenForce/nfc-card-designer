@@ -26,9 +26,12 @@ scripts/
   build-game-catalog.mjs        # GitHub API → game-catalog.json
   verify.mjs                    # Run before merging changes
 docs/
-  DESIGN.md                     # Living product design doc
+  DESIGN.md                     # Current product spec (shipped behavior)
   MAINTAINER.md                 # Architecture & maintainer notes
+  decisions/                    # ADRs — why we chose X
 ```
+
+**Backlog:** [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues) (Feature template). See [AGENTS.md](AGENTS.md) for the issue → design → review → implement workflow.
 
 ## Local development
 
@@ -47,7 +50,8 @@ Open [http://localhost:8000](http://localhost:8000).
 npm run verify   # run before merging changes
 ```
 
-Product design & feature specs: [docs/DESIGN.md](docs/DESIGN.md)  
+Product design (current state): [docs/DESIGN.md](docs/DESIGN.md)  
+Backlog & new features: [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)  
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
 ## Game catalog

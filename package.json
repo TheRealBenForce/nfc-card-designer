@@ -19,7 +19,8 @@
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "seed-github-issues": "node scripts/seed-github-issues.mjs"
   },
   "devDependencies": {
     "playwright": "^1.61.1"

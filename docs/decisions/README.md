@@ -14,7 +14,7 @@ Add `docs/decisions/NNNN-short-title.md` when:
 - Future contributors might ask “why not X?”
 - The rationale should survive after implementation plans are deleted.
 
-Do **not** put removal lists, step-by-step coding instructions, or “planned architecture” here — those belong in [`docs/plans/`](../plans/) while work is in flight.
+Do **not** put removal lists, step-by-step coding instructions, or “planned architecture” here — use the **GitHub issue** and **PR review comments** while work is in flight.
 
 ## Format
 

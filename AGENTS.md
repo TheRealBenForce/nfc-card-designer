@@ -1,29 +1,52 @@
 # AGENTS.md
 
-## Documentation workflow
+## Workflow (issues → design → review → implement)
+
+**Backlog = [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues).** Do not maintain a backlog in `docs/DESIGN.md`.
+
+| Stage | Who | What |
+|-------|-----|------|
+| **1. Intake** | Human + agent (chat) | Human references an issue (`#42` or URL). Agent runs `gh issue view <n> --comments`. Clarify scope in chat. |
+| **2. Design** | Human + agent (chat) | Update `docs/DESIGN.md` on the feature branch to describe **approved** behavior. Open or update a draft PR. |
+| **3. Review** | Frontier model | Evaluate the design PR diff. Post structured PR review comments (implementation checklist). Add `docs/decisions/` if the *why* should persist. |
+| **4. Implement** | Lower-tier model | Same branch: implement from PR comments + issue acceptance criteria. Run `npm run verify`. |
+| **5. Ship** | Human merges | PR body includes `Closes #N`. Close issue. `DESIGN.md` already reflects current state. |
+
+### Fetching an issue
+
+```bash
+gh issue view <number> --comments
+gh issue list --state open
+```
+
+If `gh` cannot access issues (token scope), ask the human to paste the issue body.
+
+### PR review comments (implementation contract)
+
+Frontier review should leave self-contained comments the implementer can follow without chat history:
+
+- Link to issue and updated `DESIGN.md` section
+- Numbered tasks with file hints
+- Explicit out-of-scope bullets
+- Verification: `npm run verify`
+
+### Document roles
 
 | Document | Lifetime | Purpose |
 |----------|----------|---------|
-| [`docs/DESIGN.md`](docs/DESIGN.md) | Permanent | **Current product state** + future Backlog only |
-| [`docs/decisions/`](docs/decisions/) | Permanent | Why we chose X (ADRs); link from DESIGN when relevant |
-| [`docs/plans/`](docs/plans/) | **Temporary** | Step-by-step implementation handoff while work is active |
+| **GitHub Issues** | Until closed | Backlog, discussion, acceptance criteria |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Permanent | **Current product state** (what exists after merge) |
+| [`docs/decisions/`](docs/decisions/) | Permanent | Why we chose X (ADRs) |
 | [`docs/MAINTAINER.md`](docs/MAINTAINER.md) | Permanent | How the code and pipelines work today |
 
 ### Rules
 
-- **`DESIGN.md` describes what exists now** — not removed systems, migration plans, or “replace legacy X” language after a feature ships.
-- **One branch per feature** — design edits, code, and the PR stay together.
-- **Plans are deleted when the feature ships** — in the same PR that merges the implementation. Distill lasting rationale into `docs/decisions/` first if needed.
-- **`docs/plans/` should only contain `README.md` between features.** Any other file means work is in flight or cleanup was missed.
+- **`DESIGN.md` describes what exists now** — not removed systems or in-flight plans.
+- **One branch per issue** — design + implementation + PR together (`Closes #N`).
+- **Wait for explicit go-ahead** between stages unless the human already asked to proceed.
+- **Do not add `docs/plans/`** — use the issue and PR comments instead.
 
-### Feature lifecycle
-
-1. Draft a Backlog entry in `docs/DESIGN.md` (status **In design**).
-2. When ready to build, add `docs/plans/<feature-slug>.md` on the feature branch.
-3. Implement on the same branch; wait for explicit go-ahead unless the user already asked to build.
-4. Before merge: update `DESIGN.md` to current state, add/update a decision doc if warranted, **delete the plan file**, run `npm run verify`.
-
-Technical architecture and maintainer procedures: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).
+Technical architecture: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).
 
 ## Cursor Cloud specific instructions
 

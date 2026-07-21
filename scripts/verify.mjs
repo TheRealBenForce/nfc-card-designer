@@ -14,7 +14,6 @@ const PORT = process.env.VERIFY_PORT ?? "8765";
 const BASE = `http://localhost:${PORT}`;
 const catalogPath = path.join(root, "src/assets/data/game-catalog.json");
 const catalogFixture = path.join(root, "scripts/fixtures/game-catalog.sample.json");
-const plansDir = path.join(root, "docs/plans");
 
 /** @param {string} cmd @param {string[]} args @param {import('node:child_process').SpawnOptions} [opts] */
 function run(cmd, args, opts = {}) {
@@ -56,20 +55,7 @@ async function ensureGameCatalog() {
   }
 }
 
-async function checkDocHygiene() {
-  const entries = await readdir(plansDir);
-  const strayPlans = entries.filter((name) => name !== "README.md" && name.endsWith(".md"));
-  if (strayPlans.length > 0) {
-    throw new Error(
-      `Stale docs/plans files (delete when feature ships): ${strayPlans.join(", ")}`,
-    );
-  }
-}
-
 async function main() {
-  console.log("→ Doc hygiene…");
-  await checkDocHygiene();
-
   console.log("→ Syntax check…");
   const jsFiles = [
     ...(await collectJsFiles(path.join(root, "src/assets/js"))),

@@ -741,11 +741,13 @@ function renderPlatformResults() {
   visiblePlatforms.forEach((platform) => {
     const row = document.createElement("div");
     row.className = "platform-row";
+    if (platform.id === settings.selectedPlatformId) {
+      row.classList.add("platform-row--selected");
+    }
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "list-item platform-row__select";
-    if (platform.id === settings.selectedPlatformId) btn.classList.add("list-item--selected");
+    btn.className = "platform-row__select";
     btn.textContent = platform.name;
     btn.addEventListener("click", () => selectPlatform(platform.id));
 

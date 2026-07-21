@@ -46,14 +46,14 @@ async function main() {
     console.log(`✓ Shows ${initialCount} platforms with artwork-backed games`);
 
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    const segaCdSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    const segaCdSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
     if (!segaCdSelected?.includes("Sega CD")) {
       throw new Error(`Sega CD should be selected after click, got: ${segaCdSelected}`);
     }
     console.log("✓ Clicking a platform selects it");
 
     await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
-    const sega32xSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    const sega32xSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
     if (!sega32xSelected?.includes("Sega 32X")) {
       throw new Error(`Sega 32X should be selected after click, got: ${sega32xSelected}`);
     }

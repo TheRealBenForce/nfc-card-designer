@@ -28,4 +28,4 @@ Game artwork always loads from libretro-thumbnails on GitHub (`raw.githubusercon
 - Delete repository secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `CLOUDFRONT_DISTRIBUTION_ID` after merge.
 - Optionally delete the `nfc-card-designer` CloudFormation stack in AWS (see archived README).
 - Deploy workflows still run `npm run build-game-catalog` before publishing `src/`.
-- Extensionless routes (`/supplies`, `/thanks`, `/recognition`) rely on GitHub Pages serving `.html` files directly; the old S3 alias copies are no longer published.
+- Extensionless routes (`/supplies`, `/recognition`) rely on GitHub Pages serving `.html` files directly; the old S3 alias copies are no longer published.

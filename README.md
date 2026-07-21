@@ -6,7 +6,7 @@ A client-side single-page app for designing **52 × 84 mm Zaparoo NFC card label
 
 - **17 retro platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine, Neo Geo, and Arcade
 - **Game search** — type **3+ letters**, pick a game, **browse artwork types** in preview, then add to collection
-- **Libretro thumbnails** — box art, title screens, and in-game snapshots (hosted on S3, not in git)
+- **Libretro thumbnails** — box art, title screens, and in-game snapshots loaded from [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) on GitHub (`raw.githubusercontent.com`)
 - **Universal template** — full-bleed artwork + platform logo (emoji) + color strip
 - **Collection** — cards grouped by platform; multi-select, delete, or print PDF
 - **Persistence** — `localStorage` plus export/import JSON (settings and all cards)
@@ -21,76 +21,72 @@ src/
     css/styles.css
     js/                         # Application modules
     data/
-      image-manifest.json       # S3/local artwork inventory (libretro names + paths)
+      game-catalog.json         # Generated at build/deploy (gitignored)
 scripts/
-  fetch-images.mjs              # Local libretro mirror → S3
-  sync-image-manifest.mjs         # Scan S3/local → image-manifest.json
+  build-game-catalog.mjs        # GitHub API → game-catalog.json
   verify.mjs                    # Run before merging changes
 docs/
-  DESIGN.md                     # Living product design doc (AI collaboration)
-  MAINTAINER.md                 # Architecture & data-pipeline notes for developers
+  DESIGN.md                     # Current product spec (shipped behavior)
+  MAINTAINER.md                 # Architecture & maintainer notes
+  decisions/                    # ADRs — why we chose X
 ```
+
+**Backlog:** [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues) (Feature template). See [AGENTS.md](AGENTS.md) for the issue → design → review → implement workflow.
 
 ## Local development
 
 ES modules require a local server — opening `src/index.html` directly from disk will not work.
 
 ```bash
+npm run build-game-catalog   # once per session (or after clone)
 npm start
 ```
 
 Open [http://localhost:8000](http://localhost:8000).
 
+`npm run verify` copies a small test fixture if `game-catalog.json` is missing, then runs unit + UI smoke tests.
+
 ```bash
-npm run verify   # run before merging changes (tests + smoke checks)
+npm run verify   # run before merging changes
 ```
 
-Product design & feature specs: [docs/DESIGN.md](docs/DESIGN.md)  
+Product design (current state): [docs/DESIGN.md](docs/DESIGN.md)  
+Backlog & new features: [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)  
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
-## Artwork setup (libretro → S3)
+## Game catalog
 
-Game images are **not stored in git**. Upload from a local [libretro thumbnails](https://thumbnails.libretro.com/) mirror, then refresh the manifest.
+Search uses `src/assets/data/game-catalog.json` — a list of retail-filtered libretro game names per platform (no image paths). The file is **generated**, not committed:
 
 ```bash
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails
-npm run sync-image-manifest -- --s3-only
+npm run build-game-catalog
+```
+
+Optional: set `GITHUB_TOKEN` for higher GitHub API rate limits when building locally.
+
+Artwork PNGs load at runtime from:
+
+```
+https://raw.githubusercontent.com/libretro-thumbnails/<repo>/master/<Named_Boxarts|Named_Titles|Named_Snaps>/<game>.png
+```
+
+Only platforms with games in the catalog appear in the platform selector.
+
+## Deploy
+
+GitHub Actions on push to `main`:
+
+- **Deploy to AWS** — builds catalog, syncs `src/` to S3 + CloudFront invalidation
+- **Deploy to GitHub Pages** — builds catalog, publishes `src/` (enable Pages with GitHub Actions source in repo settings)
+
+AWS static site deploy also works from your workstation:
+
+```bash
+npm run build-game-catalog
 npm run deploy
 ```
 
-Set AWS credentials in `.env` (see `.env.example`). Existing images are skipped on both disk and S3 unless you pass `--force`.
-
-```bash
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails --local-only
-npm run fetch-images -- --libretro-dir=/path/to/thumbnails --platform=nes
-npm run sync-image-manifest -- --local-only
-npm run sync-s3-sample-images
-```
-
-Images are stored in S3 using libretro directory names:
-
-```
-assets/images/<libretroPlaylist>/Named_Boxarts/<filename>.png
-assets/images/<libretroPlaylist>/Named_Titles/<filename>.png
-assets/images/<libretroPlaylist>/Named_Snaps/<filename>.png
-```
-
-Only platforms with games in `image-manifest.json` appear in the platform selector.
-
-GitHub Actions:
-
-- **Sync image manifest** — manual workflow; scans S3 and builds `image-manifest.json`
-- **Deploy** — runs on push to `main` (and manually); syncs manifest, then deploys the site
-
-## Deploy to AWS (S3 + CloudFront)
-
-Infrastructure template: [`infrastructure/cloudformation.yaml`](infrastructure/cloudformation.yaml)
-
-1. Deploy the CloudFormation stack in **us-east-1** (see [`infrastructure/README.md`](infrastructure/README.md)).
-2. Add GitHub repository secrets from stack outputs: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFRONT_DISTRIBUTION_ID`.
-3. Push to `main` — `.github/workflows/deploy.yml` syncs manifest + site to S3.
-
-Run `fetch-images` from your workstation when you need new artwork uploaded to S3 (not in CI).
+Set AWS credentials in `.env` (see `.env.example`). Infrastructure: [`infrastructure/cloudformation.yaml`](infrastructure/cloudformation.yaml)
 
 Live site: https://zaparoo.therealbenforce.com
 
@@ -138,8 +134,7 @@ Portrait 52 × 84 mm. **Every segment splits long-edge to long-edge** — the cu
 
 ## Notes
 
-- See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships, deploy checklist, and gotchas.
-- Game search uses `image-manifest.json` (inventory of artwork on S3).
+- See [docs/MAINTAINER.md](docs/MAINTAINER.md) for data-file relationships and deploy checklist.
+- Game search uses `game-catalog.json` (generated game-name inventory).
 - Browse box art / title screen / in-game in preview before adding to collection.
 - Global artwork priority is configurable under Defaults (saved in localStorage).
-- Re-run `fetch-images` safely — it skips files that already exist.

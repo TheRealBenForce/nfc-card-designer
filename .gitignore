@@ -1,6 +1,8 @@
 .env
 node_modules/
 
-# Local game image cache (development only)
+src/assets/data/game-catalog.json
+
+# Legacy local game image cache (no longer used)
 src/assets/images/platforms/*/games/
 src/assets/images/games/

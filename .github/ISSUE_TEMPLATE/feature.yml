@@ -1,0 +1,49 @@
+name: Feature
+description: New behavior or improvement for Zaparoo NFC Card Designer
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Backlog lives in **GitHub Issues**, not `docs/DESIGN.md`.
+        After the spec is agreed, update `docs/DESIGN.md` on the feature branch to describe shipped behavior.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What pain does this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should happen, from the user's perspective?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Observable outcomes (checkbox list)
+      placeholder: |
+        - [ ] …
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: What we are not doing in this iteration
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Links, sketches, constraints

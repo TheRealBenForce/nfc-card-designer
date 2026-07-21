@@ -760,7 +760,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent =
         catalogSize === 0
           ? "No retail games in catalog for this platform yet."
-          : "No artwork indexed yet — run fetch-images and sync-image-manifest, then click search to browse.";
+          : "No games in catalog yet — run npm run build-game-catalog, then click search to browse.";
     } else {
       gameSearchHintEl.textContent = artworkCountLabel(gameCount);
     }

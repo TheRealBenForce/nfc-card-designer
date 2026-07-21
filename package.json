@@ -4,9 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "npx --yes serve src -l 8000",
-    "fetch-images": "node scripts/fetch-images.mjs",
-    "sync-image-manifest": "node scripts/sync-image-manifest.mjs",
-    "sync-s3-sample-images": "node scripts/sync-s3-sample-images.mjs",
+    "build-game-catalog": "node scripts/build-game-catalog.mjs",
     "fetch-platform-icons": "node scripts/fetch-platform-icons.mjs",
     "deploy": "node scripts/deploy.mjs",
     "test:platform-search": "node scripts/test-platform-search.mjs",
@@ -15,18 +13,14 @@
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
-    "test:fetch-images-skip": "node scripts/test-fetch-images-skip.mjs",
-    "test:fetch-images-limit": "node scripts/test-fetch-images-limit.mjs",
+    "test:build-game-catalog": "node scripts/test-build-game-catalog.mjs",
     "test:platform-visibility": "node scripts/test-platform-visibility.mjs",
     "test:game-catalog": "node scripts/test-game-catalog.mjs",
     "test:game-filters": "node scripts/test-game-filters.mjs",
     "test:image-settings": "node scripts/test-image-settings.mjs",
     "test:game-search": "node scripts/test-game-search.mjs",
-    "test:sync-image-manifest": "node scripts/test-sync-image-paths.mjs",
-    "verify": "node scripts/verify.mjs"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.856.0"
+    "verify": "node scripts/verify.mjs",
+    "seed-github-issues": "node scripts/seed-github-issues.mjs"
   },
   "devDependencies": {
     "playwright": "^1.61.1"

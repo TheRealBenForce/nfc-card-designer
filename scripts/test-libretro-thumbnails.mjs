@@ -2,20 +2,34 @@
 
 import {
   libretroFilenameCandidates,
+  libretroGitHubRawUrl,
   libretroThumbnailUrl,
   pickLibretroFilename,
+  playlistToGitHubRepo,
   scoreLibretroFilename,
 } from "../src/assets/js/libretroThumbnails.js";
-import { resolveLibretroFilename } from "./libretro-thumbnails.mjs";
 
 const pacManCandidates = libretroFilenameCandidates("Pac-Man");
 if (!pacManCandidates.includes("Pac-Man (USA)")) {
   throw new Error("Expected Pac-Man (USA) in filename candidates");
 }
 
+const repo = playlistToGitHubRepo("Nintendo - Nintendo Entertainment System");
+if (repo !== "Nintendo_-_Nintendo_Entertainment_System") {
+  throw new Error(`Unexpected GitHub repo slug: ${repo}`);
+}
+
+const rawUrl = libretroGitHubRawUrl(repo, "Named_Boxarts", "Super Mario Bros. (USA)");
+if (!rawUrl.includes("raw.githubusercontent.com/libretro-thumbnails/")) {
+  throw new Error(`Unexpected GitHub raw URL: ${rawUrl}`);
+}
+if (!rawUrl.includes("Super%20Mario%20Bros.%20(USA).png")) {
+  throw new Error(`Unexpected encoded filename in URL: ${rawUrl}`);
+}
+
 const url = libretroThumbnailUrl("Atari - 2600", "Named_Boxarts", "Pac-Man (USA)");
 if (!url.includes("Pac-Man%20(USA).png")) {
-  throw new Error(`Unexpected libretro URL: ${url}`);
+  throw new Error(`Unexpected legacy CDN URL: ${url}`);
 }
 
 const listing = [
@@ -49,16 +63,6 @@ if (pitfallPicked !== "Pitfall! - Pitfall Harry's Jungle Adventure (USA)") {
   throw new Error(`Expected Pitfall! extended title, got ${pitfallPicked}`);
 }
 
-const resolved = await resolveLibretroFilename(
-  "Atari - 2600",
-  "boxArt",
-  "Pac-Man",
-  undefined,
-);
-if (resolved !== "Pac-Man (USA)") {
-  throw new Error(`Expected live resolve for Pac-Man, got ${resolved}`);
-}
-
+console.log("✓ GitHub repo slug helper");
+console.log("✓ GitHub raw URL builder");
 console.log("✓ Libretro filename candidates and scoring");
-console.log("✓ Libretro thumbnail URLs are built correctly");
-console.log("✓ Live CDN resolve finds Pac-Man (USA)");

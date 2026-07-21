@@ -1,10 +1,15 @@
 # Zaparoo NFC Card Designer — Design Document
 
-**Status:** Living document  
+**Status:** Living document (current product state)  
 **Last updated:** 2026-07-21  
 **Audience:** Product owner + AI assistant collaboration
 
-This is the single source of truth for *what* we are building and *why*. Implementation details and maintainer runbooks live elsewhere (see [Related documents](#related-documents)).
+This document describes **what the app is today**. Planned work lives in **[GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)**.
+
+- **Current behavior** → here and in [Shipped features](#shipped-features-summary)
+- **Backlog & acceptance criteria** → GitHub Issues
+- **Why we chose an approach** → [`docs/decisions/`](./decisions/)
+- **How the code works** → [`docs/MAINTAINER.md`](./MAINTAINER.md)
 
 ---
 
@@ -12,50 +17,23 @@ This is the single source of truth for *what* we are building and *why*. Impleme
 
 ### Workflow
 
-1. **Branch first** — Open a feature branch when you want to change direction or add scope. Commit edits to `docs/DESIGN.md` on that branch.
-2. **Design before build** — Describe the idea here (or ask the AI to draft a section). Iterate until the **Acceptance criteria** and **Open questions** feel right.
-3. **Explicit go-ahead** — The AI should **not** implement until you say something like *"go ahead and build it"* or mark the feature **Ready to build**.
-4. **Diff-driven implementation** — On a branch with design changes, the AI compares this document to `main`, identifies affected features, and proposes or executes an implementation plan.
+1. **Open a GitHub Issue** — problem, proposal, acceptance criteria (use the Feature template).
+2. **Discuss in chat** — reference the issue (`#N`); agent fetches with `gh issue view`.
+3. **Update this file on the feature branch** — describe **approved** behavior before or alongside implementation.
+4. **Review PR** — frontier model posts implementation comments; add `docs/decisions/` when the rationale should persist.
+5. **Merge** — `Closes #N`; issue closes; this file already documents the new current state.
 
-### Status labels
+### Document rules
 
-| Status | Meaning |
-|--------|---------|
-| **Shipped** | Live in the app today |
-| **In design** | Being discussed; requirements may change |
-| **Ready to build** | Requirements agreed; waiting for implementation go-ahead |
-| **In progress** | Actively being implemented on a branch |
-| **Deferred** | Agreed idea, not scheduled |
-| **Rejected** | Considered and explicitly out of scope |
-
-### Feature entry template
-
-When adding a new idea, copy this block under [Backlog](#backlog):
-
-```markdown
-### <Feature name>
-
-- **Status:** In design
-- **Problem:** What pain does this solve?
-- **Proposal:** What should happen, from the user's perspective?
-- **Acceptance criteria:**
-  - [ ] Observable outcome 1
-  - [ ] Observable outcome 2
-- **Out of scope:** What we are *not* doing in this iteration
-- **Open questions:**
-  - Question?
-- **Notes:** Optional sketches, links, constraints
-```
+- **Describe what exists**, not what we removed.
+- **Do not duplicate the issue backlog here** — issues are the backlog; this file is the shipped product spec.
+- **Do not contradict Shipped behavior** unless this document is updated first.
 
 ### AI assistant instructions
 
-When working in this repository:
-
-- **Read `docs/DESIGN.md` first** when the user mentions features, roadmap, or "the design doc."
-- **Update this file** when the user describes new intent in conversation — draft or extend the relevant section, set status to **In design**, and ask clarifying questions before coding.
-- **On a branch with design-doc changes**, summarize the delta vs `main` and list implementation tasks; wait for explicit approval unless the user already said to build.
-- **Do not contradict Shipped behavior** unless this document is updated to change it.
-- **Prefer small, verifiable acceptance criteria** over vague goals.
+- **Read the GitHub issue** when the human references `#N` or an issue URL (`gh issue view <n> --comments`).
+- **Read `docs/DESIGN.md`** for current product behavior before changing the app.
+- **Update shipped sections** when behavior changes; do not add Backlog entries here.
 
 ---
 
@@ -66,19 +44,21 @@ Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** fo
 ### Users
 
 - **Primary:** Zaparoo owners printing sticker sheets at home on US letter paper.
-- **Secondary:** Maintainers curating libretro artwork inventory on S3.
+- **Secondary:** Maintainers updating the bundled game-name catalog or platform list (infrequent).
 
 ### Goals
 
-- Pick a game, choose artwork, preview a card, collect many cards, export a print-ready PDF.
+- Pick a game, choose artwork, preview a card, collect many cards, export a print-ready letter sheet.
 - Stay **client-side only** — no accounts, no backend, persistence via `localStorage` and JSON export.
-- Use **libretro thumbnail paths** as the canonical artwork naming scheme.
+- Use **libretro thumbnail naming** as the canonical artwork scheme.
 
 ### Non-goals
 
 - User accounts, cloud sync, or multi-device collaboration.
 - Real-time NFC programming from the browser.
-- Bundling full game artwork in git (images live on S3).
+- Bundling game artwork PNGs in git.
+- Hosting, mirroring, or syncing game artwork anywhere we control (S3 included). Artwork always loads from libretro’s GitHub raw URLs.
+- Exposing every libretro platform in the app (keep the current **17-platform** curated set).
 - A build step or SPA framework for the main app.
 
 ---
@@ -89,7 +69,7 @@ Help retro-gaming collectors design and print **52 × 84 mm NFC card labels** fo
 2. **Platform consistency** — Every card uses the same layout rules; platform identity comes from logo + color strip.
 3. **Progressive disclosure** — Simple path: search → preview → add. Advanced controls (per-card artwork alignment, header overrides) stay available but tucked away.
 4. **Offline-friendly state** — Collection and settings survive reloads; export/import provides a portable backup.
-5. **Inventory-driven search** — Only games with artwork in `image-manifest.json` appear in search.
+5. **Inventory-driven search** — Only games listed in the generated `game-catalog.json` appear in search.
 
 ---
 
@@ -167,7 +147,7 @@ Top to bottom:
    - Artwork background — mode select + optional eyedropper color
 
 3. **Platform** (always visible section)
-   - Scrollable list of platforms with artwork in manifest
+   - Scrollable list of platforms with games in the catalog
    - Selecting a platform filters game search to that platform
 
 4. **Game** (always visible section)
@@ -241,7 +221,7 @@ Vertically top-aligned, content centered horizontally.
 
 1. **Lead** — Acknowledgment of bundled third-party assets.
 2. **Platform logos** — Carbon EmulationStation theme (RetroPie), system SVG paths.
-3. **Game artwork** — libretro thumbnail CDN, hosted on S3 for this app.
+3. **Game artwork** — [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) on GitHub, loaded at runtime via `raw.githubusercontent.com` (same on every host — GitHub Pages, local dev, or custom domain).
 4. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
 
 **Footer:** Back link to designer.
@@ -276,7 +256,7 @@ Vertically top-aligned, content centered horizontally.
 **Sections:**
 
 1. **Image load delay** — Artificial preview lag (0–10 000 ms) stored in `localStorage`; tests skeleton/loading UX.
-2. **Local games with artwork** — Refreshable list from image manifest / local index.
+2. **Local games with artwork** — Refreshable list from generated game catalog.
 3. **Collection JSON** — Live readout of `localStorage` collection key (same data as Export).
 
 **Footer:** Back to designer.
@@ -308,18 +288,20 @@ Landscape variant uses the same long-edge split rules (documented in `README.md`
 
 ---
 
-## Cross-cutting behavior (shipped)
+## Cross-cutting behavior
 
 ### Platform catalog
 
 - **17 platforms** — Atari 2600 through PlayStation, plus DOS, Sega CD/32X, PC Engine CD, Neo Geo, Arcade.
-- Platforms with **zero indexed artwork** are hidden from the platform list.
+- Platforms with **zero games in the catalog** are hidden from the platform list.
 
-### Artwork pipeline
+### Artwork & game catalog
 
-- Libretro paths on S3; inventory in `image-manifest.json`.
+- **Images:** `raw.githubusercontent.com/libretro-thumbnails/…` — loaded at runtime; not stored in this repo or on our deploy buckets.
+- **Search index:** `game-catalog.json` (names only), generated by `build-game-catalog.mjs` at deploy or locally — not committed to git.
 - **Image types:** Box art (`Named_Boxarts`), title screen (`Named_Titles`), in-game (`Named_Snaps`).
 - Global and per-platform priority order configurable.
+- **Hosting is irrelevant to artwork** — GitHub Pages, S3+CloudFront, and local dev all use the same GitHub raw URLs.
 
 ### Persistence
 
@@ -335,37 +317,13 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Three-column designer: controls | preview | collection
 - [x] Game search (3+ chars) scoped to selected platform
 - [x] Artwork browse (box / title / in-game) with per-card overrides
+- [x] Artwork from libretro-thumbnails GitHub raw URLs (CORS-safe for canvas/PDF)
+- [x] Generated `game-catalog.json` for search (build-time; not in git)
 - [x] Collection grouped by platform; multi-select; PDF export
 - [x] JSON export/import; localStorage persistence
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
-
----
-
-## Backlog
-
-Features below are **not yet built** unless marked otherwise. Add new items at the top of this section.
-
-<!-- Copy the feature template from the top of this file for each new idea. -->
-
-### _(Example) Batch rename games in collection_
-
-- **Status:** In design *(example only — remove or replace when adding real work)*
-- **Problem:** Large collections are hard to scan when libretro names differ from display preferences.
-- **Proposal:** Select multiple cards and apply a display-name pattern or manual rename.
-- **Acceptance criteria:**
-  - [ ] User can rename a single card inline in the collection list.
-  - [ ] Renamed `gameName` is preserved in export JSON and PDF labels.
-- **Out of scope:** Renaming libretro manifest entries or S3 objects.
-- **Open questions:**
-  - Should rename affect search/display only, or also PDF header text?
-- **Notes:** Delete this example block when adding the first real backlog item.
-
----
-
-## Open questions (global)
-
-- None at this time. Add cross-cutting product questions here.
+- [x] Deploy to GitHub Pages and/or AWS S3+CloudFront (static site only)
 
 ---
 
@@ -373,24 +331,11 @@ Features below are **not yet built** unless marked otherwise. Add new items at t
 
 | Document | Purpose |
 |----------|---------|
-| [`AGENTS.md`](../AGENTS.md) | How AI assistants should run, test, and navigate this repo |
+| [GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues) | Backlog, discussion, acceptance criteria |
+| [`AGENTS.md`](../AGENTS.md) | Issue-driven workflow and agent instructions |
 | [`README.md`](../README.md) | Quick start, card layout diagrams, deploy overview |
-| [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts, platform onboarding |
-| `docs/adr/` *(optional, future)* | Architecture Decision Records — one file per significant technical choice |
-
-### Document types (reference)
-
-| Name | Typical filename | Use when |
-|------|------------------|----------|
-| **Design document** | `docs/DESIGN.md` | Living product spec — features, UX, acceptance criteria *(this file)* |
-| **Agent instructions** | `AGENTS.md` | Tooling, test commands, repo conventions for AI |
-| **README** | `README.md` | Onboarding humans; keep concise |
-| **Maintainer / architecture notes** | `docs/MAINTAINER.md` | How the code and data pipelines work |
-| **PRD** | `docs/PRD.md` | Optional formal product requirements for stakeholders |
-| **Technical spec** | `docs/SPEC.md` | Optional deep implementation contract for large features |
-| **ADR** | `docs/adr/0001-….md` | Record a single architectural decision and its rationale |
-
-For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: design intent here, execution rules in `AGENTS.md`.
+| [`docs/MAINTAINER.md`](./MAINTAINER.md) | Architecture, data pipelines, npm scripts |
+| [`docs/decisions/`](./decisions/) | Permanent “why we chose X” records |
 
 ---
 
@@ -398,5 +343,6 @@ For this project, **`docs/DESIGN.md` + `AGENTS.md`** is the recommended pair: de
 
 | Date | Change |
 |------|--------|
-| 2026-07-21 | Initial design document and AI collaboration workflow |
-| 2026-07-21 | Added site map, navigation, and per-page layout specifications |
+| 2026-07-21 | Initial design document and page specifications |
+| 2026-07-21 | GitHub raw artwork + generated catalog shipped |
+| 2026-07-21 | Backlog moved to GitHub Issues; DESIGN.md is current state only |

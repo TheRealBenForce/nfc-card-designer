@@ -1,13 +1,38 @@
 import { PLACEHOLDER_SVG } from "./config.js";
+import { platformById } from "./data/platforms.js";
 import { getDevImageDelayMs } from "./devTools.js";
 import { gameForCard } from "./gameCatalog.js";
+import {
+  LIBRETRO_IMAGE_FOLDERS,
+  libretroGitHubRawUrl,
+  playlistToGitHubRepo,
+} from "./libretroThumbnails.js";
+
+/**
+ * @param {string} platformId
+ * @param {string} libretroName
+ * @param {string} imageType
+ * @returns {string | null}
+ */
+export function buildGameImageUrl(platformId, libretroName, imageType) {
+  if (!platformId || !libretroName || !imageType) return null;
+
+  const platform = platformById[platformId];
+  if (!platform?.libretroPlaylist) return null;
+
+  const imageFolder = LIBRETRO_IMAGE_FOLDERS[imageType];
+  if (!imageFolder) return null;
+
+  const githubRepo = playlistToGitHubRepo(platform.libretroPlaylist);
+  return libretroGitHubRawUrl(githubRepo, imageFolder, libretroName);
+}
 
 /**
  * @param {import('./gameCatalog.js').Game} game
  * @param {string} imageType
  */
 export function getGameImagePath(game, imageType) {
-  return game.images?.[imageType] ?? null;
+  return buildGameImageUrl(game.platformId, game.libretroName, imageType);
 }
 
 /**
@@ -16,10 +41,10 @@ export function getGameImagePath(game, imageType) {
  * @param {string} imageType
  */
 export function candidateImagePaths(card, game, imageType) {
-  const paths = [];
-  const fromCatalog = game?.images?.[imageType];
-  if (fromCatalog) paths.push(fromCatalog);
-  return [...new Set(paths)];
+  const url =
+    buildGameImageUrl(game?.platformId ?? card.platformId, game?.libretroName ?? card.libretroName, imageType) ??
+    null;
+  return url ? [url] : [];
 }
 
 /**

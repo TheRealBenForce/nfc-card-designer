@@ -1,18 +1,10 @@
 import { platforms } from "./data/platforms.js";
 
 /**
- * @typedef {Object} GameImages
- * @property {string} [boxArt]
- * @property {string} [titleScreen]
- * @property {string} [gamePicture]
- */
-
-/**
  * @typedef {Object} Game
  * @property {string} platformId
  * @property {string} libretroName
  * @property {string} name
- * @property {GameImages} images
  */
 
 /** @type {Record<string, Game[]>|null} */
@@ -24,25 +16,22 @@ let loadPromise = null;
 export const MIN_GAME_SEARCH_CHARS = 3;
 export const GAME_SEARCH_RESULT_LIMIT = 100;
 export const GAME_SEARCH_BROWSE_LIMIT = 10;
-const LOCAL_MANIFEST_URL = "assets/data/image-manifest.json";
-const S3_MANIFEST_URL = "https://zaparoo.therealbenforce.com/assets/data/image-manifest.json";
-const S3_MANIFEST_TIMEOUT_MS = 4000;
+const GAME_CATALOG_URL = "assets/data/game-catalog.json";
 
 export async function loadGameCatalog() {
   if (byPlatform) return;
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const data = await loadManifestPayload();
+    const data = await fetchJsonPayload(GAME_CATALOG_URL, "game catalog");
     /** @type {Record<string, Game[]>} */
     const platformsById = {};
 
     for (const [platformId, entries] of Object.entries(data.platforms ?? {})) {
       if (!Array.isArray(entries)) continue;
       platformsById[platformId] = entries
-        .filter((entry) => entry.libretroName && entry.images)
-        .map((entry) => toGame(platformId, entry))
-        .filter((game) => gameHasImage(game));
+        .filter((entry) => entry?.libretroName && typeof entry.libretroName === "string")
+        .map((entry) => toGame(platformId, entry));
     }
 
     byPlatform = platformsById;
@@ -53,7 +42,7 @@ export async function loadGameCatalog() {
 
 /**
  * @param {string} platformId
- * @param {{ libretroName: string, images: GameImages }} entry
+ * @param {{ libretroName: string }} entry
  * @returns {Game}
  */
 function toGame(platformId, entry) {
@@ -61,57 +50,19 @@ function toGame(platformId, entry) {
     platformId,
     libretroName: entry.libretroName,
     name: entry.libretroName,
-    images: entry.images ?? {},
   };
-}
-
-/**
- * @returns {Promise<{ platforms?: Record<string, { libretroName: string, images: GameImages }[]> }>}
- */
-async function loadManifestPayload() {
-  if (shouldUseRemoteManifestFirst()) {
-    try {
-      return await fetchJsonPayload(S3_MANIFEST_URL, "image manifest", {
-        timeoutMs: S3_MANIFEST_TIMEOUT_MS,
-      });
-    } catch (error) {
-      console.warn("Could not load image manifest from S3, using bundled manifest instead.", error);
-    }
-  }
-
-  return fetchJsonPayload(LOCAL_MANIFEST_URL, "image manifest");
 }
 
 /**
  * @param {string} url
  * @param {string} payloadLabel
- * @param {{ timeoutMs?: number }} [options]
  */
-async function fetchJsonPayload(url, payloadLabel, options = {}) {
-  /** @type {AbortController | null} */
-  let controller = null;
-  /** @type {number | null} */
-  let timeoutId = null;
-
-  if (options.timeoutMs && options.timeoutMs > 0 && "AbortController" in globalThis) {
-    controller = new AbortController();
-    timeoutId = globalThis.setTimeout(() => controller?.abort(), options.timeoutMs);
+async function fetchJsonPayload(url, payloadLabel) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load ${payloadLabel} from ${url} (${res.status})`);
   }
-
-  try {
-    const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
-    if (!res.ok) {
-      throw new Error(`Failed to load ${payloadLabel} from ${url} (${res.status})`);
-    }
-    return res.json();
-  } finally {
-    if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
-  }
-}
-
-function shouldUseRemoteManifestFirst() {
-  const host = globalThis.location?.hostname?.toLowerCase() ?? "";
-  return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
+  return res.json();
 }
 
 /**
@@ -252,12 +203,4 @@ function compareSearchResults(a, b, query) {
   const bStarts = bName.startsWith(query) ? 0 : 1;
   if (aStarts !== bStarts) return aStarts - bStarts;
   return aName.localeCompare(bName, undefined, { sensitivity: "base" });
-}
-
-/**
- * @param {Game} game
- * @returns {boolean}
- */
-function gameHasImage(game) {
-  return Object.values(game.images).some((value) => Boolean(value));
 }

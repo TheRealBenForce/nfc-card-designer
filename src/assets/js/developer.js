@@ -70,17 +70,11 @@ function buildLocalGameSections() {
 
   for (const platform of platforms) {
     for (const game of gamesForPlatform(platform.id)) {
-      const types = Object.entries(game.images ?? {})
-        .filter(([, imagePath]) => Boolean(imagePath))
-        .map(([type]) => type)
-        .sort();
-      if (types.length === 0) continue;
-
       if (!grouped[game.platformId]) grouped[game.platformId] = [];
       grouped[game.platformId].push({
         name: game.name,
         libretroName: game.libretroName,
-        types,
+        types: ["boxArt", "titleScreen", "gamePicture"],
       });
     }
   }
@@ -115,12 +109,12 @@ function renderLocalGames(sections) {
   const totalGames = sections.reduce((sum, section) => sum + section.games.length, 0);
   if (totalGames === 0) {
     localGamesMetaEl.textContent =
-      "No artwork in image-manifest.json. Run fetch-images and sync-image-manifest.";
-    localGamesEl.innerHTML = '<p class="empty-hint">No games with image paths in the manifest.</p>';
+      "No games in game-catalog.json. Run npm run build-game-catalog.";
+    localGamesEl.innerHTML = '<p class="empty-hint">No catalog entries loaded.</p>';
     return;
   }
 
-  localGamesMetaEl.textContent = `${totalGames} game(s) with artwork metadata across ${sections.length} platform(s).`;
+  localGamesMetaEl.textContent = `${totalGames} game(s) in catalog across ${sections.length} platform(s). Artwork loads from GitHub raw URLs.`;
 
   localGamesEl.replaceChildren();
   for (const section of sections) {

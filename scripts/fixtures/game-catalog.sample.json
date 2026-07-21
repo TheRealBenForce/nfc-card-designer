@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "platforms": {
+    "nes": [
+      { "libretroName": "Super Mario Bros. (USA)" }
+    ],
+    "sega-cd": [
+      { "libretroName": "Ecco the Dolphin (USA)" },
+      { "libretroName": "Lunar - The Silver Star (USA)" },
+      { "libretroName": "Sonic CD (USA)" }
+    ],
+    "sega-32x": [
+      { "libretroName": "After Burner Complete (Europe)" },
+      { "libretroName": "BC Racers (USA)" },
+      { "libretroName": "Blackthorne (USA)" },
+      { "libretroName": "Cosmic Carnage (Europe)" },
+      { "libretroName": "Doom (Europe)" },
+      { "libretroName": "Knuckles' Chaotix (Europe)" },
+      { "libretroName": "Kolibri (USA, Europe)" },
+      { "libretroName": "Metal Head (Europe) (En,Ja)" },
+      { "libretroName": "Mortal Kombat II (Europe)" },
+      { "libretroName": "Virtua Fighter (Europe)" },
+      { "libretroName": "Virtua Racing Deluxe (USA)" }
+    ]
+  }
+}

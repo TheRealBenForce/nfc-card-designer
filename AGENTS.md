@@ -1,5 +1,16 @@
 # AGENTS.md
 
+## Design document workflow
+
+Product intent and feature specs live in **[`docs/DESIGN.md`](docs/DESIGN.md)**. Use it as the collaboration surface before implementing new behavior.
+
+- **Read `docs/DESIGN.md`** when the user discusses features, roadmap, or design-doc changes.
+- **Update `docs/DESIGN.md`** when the user describes new intent — draft or extend the relevant section, set status to **In design**, and clarify open questions.
+- **Wait for explicit go-ahead** (e.g. "build it", or status **Ready to build**) before implementing design-doc changes unless the user already asked you to implement.
+- **On a branch with design-doc edits**, summarize the delta vs `main` and propose an implementation plan from the acceptance criteria.
+
+Technical architecture and maintainer procedures: [`docs/MAINTAINER.md`](docs/MAINTAINER.md).
+
 ## Cursor Cloud specific instructions
 
 ### What this is

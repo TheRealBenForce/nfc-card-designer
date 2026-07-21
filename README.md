@@ -27,6 +27,7 @@ scripts/
   sync-image-manifest.mjs         # Scan S3/local → image-manifest.json
   verify.mjs                    # Run before merging changes
 docs/
+  DESIGN.md                     # Living product design doc (AI collaboration)
   MAINTAINER.md                 # Architecture & data-pipeline notes for developers
 ```
 
@@ -44,6 +45,7 @@ Open [http://localhost:8000](http://localhost:8000).
 npm run verify   # run before merging changes (tests + smoke checks)
 ```
 
+Product design & feature specs: [docs/DESIGN.md](docs/DESIGN.md)  
 Maintainer / architecture notes: [docs/MAINTAINER.md](docs/MAINTAINER.md)
 
 ## Artwork setup (libretro → S3)

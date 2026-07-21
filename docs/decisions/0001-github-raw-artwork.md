@@ -21,7 +21,7 @@ We need a searchable game list per platform without bundling thousands of PNGs i
 
 3. **Print export** stays **PDF** (letter size, cut marks, multi-page). No PNG sheet export.
 
-4. **Static site hosting** (GitHub Pages and/or S3+CloudFront) serves HTML/JS/CSS + generated catalog only. **No game PNGs** on our infrastructure.
+4. **Static site hosting** uses GitHub Pages (GitHub Actions workflow). Serves HTML/JS/CSS + generated catalog only. **No game PNGs** on our infrastructure.
 
 5. **Platform scope** remains the curated **17 platforms** in `platforms.js`.
 

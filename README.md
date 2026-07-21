@@ -74,21 +74,11 @@ Only platforms with games in the catalog appear in the platform selector.
 
 ## Deploy
 
-GitHub Actions on push to `main`:
+GitHub Actions on push to `main` builds the game catalog and publishes `src/` to **GitHub Pages** (`.github/workflows/pages.yml`). Enable Pages with the **GitHub Actions** source in repository settings.
 
-- **Deploy to AWS** — builds catalog, syncs `src/` to S3 + CloudFront invalidation
-- **Deploy to GitHub Pages** — builds catalog, publishes `src/` (enable Pages with GitHub Actions source in repo settings)
+Live site: https://therealbenforce.github.io/nfc-card-designer/
 
-AWS static site deploy also works from your workstation:
-
-```bash
-npm run build-game-catalog
-npm run deploy
-```
-
-Set AWS credentials in `.env` (see `.env.example`). Infrastructure: [`infrastructure/cloudformation.yaml`](infrastructure/cloudformation.yaml)
-
-Live site: https://nfc-card-designer.therealbenforce.com
+Custom domain (`nfc-card-designer.therealbenforce.com`) can be configured in GitHub Pages settings once DNS points at Pages.
 
 ## Card layout
 

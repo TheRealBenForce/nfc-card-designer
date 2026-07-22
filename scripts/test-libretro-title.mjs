@@ -2,6 +2,7 @@
 
 import {
   discNumber,
+  extractLibretroMetadata,
   parseLibretroTitle,
   regionPriorityScore,
   revisionNumber,
@@ -116,6 +117,29 @@ if (revisionNumber([]) !== 0) {
   throw new Error("No revision tag should be 0");
 }
 
+const saturnMeta = extractLibretroMetadata(
+  "Akumajou Dracula X - Gekka no Yasoukyoku v1.400 (1998)(Konami)(NTSC)(JP)[!]",
+);
+if (saturnMeta.year !== "1998" || saturnMeta.publisher !== "Konami") {
+  throw new Error(`Expected Saturn year/publisher, got: ${JSON.stringify(saturnMeta)}`);
+}
+
+const pceMeta = extractLibretroMetadata("3x3 Eyes - Sanjiyan Hensei (NEC) (Japan)[HE100523-1]");
+if (pceMeta.publisher !== "NEC" || pceMeta.year !== null) {
+  throw new Error(`Expected PCE publisher NEC, got: ${JSON.stringify(pceMeta)}`);
+}
+
+const marioMeta = extractLibretroMetadata("Super Mario Bros. (USA)");
+if (marioMeta.year !== null || marioMeta.publisher !== null) {
+  throw new Error(`Expected no metadata for simple title, got: ${JSON.stringify(marioMeta)}`);
+}
+
+const neoGeoMeta = extractLibretroMetadata("Burning Fight (NGH-018)(US)");
+if (neoGeoMeta.publisher !== null) {
+  throw new Error(`Expected no publisher for Neo Geo catalog ID only, got: ${JSON.stringify(neoGeoMeta)}`);
+}
+
+console.log("✓ extractLibretroMetadata reads year and publisher from tags");
 console.log("✓ parseLibretroTitle extracts base title and tags");
 console.log("✓ stripLibretroDisplayName removes trailing metadata and Neo Geo catalog IDs");
 console.log("✓ stripLibretroDisplayName peels brackets and TOSEC stacks");

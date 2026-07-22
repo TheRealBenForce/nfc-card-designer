@@ -268,3 +268,57 @@ export function stripLibretroDisplayName(title) {
   const base = parseLibretroTitle(title).baseTitle;
   return normalizeLibretroBaseTitle(base);
 }
+
+/**
+ * Catalog IDs and serial numbers that can appear as trailing tags.
+ * @param {string} tag
+ */
+export function isCatalogOrSerialTag(tag) {
+  const trimmed = tag.trim();
+  if (/^NG[MH]-\d+$/i.test(trimmed)) return true;
+  if (/^[A-Z]{2}\d[\w-]*$/i.test(trimmed)) return true;
+  return false;
+}
+
+/**
+ * Extract year and publisher from libretro filename metadata tags.
+ * @param {string} libretroName
+ * @returns {{ year: string | null, publisher: string | null }}
+ */
+export function extractLibretroMetadata(libretroName) {
+  const { tags } = parseLibretroTitle(libretroName);
+
+  /** @type {string | null} */
+  let year = null;
+  /** @type {string | null} */
+  let publisher = null;
+
+  for (const tag of tags) {
+    const trimmed = tag.trim();
+
+    if (!year && /^\d{4}$/.test(trimmed)) {
+      year = trimmed;
+      continue;
+    }
+
+    if (
+      publisher ||
+      /^\d{4}$/.test(trimmed) ||
+      /^(NTSC|PAL)$/i.test(trimmed) ||
+      isRegionTag(tag) ||
+      isRevisionTag(tag) ||
+      isDiscTag(tag) ||
+      isDumpFlagTag(tag) ||
+      isHardwareTag(tag) ||
+      isExcludedReleaseTag(tag) ||
+      isLanguageOnlyTag(tag) ||
+      isCatalogOrSerialTag(tag)
+    ) {
+      continue;
+    }
+
+    publisher = trimmed;
+  }
+
+  return { year, publisher };
+}

@@ -13,6 +13,7 @@ import {
 import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
+  PLACEHOLDER_SVG,
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import {
@@ -40,7 +41,7 @@ import {
 } from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
-import { normalizeHeaderHeightPercent } from "./headerSettings.js";
+import { normalizeHeaderHeightPercent, normalizeHeaderSettings } from "./headerSettings.js";
 import {
   subscribe,
   getSettings,
@@ -71,7 +72,8 @@ import {
   importProjectFile,
   defaultSettings,
 } from "./storage.js";
-import { resolveGameImage } from "./imageProvider.js";
+import { buildGameImageUrl, resolveGameImage } from "./imageProvider.js";
+import { extractLibretroMetadata } from "./libretroTitle.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
 import {
@@ -554,10 +556,23 @@ function syncBrowseActionButton() {
 }
 
 /**
+ * Load a collection card's settings into the browse editor without editing that card in place.
  * @param {import("./state.js").Card} card
  */
-async function browseSelectedCard(card) {
+async function copyCardSettingsToEditor(card) {
   schedulePreviewSkeleton();
+
+  const header = normalizeHeaderSettings(card.headerSettings ?? getSettings());
+  updateSettings({
+    selectedPlatformId: card.platformId,
+    showHeader: header.showHeader,
+    showPlatformColor: header.showPlatformColor,
+    headerHeightPercent: header.headerHeightPercent,
+  });
+  saveSettings(getSettings());
+  syncGlobalSettingsControls();
+  syncPlatformControls();
+
   const game =
     gameForCard(card) ?? {
       platformId: card.platformId,
@@ -576,14 +591,23 @@ async function browseSelectedCard(card) {
     imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, card.imageType),
     availableTypes,
     resolvedTypes,
-    targetCardId: card.id,
-    artworkDisplayOverride: null,
+    targetCardId: null,
+    artworkDisplayOverride: card.artworkDisplay
+      ? normalizeArtworkDisplay(card.artworkDisplay)
+      : null,
     imageRotation: normalizeRotationDegrees(card.imageRotation ?? 0),
   };
+
+  if (gameSearchInput) {
+    gameSearchInput.value = game.name;
+  }
+  closeGameResults();
+
   renderPreviewTypeTabs();
   syncBrowseActionButton();
   syncPreviewArtworkControls();
   await refreshPreview();
+  logStatus(`Copied ${card.gameName} settings to editor.`);
 }
 
 function getEditingCard() {
@@ -1134,7 +1158,20 @@ function renderCollection() {
     platformDetails.open = true;
 
     const platformSummary = document.createElement("summary");
-    platformSummary.textContent = platform.name;
+    platformSummary.className = "collection-platform__summary";
+
+    const platformName = document.createElement("span");
+    platformName.className = "collection-platform__name";
+    platformName.textContent = platform.name;
+
+    const platformChevron = document.createElement("span");
+    platformChevron.className = "collection-platform__chevron";
+    platformChevron.setAttribute("aria-hidden", "true");
+    platformChevron.innerHTML =
+      '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    platformSummary.appendChild(platformName);
+    platformSummary.appendChild(platformChevron);
     platformDetails.appendChild(platformSummary);
 
     const cardsEl = document.createElement("div");
@@ -1145,45 +1182,60 @@ function renderCollection() {
       row.className = "collection-card";
       if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
 
-      const editBtn = document.createElement("button");
-      editBtn.type = "button";
-      editBtn.className = "collection-card__edit-btn";
-      if (browseState?.targetCardId === card.id) {
-        editBtn.classList.add("collection-card__edit-btn--active");
-      }
-      editBtn.textContent = "✎";
-      editBtn.title = `Edit ${card.gameName}`;
-      editBtn.setAttribute("aria-label", `Edit ${card.gameName}`);
-      editBtn.addEventListener("click", () => {
-        void browseSelectedCard(card);
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "collection-card__copy-btn";
+      copyBtn.title = `Copy ${card.gameName} settings to editor`;
+      copyBtn.setAttribute("aria-label", `Copy ${card.gameName} settings to editor`);
+      copyBtn.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/></svg>';
+      copyBtn.addEventListener("click", () => {
+        void copyCardSettingsToEditor(card);
       });
 
       const selectBtn = document.createElement("button");
       selectBtn.type = "button";
       selectBtn.className = "collection-card__select-btn";
+      selectBtn.setAttribute("aria-pressed", selectedIds.has(card.id) ? "true" : "false");
 
-      const mark = document.createElement("span");
-      mark.className = "collection-card__mark";
-      mark.textContent = selectedIds.has(card.id) ? "✓" : "";
-      mark.setAttribute("aria-hidden", "true");
-
-      const label = document.createElement("span");
-      label.className = "collection-card__label";
-      const artLabel = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
-      label.textContent = `${card.gameName} - ${artLabel}`;
-
-      selectBtn.addEventListener("click", () => {
-        if (browseState) clearBrowse();
-        toggleCardSelection(card.id);
-        setPreviewCardId(card.id);
-        renderCollection();
-        updateCollectionActions();
-        syncPreviewArtworkControls();
-        refreshPreview();
+      const thumb = document.createElement("img");
+      thumb.className = "collection-card__thumb";
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      const artworkUrl = buildGameImageUrl(card.platformId, card.libretroName, card.imageType);
+      thumb.src = card.imageFailed ? PLACEHOLDER_SVG : artworkUrl ?? PLACEHOLDER_SVG;
+      thumb.addEventListener("error", () => {
+        thumb.src = PLACEHOLDER_SVG;
       });
 
-      selectBtn.appendChild(mark);
-      selectBtn.appendChild(label);
+      const content = document.createElement("span");
+      content.className = "collection-card__content";
+
+      const info = document.createElement("span");
+      info.className = "collection-card__info";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "collection-card__name";
+      nameEl.textContent = card.gameName;
+      info.appendChild(nameEl);
+
+      const { year, publisher } = extractLibretroMetadata(card.libretroName);
+      const metaParts = [year, publisher].filter(Boolean);
+      if (metaParts.length > 0) {
+        const metaEl = document.createElement("span");
+        metaEl.className = "collection-card__meta";
+        metaEl.textContent = metaParts.join(" - ");
+        info.appendChild(metaEl);
+      }
+
+      content.appendChild(info);
+      content.appendChild(thumb);
+
+      selectBtn.addEventListener("click", () => {
+        toggleCardSelection(card.id);
+      });
+
+      selectBtn.appendChild(content);
 
       if (card.imageFailed) {
         const badge = document.createElement("span");
@@ -1192,8 +1244,8 @@ function renderCollection() {
         selectBtn.appendChild(badge);
       }
 
-      row.appendChild(editBtn);
       row.appendChild(selectBtn);
+      row.appendChild(copyBtn);
       cardsEl.appendChild(row);
     }
 
@@ -1705,8 +1757,6 @@ export async function initUI() {
     if (event === "selection") {
       renderCollection();
       updateCollectionActions();
-      syncPreviewArtworkControls();
-      refreshPreview();
     }
   });
 }

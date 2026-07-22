@@ -13,6 +13,7 @@ import {
 import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
+  PLACEHOLDER_SVG,
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import {
@@ -71,7 +72,8 @@ import {
   importProjectFile,
   defaultSettings,
 } from "./storage.js";
-import { resolveGameImage } from "./imageProvider.js";
+import { buildGameImageUrl, resolveGameImage } from "./imageProvider.js";
+import { extractLibretroMetadata } from "./libretroTitle.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
 import {
@@ -1167,10 +1169,32 @@ function renderCollection() {
       mark.textContent = selectedIds.has(card.id) ? "✓" : "";
       mark.setAttribute("aria-hidden", "true");
 
-      const label = document.createElement("span");
-      label.className = "collection-card__label";
-      const artLabel = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
-      label.textContent = `${card.gameName} - ${artLabel}`;
+      const thumb = document.createElement("img");
+      thumb.className = "collection-card__thumb";
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      const artworkUrl = buildGameImageUrl(card.platformId, card.libretroName, card.imageType);
+      thumb.src = card.imageFailed ? PLACEHOLDER_SVG : artworkUrl ?? PLACEHOLDER_SVG;
+      thumb.addEventListener("error", () => {
+        thumb.src = PLACEHOLDER_SVG;
+      });
+
+      const info = document.createElement("span");
+      info.className = "collection-card__info";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "collection-card__name";
+      nameEl.textContent = card.gameName;
+      info.appendChild(nameEl);
+
+      const { year, publisher } = extractLibretroMetadata(card.libretroName);
+      const metaParts = [year, publisher].filter(Boolean);
+      if (metaParts.length > 0) {
+        const metaEl = document.createElement("span");
+        metaEl.className = "collection-card__meta";
+        metaEl.textContent = metaParts.join(" · ");
+        info.appendChild(metaEl);
+      }
 
       selectBtn.addEventListener("click", () => {
         if (browseState) clearBrowse();
@@ -1183,7 +1207,8 @@ function renderCollection() {
       });
 
       selectBtn.appendChild(mark);
-      selectBtn.appendChild(label);
+      selectBtn.appendChild(thumb);
+      selectBtn.appendChild(info);
 
       if (card.imageFailed) {
         const badge = document.createElement("span");

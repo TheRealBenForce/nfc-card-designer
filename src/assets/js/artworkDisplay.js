@@ -40,8 +40,8 @@ export const DEFAULT_ARTWORK_ALIGNMENT = "top-center";
 
 /** @type {readonly ArtworkBackgroundMode[]} */
 export const ARTWORK_BACKGROUND_MODE_ORDER = [
-  "select",
   "consoleColor",
+  "select",
   "nearestEdge",
   "blurredBoxArt",
   "blurredTitleScreen",
@@ -51,7 +51,7 @@ export const ARTWORK_BACKGROUND_MODE_ORDER = [
 /** @type {Record<ArtworkBackgroundMode, { label: string }>} */
 export const ARTWORK_BACKGROUND_MODES = {
   select: { label: "Select Tool" },
-  consoleColor: { label: "Console color" },
+  consoleColor: { label: "Console Accent Color" },
   nearestEdge: { label: "Nearest edge" },
   blurredBoxArt: { label: "Blurred box art" },
   blurredTitleScreen: { label: "Blurred title screen" },

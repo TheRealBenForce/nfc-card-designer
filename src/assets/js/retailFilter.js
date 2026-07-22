@@ -1,4 +1,8 @@
-import { isExcludedReleaseTag, parseLibretroTitle, stripLibretroDisplayName } from "./libretroTitle.js";
+import {
+  isExcludedReleaseTag,
+  parseLibretroTitle,
+  stripLibretroDisplayName,
+} from "./libretroTitle.js";
 
 /**
  * RetroAchievements marks non-retail entries in game titles.
@@ -23,6 +27,9 @@ export function isRetailRelease(title) {
   const normalized = title.trim();
   if (!normalized) return false;
 
+  if (/^Named_(Boxarts|Titles|Snaps)\//i.test(normalized)) return false;
+  if (/\bSymbolicLink\b/i.test(normalized)) return false;
+
   const upper = normalized.toUpperCase();
   for (const marker of NON_RETAIL_TITLE_MARKERS) {
     if (upper.includes(marker.toUpperCase())) return false;
@@ -32,6 +39,10 @@ export function isRetailRelease(title) {
 
   const { tags } = parseLibretroTitle(normalized);
   if (tags.some((tag) => isExcludedReleaseTag(tag))) return false;
+
+  // Mid-title bootleg/homebrew markers that are not always trailing tags.
+  if (/\bbootleg\b/i.test(normalized)) return false;
+  if (/\[Homebrew\]/i.test(normalized)) return false;
 
   return true;
 }

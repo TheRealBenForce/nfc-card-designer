@@ -116,8 +116,23 @@ if (artworkCount("Missing", new Map()) !== 0) {
   throw new Error("Missing artwork should count as 0");
 }
 
+const discPicked = dedupeRegionalVariants(
+  [
+    "Rampo v1.000 (1995)(Sega)(NTSC)(JP)(Disc 2 of 2)[!]",
+    "Rampo v1.000 (1995)(Sega)(NTSC)(JP)(Disc 1 of 2)[!]",
+  ],
+  makeArtworkIndex({
+    "Rampo v1.000 (1995)(Sega)(NTSC)(JP)(Disc 1 of 2)[!]": ["Named_Boxarts", "Named_Titles"],
+    "Rampo v1.000 (1995)(Sega)(NTSC)(JP)(Disc 2 of 2)[!]": ["Named_Boxarts", "Named_Titles"],
+  }),
+);
+if (discPicked.length !== 1 || !discPicked[0].includes("Disc 1")) {
+  throw new Error(`Expected multi-disc collapse to Disc 1, got ${JSON.stringify(discPicked)}`);
+}
+
 console.log("✓ dedupeRegionalVariants keeps one entry per base title");
 console.log("✓ USA/Europe preferred over country-specific variants");
 console.log("✓ Most artwork wins among same-region revisions");
 console.log("✓ Japan-only games are kept when no higher-priority region exists");
 console.log("✓ Different base titles are not merged");
+console.log("✓ Multi-disc releases collapse to the lowest disc number");

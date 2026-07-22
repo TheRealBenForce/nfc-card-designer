@@ -1236,13 +1236,7 @@ function renderCollection() {
       content.appendChild(thumb);
 
       selectBtn.addEventListener("click", () => {
-        if (browseState) clearBrowse();
         toggleCardSelection(card.id);
-        setPreviewCardId(card.id);
-        renderCollection();
-        updateCollectionActions();
-        syncPreviewArtworkControls();
-        refreshPreview();
       });
 
       selectBtn.appendChild(mark);
@@ -1768,8 +1762,6 @@ export async function initUI() {
     if (event === "selection") {
       renderCollection();
       updateCollectionActions();
-      syncPreviewArtworkControls();
-      refreshPreview();
     }
   });
 }

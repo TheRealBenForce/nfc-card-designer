@@ -31,6 +31,8 @@ Search only includes games present in the catalog. Image URLs are computed at ru
 
 Friendly display names are derived at runtime from `libretroName` (see **Artwork & game catalog** in [`docs/DESIGN.md`](./DESIGN.md)). Catalog build filters and the canonical-vs-friendly split are documented there.
 
+**Large repos (Arcade):** `build-game-catalog` prefers a full recursive Git tree, retries transient GitHub `5xx` errors, then falls back to per-folder trees (`Named_Boxarts` / `Named_Titles` / `Named_Snaps`). The contents API is last resort only — it is incomplete for directories with more than 1000 files.
+
 ## Typical maintainer workflows
 
 ### Build or refresh the game catalog

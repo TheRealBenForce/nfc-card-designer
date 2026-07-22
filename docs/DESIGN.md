@@ -307,7 +307,7 @@ On load and save, `gameName` is re-derived from `libretroName`, so older collect
 
 Pipeline per platform:
 
-1. **Fetch** box-art (and related) filenames from the libretro-thumbnails GitHub tree.
+1. **Fetch** box-art (and related) filenames from the libretro-thumbnails GitHub tree. Large repos (Arcade) retry on transient `5xx`, then fall back to per-folder trees so catalogs stay complete.
 2. **Retail gate** — drop non-retail / junk entries: RetroAchievements `~Hack~` / `~Homebrew~` / etc. markers, Beta/Proto/Demo/Sample, Bootleg, Homebrew, translation patches (`T-En`, `[English]`), SymbolicLink stubs, and `Named_*` path pollution.
 3. **Regional / revision / disc dedupe** — keep **one** entry per base title:
    - Region priority: USA → World → USA/Europe combo → Europe → other countries → Japan/Asia

@@ -1196,11 +1196,7 @@ function renderCollection() {
       const selectBtn = document.createElement("button");
       selectBtn.type = "button";
       selectBtn.className = "collection-card__select-btn";
-
-      const mark = document.createElement("span");
-      mark.className = "collection-card__mark";
-      mark.textContent = selectedIds.has(card.id) ? "✓" : "";
-      mark.setAttribute("aria-hidden", "true");
+      selectBtn.setAttribute("aria-pressed", selectedIds.has(card.id) ? "true" : "false");
 
       const thumb = document.createElement("img");
       thumb.className = "collection-card__thumb";
@@ -1239,7 +1235,6 @@ function renderCollection() {
         toggleCardSelection(card.id);
       });
 
-      selectBtn.appendChild(mark);
       selectBtn.appendChild(content);
 
       if (card.imageFailed) {

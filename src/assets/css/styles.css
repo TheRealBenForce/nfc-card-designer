@@ -473,15 +473,6 @@ body {
   background: rgba(108, 140, 255, 0.16);
 }
 
-.collection-card__mark {
-  flex-shrink: 0;
-  width: 1.1rem;
-  margin-top: 0.1rem;
-  font-size: 0.9rem;
-  line-height: 1;
-  text-align: center;
-}
-
 .collection-card__content {
   flex: 1;
   min-width: 0;

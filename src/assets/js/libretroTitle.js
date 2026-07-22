@@ -53,9 +53,9 @@ export function parseLibretroTitle(title) {
   const tags = [];
   let rest = title.trim();
 
-  while (/\s+\([^)]*\)$/.test(rest)) {
-    const match = rest.match(/\s+\(([^)]*)\)$/);
-    if (!match) break;
+  while (/\([^)]*\)$/.test(rest)) {
+    const match = rest.match(/\(([^)]*)\)$/);
+    if (!match || match.index === undefined) break;
     tags.unshift(match[1]);
     rest = rest.slice(0, match.index).trimEnd();
   }
@@ -90,7 +90,7 @@ export function isHardwareTag(tag) {
  * @param {string} tag
  */
 export function isExcludedReleaseTag(tag) {
-  return /^(Beta|Proto|Demo|Sample)$/i.test(tag.trim());
+  return /^(Beta|Proto|Prototype|Demo|Sample)$/i.test(tag.trim());
 }
 
 /**
@@ -155,8 +155,17 @@ export function revisionNumber(tags) {
 }
 
 /**
+ * Libretro uses spaced underscores between alternate regional titles.
+ * @param {string} title
+ */
+export function normalizeAlternateTitleSeparator(title) {
+  return title.replace(/\s+_\s+/g, " - ");
+}
+
+/**
  * @param {string} title
  */
 export function stripLibretroDisplayName(title) {
-  return parseLibretroTitle(title).baseTitle;
+  const base = parseLibretroTitle(title).baseTitle;
+  return normalizeAlternateTitleSeparator(base);
 }

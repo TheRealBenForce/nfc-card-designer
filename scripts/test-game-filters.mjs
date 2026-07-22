@@ -19,6 +19,7 @@ const nonRetail = [
   "Base Game [Subset - Bonus]",
   "Dr. Mario (World) (Beta)",
   "Metroid (Japan) (Proto)",
+  "Alpha Mission II _ ASO II - Last Guardian (prototype)",
 ];
 
 for (const title of retail) {

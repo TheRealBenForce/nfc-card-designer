@@ -19,6 +19,26 @@ if (stripLibretroDisplayName("Doom (Europe)") !== "Doom") {
   throw new Error("Expected stripped display name");
 }
 
+const androParsed = parseLibretroTitle("Andro Dunos (NGM-049)(NGH-049)");
+if (androParsed.baseTitle !== "Andro Dunos") {
+  throw new Error(`Expected Neo Geo catalog IDs to be stripped, got: ${androParsed.baseTitle}`);
+}
+if (androParsed.tags.join("|") !== "NGM-049|NGH-049") {
+  throw new Error(`Unexpected Neo Geo tags: ${androParsed.tags.join("|")}`);
+}
+if (stripLibretroDisplayName("Andro Dunos (NGM-049)(NGH-049)") !== "Andro Dunos") {
+  throw new Error("Expected Neo Geo catalog IDs removed from display name");
+}
+
+if (stripLibretroDisplayName("Aero Fighters 2 _ Sonic Wings 2") !== "Aero Fighters 2 - Sonic Wings 2") {
+  throw new Error("Expected spaced underscores to become dashes in display name");
+}
+
+const chainedRegion = parseLibretroTitle("Burning Fight (NGH-018)(US)");
+if (chainedRegion.baseTitle !== "Burning Fight") {
+  throw new Error(`Expected chained trailing tags to peel, got: ${chainedRegion.baseTitle}`);
+}
+
 if (regionPriorityScore(parseLibretroTitle("Game (USA)").tags) <= regionPriorityScore(parseLibretroTitle("Game (World)").tags)) {
   throw new Error("USA should outrank World");
 }
@@ -40,6 +60,7 @@ if (revisionNumber([]) !== 0) {
 }
 
 console.log("✓ parseLibretroTitle extracts base title and tags");
-console.log("✓ stripLibretroDisplayName removes trailing metadata");
+console.log("✓ stripLibretroDisplayName removes trailing metadata and Neo Geo catalog IDs");
+console.log("✓ stripLibretroDisplayName normalizes alternate-title underscores to dashes");
 console.log("✓ regionPriorityScore prefers USA > World > Europe > country > Japan");
 console.log("✓ revisionNumber ranks revisions");

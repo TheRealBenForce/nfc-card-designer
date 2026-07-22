@@ -5,6 +5,9 @@
 }
 
 :root {
+  /* Opt into UA dark form controls / scrollbars and disable Safari/Chrome
+     auto-darkening that paints white outlines and shifts our palette. */
+  color-scheme: dark;
   --bg: #0f1117;
   --surface: #1a1d27;
   --surface-2: #242836;
@@ -25,6 +28,8 @@
 
 html {
   scrollbar-gutter: stable;
+  background: var(--bg);
+  color-scheme: dark;
 }
 
 body {
@@ -34,6 +39,14 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+}
+
+/* Keep native controls on the dark palette (esp. iPad Safari). */
+input,
+select,
+textarea,
+button {
+  color-scheme: dark;
 }
 
 .header {

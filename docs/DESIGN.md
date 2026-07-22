@@ -100,6 +100,10 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.
 
 **Not in nav (by design today):** Developer, Colors. Add nav links here only after updating this section and acceptance criteria.
 
+### Appearance (color scheme)
+
+The product UI is **dark-only**. Every page declares `color-scheme: dark` (CSS on `:root` / `html` plus `<meta name="color-scheme" content="dark">`) and a matching `theme-color` (`#0f1117`). That opts browsers into dark native form controls and stops Safari/Chrome auto-darkening from adding white outlines or shifting the palette (notably on iPad with system Dark Mode). There is no light theme today.
+
 ---
 
 ## Page specifications (shipped)
@@ -358,6 +362,7 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
 - [x] Deploy to GitHub Pages (static site only)
+- [x] Dark-only `color-scheme` declared so mobile Safari/Chrome do not auto-darken the UI
 
 ---
 
@@ -381,3 +386,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-21 | GitHub raw artwork + generated catalog shipped |
 | 2026-07-21 | Rebranded product as NFC Card Designer |
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
+| 2026-07-22 | Declared dark-only `color-scheme` / `theme-color` to fix iPad Safari white outlines and off colors |

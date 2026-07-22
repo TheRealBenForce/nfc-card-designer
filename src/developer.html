@@ -6,6 +6,12 @@
     <title>Developer · NFC Card Designer</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon-gamepad.svg" />
     <link rel="alternate icon" href="assets/images/favicon-gamepad.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
@@ -13,7 +19,12 @@
       <div class="site-container">
         <nav class="header__nav" aria-label="Site">
           <h1 class="header__title">
-            <a class="header__brand" href="./">NFC Card Designer</a>
+            <a class="header__brand wordmark" href="./" aria-label="NFC Card Designer">
+              <span class="wordmark__tag" aria-hidden="true">NFC</span>
+              <span class="wordmark__name" aria-hidden="true">
+                Card <span class="wordmark__accent">Designer</span>
+              </span>
+            </a>
           </h1>
           <span class="header__link header__link--current" aria-current="page">Developer</span>
           <a class="header__link" href="supplies.html">Supplies</a>

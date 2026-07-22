@@ -13,6 +13,13 @@
   --text-muted: #9aa3b8;
   --accent: #6c8cff;
   --accent-hover: #8aa4ff;
+  --wordmark-tag-bg: #f0a442;
+  --wordmark-tag-bg-deep: #d8892a;
+  --wordmark-tag-text: #2a1608;
+  --wordmark-tag-border: rgba(42, 22, 8, 0.22);
+  --wordmark-name: var(--text);
+  --wordmark-accent: #f4c978;
+  --wordmark-accent-hover: #ffe0a8;
   --danger: #ff6b6b;
   --radius: 10px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
@@ -64,7 +71,72 @@ body {
 }
 
 .header__brand:hover {
-  color: var(--accent);
+  color: var(--text);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  transition: transform 180ms ease;
+}
+
+.wordmark:hover {
+  transform: translateY(-1px);
+}
+
+.wordmark__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.35rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 5px;
+  border: 1px solid var(--wordmark-tag-border);
+  background: linear-gradient(165deg, var(--wordmark-tag-bg) 0%, var(--wordmark-tag-bg-deep) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 2px 5px rgba(0, 0, 0, 0.28);
+  color: var(--wordmark-tag-text);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.wordmark:hover .wordmark__tag {
+  transform: rotate(-1deg) translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 4px 10px rgba(0, 0, 0, 0.32);
+}
+
+.wordmark__name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  color: var(--wordmark-name);
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-size: 1.42rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.wordmark__accent {
+  color: var(--wordmark-accent);
+  transition: color 180ms ease;
+}
+
+.wordmark:hover .wordmark__accent {
+  color: var(--wordmark-accent-hover);
 }
 
 .header__link {

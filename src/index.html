@@ -20,7 +20,8 @@
     </header>
 
     <div class="app">
-      <aside class="panel panel--controls">
+      <aside class="panel panel--select">
+        <h2 class="panel__title">Select</h2>
         <details class="collapsible">
           <summary class="collapsible__summary">Global Settings</summary>
           <div class="collapsible__body">
@@ -106,9 +107,18 @@
         </section>
       </aside>
 
-      <section class="panel panel--preview">
-        <p id="preview-meta" class="preview-meta">Search for a game to preview artwork.</p>
-        <div class="preview-layout">
+      <section class="panel panel--edit panel--edit-off" id="edit-panel" aria-disabled="true">
+        <h2 class="panel__title">Edit</h2>
+        <p id="preview-meta" class="preview-meta">Select a game to start editing.</p>
+        <div id="edit-idle" class="edit-idle">
+          <div class="preview-frame">
+            <div class="preview-card">
+              <div class="preview-sticker-base" aria-hidden="true"></div>
+              <div class="preview-skeleton preview-skeleton--idle" aria-hidden="false"></div>
+            </div>
+          </div>
+        </div>
+        <div id="edit-controls" class="preview-layout" hidden>
           <div class="preview-main">
             <div id="preview-type-tabs" class="preview-type-tabs"></div>
             <div id="preview-frame" class="preview-frame">
@@ -197,11 +207,9 @@
         </div>
       </section>
 
-      <aside class="panel panel--collection">
-        <div class="collection-header">
-          <h2 class="section__title">Collection</h2>
-          <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
-        </div>
+      <aside class="panel panel--print">
+        <h2 class="panel__title">Print</h2>
+        <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
         <div class="collection-actions">
           <button id="select-all" type="button" class="btn btn--secondary" disabled>Select All</button>
           <button id="deselect-all" type="button" class="btn btn--secondary" disabled>Deselect All</button>

@@ -35,6 +35,18 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
+    const editPanel = page.locator("#edit-panel");
+    if ((await editPanel.getAttribute("aria-disabled")) !== "true") {
+      throw new Error("Edit panel should be disabled on initial load");
+    }
+    if (!(await page.locator("#edit-idle").isVisible())) {
+      throw new Error("Edit idle skeleton should be visible on initial load");
+    }
+    if (!(await page.locator("#edit-panel").evaluate((el) => el.classList.contains("panel--edit-off")))) {
+      throw new Error("Edit panel should have panel--edit-off on initial load");
+    }
+    console.log("✓ Edit column is OFF with idle skeleton on load");
+
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
     await page.waitForTimeout(150);
 
@@ -93,10 +105,15 @@ async function main() {
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
+    await page.getByRole("option", { name: /Ecco the Dolphin/ }).click();
+    await page.waitForTimeout(500);
 
     const addBtn = page.locator("#add-browsed-game");
     if (!(await addBtn.isVisible())) {
       throw new Error("Browse preview should show Add to collection button");
+    }
+    if ((await editPanel.getAttribute("aria-disabled")) !== "false") {
+      throw new Error("Edit panel should be enabled after selecting a game");
     }
 
     const tabs = await page.locator(".preview-type-tab").count();
@@ -171,15 +188,13 @@ async function main() {
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Clear", exact: true }).click();
     await page.waitForFunction(() => {
-      const image = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
-      return Boolean(image && !image.hasAttribute("src"));
+      const panel = document.getElementById("edit-panel");
+      return panel?.getAttribute("aria-disabled") === "true";
     });
-    const previewImageAfterClear = page.locator("#preview-image");
-    const previewSrcAfterClear = await previewImageAfterClear.getAttribute("src");
-    if (previewSrcAfterClear !== null) {
-      throw new Error(`Preview image src should be removed after clearing project, got: ${previewSrcAfterClear}`);
+    if (!(await page.locator("#edit-idle").isVisible())) {
+      throw new Error("Edit idle skeleton should return after clearing project");
     }
-    console.log("✓ Clearing project removes preview image src in empty state");
+    console.log("✓ Clearing project returns Edit column to OFF");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);

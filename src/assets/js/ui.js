@@ -48,13 +48,7 @@ import {
   getCollection,
   getSelectedCardIds,
   getSelectedCards,
-  getPreviewCard,
   updateSettings,
-  setCardArtworkDisplay,
-  clearCardArtworkDisplay,
-  setCardImageRotation,
-  clearCardImageRotation,
-  getEffectiveArtworkDisplay,
   addCard,
   updateCard,
   removeCards,
@@ -63,7 +57,6 @@ import {
   clearCollection,
   createCardId,
   toggleCardSelection,
-  setPreviewCardId,
 } from "./state.js";
 import {
   saveSettings,
@@ -178,6 +171,10 @@ let previewArtworkResetBtn = null;
 let previewArtworkControlsTitleEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkRotateBtn = null;
+/** @type {HTMLElement|null} */
+let editPanelEl = null;
+/** @type {HTMLElement|null} */
+let editControlsEl = null;
 
 /**
  * @type {{
@@ -185,7 +182,6 @@ let previewArtworkRotateBtn = null;
  *   imageType: string,
  *   availableTypes: string[],
  *   resolvedTypes: string[],
- *   targetCardId: string | null,
  *   artworkDisplayOverride?: import("./artworkDisplay.js").ArtworkDisplaySettings | null,
  *   imageRotation?: number,
  * } | null}
@@ -223,6 +219,41 @@ function cancelPreviewSkeleton() {
   previewSkeletonEl.hidden = true;
   previewSkeletonEl.setAttribute("aria-hidden", "true");
   previewFrameEl.classList.remove("preview-frame--loading");
+}
+
+function syncEditColumnState() {
+  const active = Boolean(browseState);
+
+  if (editPanelEl) {
+    editPanelEl.classList.toggle("panel--edit-on", active);
+    editPanelEl.classList.toggle("panel--edit-off", !active);
+    editPanelEl.setAttribute("aria-disabled", active ? "false" : "true");
+  }
+
+  if (editControlsEl) {
+    editControlsEl.hidden = !active;
+    if (!active) {
+      editControlsEl.setAttribute("inert", "");
+    } else {
+      editControlsEl.removeAttribute("inert");
+    }
+  }
+
+  if (!active) {
+    cancelPreviewSkeleton();
+    if (previewImageEl) {
+      previewImageEl.hidden = true;
+      previewImageEl.removeAttribute("src");
+      previewImageEl.alt = "";
+    }
+    if (previewMetaEl) {
+      previewMetaEl.textContent = "Select a game to start editing.";
+    }
+    renderPreviewTypeTabs();
+  }
+
+  syncBrowseActionButton();
+  syncPreviewArtworkControls();
 }
 
 /** @type {number} */
@@ -384,27 +415,23 @@ function mountArtworkBackgroundModeSelect(selectEl) {
 
 function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
-  const activePlatformId = getActivePlatformId();
-  const fallbackDisplay = activePlatformId
-    ? getPlatformArtworkDisplay(getSettings().platformDefaults, activePlatformId)
-    : normalizeArtworkDisplay();
-  const display = context?.display ?? fallbackDisplay;
+  if (!context) return;
+
+  const display = context.display;
 
   if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = context
-      ? "Artwork Display"
-      : "Artwork Display (select a game or card)";
+    previewArtworkControlsTitleEl.textContent = "Artwork Display";
   }
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
-    previewArtworkResetBtn.disabled = !context || !context.hasOverride;
+    previewArtworkResetBtn.disabled = !context.hasOverride;
   }
 
   if (previewArtworkRotateBtn) {
-    const rotation = context?.cardRotation ?? 0;
+    const rotation = context.cardRotation ?? 0;
     previewArtworkRotateBtn.hidden = false;
-    previewArtworkRotateBtn.disabled = !context;
+    previewArtworkRotateBtn.disabled = false;
     previewArtworkRotateBtn.title = `Rotate artwork 90° (current ${rotation}°)`;
   }
 
@@ -420,20 +447,16 @@ function syncPreviewArtworkControls() {
   );
   syncArtworkZoomControl(previewArtworkZoomEl, previewArtworkZoomValueEl, display);
 
-  const controlsDisabled = !context;
   if (previewArtworkAlignmentGridEl) {
     for (const btn of previewArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
-      /** @type {HTMLButtonElement} */ (btn).disabled = controlsDisabled;
+      /** @type {HTMLButtonElement} */ (btn).disabled = false;
     }
   }
   if (previewArtworkBackgroundModeEl) {
-    previewArtworkBackgroundModeEl.disabled = controlsDisabled;
+    previewArtworkBackgroundModeEl.disabled = false;
   }
   if (previewArtworkZoomEl) {
-    previewArtworkZoomEl.disabled = controlsDisabled;
-  }
-  if (previewArtworkBackgroundColorEl && controlsDisabled) {
-    previewArtworkBackgroundColorEl.disabled = true;
+    previewArtworkZoomEl.disabled = false;
   }
 }
 
@@ -448,38 +471,23 @@ function syncPreviewArtworkControls() {
  * } | null}
  */
 function getPreviewArtworkControlContext() {
-  const browseTargetCard = browseState?.targetCardId
-    ? getCollection().find((card) => card.id === browseState.targetCardId) ?? null
-    : null;
+  if (!browseState) return null;
 
-  if (browseState && !browseTargetCard) {
-    const platformDisplay = getPlatformArtworkDisplay(
-      getSettings().platformDefaults,
-      browseState.game.platformId,
-    );
-    const display = browseState.artworkDisplayOverride
-      ? normalizeArtworkDisplay({ ...platformDisplay, ...browseState.artworkDisplayOverride })
-      : platformDisplay;
-    return {
-      mode: "card",
-      isBrowseCard: true,
-      cardRotation: normalizeRotationDegrees(browseState.imageRotation ?? 0),
-      display,
-      hasOverride:
-        Boolean(browseState.artworkDisplayOverride) ||
-        normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0,
-    };
-  }
-
-  const previewCard = browseTargetCard ?? getPreviewCard();
-  if (!previewCard) return null;
-
+  const platformDisplay = getPlatformArtworkDisplay(
+    getSettings().platformDefaults,
+    browseState.game.platformId,
+  );
+  const display = browseState.artworkDisplayOverride
+    ? normalizeArtworkDisplay({ ...platformDisplay, ...browseState.artworkDisplayOverride })
+    : platformDisplay;
   return {
     mode: "card",
-    cardId: previewCard.id,
-    cardRotation: previewCard.imageRotation ?? 0,
-    display: getEffectiveArtworkDisplay(previewCard),
-    hasOverride: Boolean(previewCard.artworkDisplay) || (previewCard.imageRotation ?? 0) !== 0,
+    isBrowseCard: true,
+    cardRotation: normalizeRotationDegrees(browseState.imageRotation ?? 0),
+    display,
+    hasOverride:
+      Boolean(browseState.artworkDisplayOverride) ||
+      normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0,
   };
 }
 
@@ -488,23 +496,19 @@ function getPreviewArtworkControlContext() {
  */
 function applyPreviewArtworkPatch(patch) {
   const context = getPreviewArtworkControlContext();
-  if (!context) return;
+  if (!context?.isBrowseCard || !browseState) return;
 
-  if (context.cardId) {
-    setCardArtworkDisplay(context.cardId, patch);
-  } else if (context.isBrowseCard && browseState) {
-    const platformDisplay = getPlatformArtworkDisplay(
-      getSettings().platformDefaults,
-      browseState.game.platformId,
-    );
-    const current = browseState.artworkDisplayOverride
-      ? normalizeArtworkDisplay({ ...platformDisplay, ...browseState.artworkDisplayOverride })
-      : platformDisplay;
-    browseState = {
-      ...browseState,
-      artworkDisplayOverride: normalizeArtworkDisplay({ ...current, ...patch }),
-    };
-  }
+  const platformDisplay = getPlatformArtworkDisplay(
+    getSettings().platformDefaults,
+    browseState.game.platformId,
+  );
+  const current = browseState.artworkDisplayOverride
+    ? normalizeArtworkDisplay({ ...platformDisplay, ...browseState.artworkDisplayOverride })
+    : platformDisplay;
+  browseState = {
+    ...browseState,
+    artworkDisplayOverride: normalizeArtworkDisplay({ ...current, ...patch }),
+  };
 
   syncPreviewArtworkControls();
   refreshPreview();
@@ -545,14 +549,8 @@ function browseStateUsesPlaceholder(state) {
 
 function syncBrowseActionButton() {
   if (!addBrowsedGameBtn) return;
-  addBrowsedGameBtn.hidden = false;
-  if (!browseState) {
-    addBrowsedGameBtn.textContent = "Add to collection";
-    addBrowsedGameBtn.disabled = true;
-    return;
-  }
-  addBrowsedGameBtn.textContent = browseState.targetCardId ? "Update Card" : "Add to collection";
-  addBrowsedGameBtn.disabled = false;
+  addBrowsedGameBtn.textContent = "Add to collection";
+  addBrowsedGameBtn.disabled = !browseState;
 }
 
 /**
@@ -591,7 +589,6 @@ async function copyCardSettingsToEditor(card) {
     imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, card.imageType),
     availableTypes,
     resolvedTypes,
-    targetCardId: null,
     artworkDisplayOverride: card.artworkDisplay
       ? normalizeArtworkDisplay(card.artworkDisplay)
       : null,
@@ -603,16 +600,10 @@ async function copyCardSettingsToEditor(card) {
   }
   closeGameResults();
 
+  syncEditColumnState();
   renderPreviewTypeTabs();
-  syncBrowseActionButton();
-  syncPreviewArtworkControls();
   await refreshPreview();
   logStatus(`Copied ${card.gameName} settings to editor.`);
-}
-
-function getEditingCard() {
-  if (!browseState?.targetCardId) return null;
-  return getCollection().find((card) => card.id === browseState.targetCardId) ?? null;
 }
 
 function refreshSearchViews() {
@@ -992,10 +983,6 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
-  schedulePreviewSkeleton();
-  const editingCard = getEditingCard();
-  const targetCardId = editingCard ? editingCard.id : null;
-  const preferredType = editingCard ? editingCard.imageType : null;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   logStatus(`Loading preview for ${game.name}…`);
 
@@ -1006,17 +993,16 @@ async function browseGameFromSearch(game) {
 
   browseState = {
     game,
-    imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, preferredType),
+    imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, null),
     availableTypes,
     resolvedTypes,
-    targetCardId,
     artworkDisplayOverride: null,
-    imageRotation: targetCardId ? normalizeRotationDegrees(editingCard?.imageRotation ?? 0) : 0,
+    imageRotation: 0,
   };
 
+  syncEditColumnState();
+  schedulePreviewSkeleton();
   renderPreviewTypeTabs();
-  syncBrowseActionButton();
-  syncPreviewArtworkControls();
   await refreshPreview();
   if (requestId !== browseRequestId) return;
   logStatus(
@@ -1028,11 +1014,8 @@ async function browseGameFromSearch(game) {
 
 function clearBrowse() {
   browseRequestId += 1;
-  cancelPreviewSkeleton();
   browseState = null;
-  renderPreviewTypeTabs();
-  syncBrowseActionButton();
-  syncPreviewArtworkControls();
+  syncEditColumnState();
 }
 
 function resetGameSearch({ focus = false } = {}) {
@@ -1048,29 +1031,9 @@ function resetGameSearch({ focus = false } = {}) {
 async function addBrowsedGame() {
   if (!browseState) return;
 
-  const { game, imageType, targetCardId } = browseState;
+  const { game, imageType } = browseState;
   const headerSettings = currentHeaderSettingsSnapshot();
   const imageFailed = browseStateUsesPlaceholder(browseState);
-  const targetCard = targetCardId
-    ? getCollection().find((card) => card.id === targetCardId) ?? null
-    : null;
-
-  if (targetCard) {
-    updateCard(targetCard.id, {
-      platformId: game.platformId,
-      gameName: game.name,
-      libretroName: game.libretroName,
-      imageType,
-      imageFailed,
-      ...(targetCard.headerSettings ? {} : { headerSettings }),
-    });
-
-    resetGameSearch({ focus: true });
-    updateCollectionActions();
-    await refreshPreview();
-    logStatus(`Updated ${game.name}.`);
-    return;
-  }
 
   const card = {
     id: createCardId(),
@@ -1272,78 +1235,43 @@ async function refreshCollectionImageStatus() {
 async function refreshPreview() {
   if (!previewImageEl || !previewMetaEl) return;
 
+  if (!browseState) {
+    syncEditColumnState();
+    return;
+  }
+
   const requestId = ++previewRequestId;
   schedulePreviewSkeleton();
   const settings = getSettings();
 
   try {
-    if (browseState) {
-      const snapshot = browseState;
-      const { game, imageType } = snapshot;
-      const platform = platformById[game.platformId];
-      const targetCard = snapshot.targetCardId
-        ? getCollection().find((entry) => entry.id === snapshot.targetCardId) ?? null
-        : null;
-      const cardForRender = targetCard
-        ? {
-            ...targetCard,
-            platformId: game.platformId,
-            gameName: game.name,
-            libretroName: game.libretroName,
-            imageType,
-          }
-        : {
-            id: "browse",
-            platformId: game.platformId,
-            gameName: game.name,
-            libretroName: game.libretroName,
-            imageType,
-            headerSettings: currentHeaderSettingsSnapshot(),
-            ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
-            ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
-              ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
-              : {}),
-          };
-      previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+    const snapshot = browseState;
+    const { game, imageType } = snapshot;
+    const platform = platformById[game.platformId];
+    const cardForRender = {
+      id: "browse",
+      platformId: game.platformId,
+      gameName: game.name,
+      libretroName: game.libretroName,
+      imageType,
+      headerSettings: currentHeaderSettingsSnapshot(),
+      ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
+      ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
+        ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
+        : {}),
+    };
+    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
-      const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
-      if (requestId !== previewRequestId) return;
-      if (browseState !== snapshot) return;
-
-      previewImageEl.hidden = false;
-      previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
-      previewImageEl.alt = `Preview: ${game.name}`;
-      syncBrowseActionButton();
-      renderPreviewTypeTabs();
-      syncPreviewArtworkControls();
-      return;
-    }
-
-    syncBrowseActionButton();
-    syncPreviewArtworkControls();
-
-    const card = getPreviewCard();
-    if (!card) {
-      if (requestId !== previewRequestId) return;
-      previewImageEl.hidden = true;
-      previewImageEl.removeAttribute("src");
-      previewImageEl.alt = "";
-      previewMetaEl.textContent = "Search for a game to preview artwork.";
-      renderPreviewTypeTabs();
-      return;
-    }
-
-    const platform = platformById[card.platformId];
-    previewMetaEl.textContent = `${card.gameName} · ${platform?.name ?? ""} · ${IMAGE_TYPES[card.imageType]?.label ?? card.imageType}`;
-
-    const canvas = await renderCard(card, settings.platformDefaults, settings);
+    const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
     if (requestId !== previewRequestId) return;
-    if (browseState) return;
+    if (browseState !== snapshot) return;
 
     previewImageEl.hidden = false;
     previewImageEl.src = stickerCanvasToDataUrl(canvas, settings);
-    previewImageEl.alt = `Preview: ${card.gameName}`;
+    previewImageEl.alt = `Preview: ${game.name}`;
+    syncBrowseActionButton();
     renderPreviewTypeTabs();
+    syncPreviewArtworkControls();
   } finally {
     if (requestId === previewRequestId) {
       cancelPreviewSkeleton();
@@ -1491,33 +1419,23 @@ function bindEvents() {
   });
 
   previewArtworkResetBtn?.addEventListener("click", () => {
-    const context = getPreviewArtworkControlContext();
-    if (!context) return;
-    if (context.cardId) {
-      clearCardArtworkDisplay(context.cardId);
-      clearCardImageRotation(context.cardId);
-    } else if (context.isBrowseCard && browseState) {
-      browseState = {
-        ...browseState,
-        artworkDisplayOverride: null,
-        imageRotation: 0,
-      };
-    }
+    if (!browseState) return;
+    browseState = {
+      ...browseState,
+      artworkDisplayOverride: null,
+      imageRotation: 0,
+    };
     syncPreviewArtworkControls();
     refreshPreview();
   });
 
   previewArtworkRotateBtn?.addEventListener("click", () => {
     const context = getPreviewArtworkControlContext();
-    if (!context) return;
-    if (context.cardId) {
-      setCardImageRotation(context.cardId, (context.cardRotation ?? 0) + 90);
-    } else if (context.isBrowseCard && browseState) {
-      browseState = {
-        ...browseState,
-        imageRotation: normalizeRotationDegrees((context.cardRotation ?? 0) + 90),
-      };
-    }
+    if (!context?.isBrowseCard || !browseState) return;
+    browseState = {
+      ...browseState,
+      imageRotation: normalizeRotationDegrees((context.cardRotation ?? 0) + 90),
+    };
     syncPreviewArtworkControls();
     refreshPreview();
   });
@@ -1560,7 +1478,6 @@ function bindEvents() {
       saveCollection(getCollection());
       if (imported.cards.length > 0) {
         setSelectedCardIds(imported.cards.map((c) => c.id));
-        setPreviewCardId(imported.cards[0].id);
       }
       clearBrowse();
       syncPlatformControls();
@@ -1644,6 +1561,8 @@ export async function initUI() {
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   selectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("select-all"));
   deselectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("deselect-all"));
+  editPanelEl = document.getElementById("edit-panel");
+  editControlsEl = document.getElementById("edit-controls");
   previewImageEl = /** @type {HTMLImageElement|null} */ (document.getElementById("preview-image"));
   if (previewImageEl) {
     previewImageEl.hidden = true;
@@ -1682,7 +1601,6 @@ export async function initUI() {
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("add-browsed-game")
   );
-  if (addBrowsedGameBtn) addBrowsedGameBtn.hidden = false;
   previewArtworkControlsEl = document.getElementById("preview-artwork-controls");
   previewArtworkAlignmentGridEl = document.getElementById("preview-artwork-alignment-grid");
   previewArtworkBackgroundModeEl = /** @type {HTMLSelectElement|null} */ (
@@ -1728,8 +1646,7 @@ export async function initUI() {
     });
   });
 
-  syncPreviewArtworkControls();
-  syncBrowseActionButton();
+  syncEditColumnState();
   syncGlobalSettingsControls();
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
@@ -1749,9 +1666,6 @@ export async function initUI() {
     }
     if (event === "collection") {
       saveCollection(getCollection());
-      if (browseState?.targetCardId && !getCollection().some((card) => card.id === browseState.targetCardId)) {
-        clearBrowse();
-      }
       renderCollection();
     }
     if (event === "selection") {

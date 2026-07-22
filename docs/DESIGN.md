@@ -106,7 +106,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.
 
 ### Designer — `index.html`
 
-**Status:** Approved — pending implementation (see [0003](./decisions/0003-select-edit-print-columns.md); PR checklist)  
+**Status:** Shipped  
 **Title:** NFC Card Designer
 
 #### Overall layout
@@ -443,3 +443,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-21 | Rebranded product as NFC Card Designer |
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
+| 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |

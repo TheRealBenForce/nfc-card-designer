@@ -899,13 +899,27 @@ body {
   border-radius: var(--radius);
   background: transparent;
   color: var(--text);
-  max-width: min(32rem, calc(100vw - 2rem));
-  width: 100%;
+  width: min(42rem, calc(100vw - 2rem));
+  max-width: none;
   overflow: hidden;
 }
 
+@media (min-width: 768px) {
+  .platform-settings-modal {
+    width: min(52rem, calc(100vw - 3rem));
+  }
+}
+
+@media (min-width: 1200px) {
+  .platform-settings-modal {
+    width: min(68rem, calc(100vw - 4rem));
+  }
+}
+
 .platform-settings-modal::backdrop {
-  background: rgba(8, 10, 18, 0.72);
+  background: rgba(8, 10, 18, 0.55);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
 }
 
 .platform-settings-modal__panel {

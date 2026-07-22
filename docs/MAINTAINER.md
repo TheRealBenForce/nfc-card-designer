@@ -29,6 +29,8 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 Search only includes games present in the catalog. Image URLs are computed at runtime from platform + `libretroName` + `imageType` → GitHub raw URL.
 
+Friendly display names are derived at runtime from `libretroName` (see **Artwork & game catalog** in [`docs/DESIGN.md`](./DESIGN.md)). Catalog build filters and the canonical-vs-friendly split are documented there.
+
 ## Typical maintainer workflows
 
 ### Build or refresh the game catalog

@@ -58,8 +58,6 @@ let alignmentGridEl = null;
 let backgroundModeEl = null;
 /** @type {HTMLInputElement | null} */
 let backgroundColorEl = null;
-/** @type {HTMLButtonElement | null} */
-let colorToolBtn = null;
 /** @type {HTMLInputElement | null} */
 let zoomEl = null;
 /** @type {HTMLElement | null} */
@@ -115,16 +113,14 @@ function syncArtworkAlignmentGrid(gridEl, artworkDisplay) {
 /**
  * @param {HTMLSelectElement | null} modeEl
  * @param {HTMLInputElement | null} colorEl
- * @param {HTMLButtonElement | null} toolBtn
  * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
-function syncArtworkBackgroundControls(modeEl, colorEl, toolBtn, artworkDisplay) {
+function syncArtworkBackgroundControls(modeEl, colorEl, artworkDisplay) {
   const selectToolActive = artworkDisplay.backgroundMode === "select";
   if (modeEl) modeEl.value = artworkDisplay.backgroundMode;
-  if (colorEl) colorEl.value = artworkDisplay.backgroundColor;
-  if (toolBtn) {
-    toolBtn.disabled = !selectToolActive;
-    toolBtn.style.setProperty("--swatch-color", artworkDisplay.backgroundColor);
+  if (colorEl) {
+    colorEl.value = artworkDisplay.backgroundColor;
+    colorEl.disabled = !selectToolActive;
   }
 }
 
@@ -137,37 +133,6 @@ function syncArtworkZoomControl(zoomInput, valueEl, artworkDisplay) {
   const zoomPercent = artworkZoomToPercent(artworkDisplay.zoom);
   if (zoomInput) zoomInput.value = String(zoomPercent);
   if (valueEl) valueEl.textContent = `${zoomPercent}%`;
-}
-
-/**
- * @param {HTMLButtonElement} toolBtn
- * @param {HTMLInputElement} colorInput
- * @param {(color: string) => void} onColor
- */
-function bindColorToolButton(toolBtn, colorInput, onColor) {
-  toolBtn.addEventListener("click", async () => {
-    if (toolBtn.disabled) return;
-
-    if ("EyeDropper" in window) {
-      try {
-        const dropper = new EyeDropper();
-        const { sRGBHex } = await dropper.open();
-        onColor(sRGBHex);
-        return;
-      } catch (err) {
-        if (err && typeof err === "object" && "name" in err && err.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    colorInput.click();
-  });
-
-  colorInput.addEventListener("input", () => {
-    if (toolBtn.disabled) return;
-    onColor(colorInput.value);
-  });
 }
 
 /**
@@ -321,7 +286,7 @@ function syncModalControls() {
 
   const artworkDisplay = getPlatformArtworkDisplay(settings.platformDefaults, editingPlatformId);
   syncArtworkAlignmentGrid(alignmentGridEl, artworkDisplay);
-  syncArtworkBackgroundControls(backgroundModeEl, backgroundColorEl, colorToolBtn, artworkDisplay);
+  syncArtworkBackgroundControls(backgroundModeEl, backgroundColorEl, artworkDisplay);
   syncArtworkZoomControl(zoomEl, zoomValueEl, artworkDisplay);
 }
 
@@ -350,6 +315,16 @@ function bindEvents() {
     if (!editingPlatformId) return;
     setPlatformArtworkDisplay(editingPlatformId, {
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
+    });
+    notifyChange();
+    syncModalControls();
+  });
+
+  backgroundColorEl?.addEventListener("input", (e) => {
+    if (!editingPlatformId || backgroundColorEl?.disabled) return;
+    setPlatformArtworkDisplay(editingPlatformId, {
+      backgroundColor: /** @type {HTMLInputElement} */ (e.target).value,
+      backgroundMode: "select",
     });
     notifyChange();
     syncModalControls();
@@ -402,9 +377,6 @@ export function initPlatformSettingsModal(options = {}) {
   backgroundColorEl = /** @type {HTMLInputElement | null} */ (
     document.getElementById("platform-settings-background-color")
   );
-  colorToolBtn = /** @type {HTMLButtonElement | null} */ (
-    document.getElementById("platform-settings-color-tool")
-  );
   zoomEl = /** @type {HTMLInputElement | null} */ (
     document.getElementById("platform-settings-zoom")
   );
@@ -424,18 +396,6 @@ export function initPlatformSettingsModal(options = {}) {
 
   if (backgroundModeEl) {
     mountArtworkBackgroundModeSelect(backgroundModeEl);
-  }
-
-  if (colorToolBtn && backgroundColorEl) {
-    bindColorToolButton(colorToolBtn, backgroundColorEl, (color) => {
-      if (!editingPlatformId) return;
-      setPlatformArtworkDisplay(editingPlatformId, {
-        backgroundColor: color,
-        backgroundMode: "select",
-      });
-      notifyChange();
-      syncModalControls();
-    });
   }
 
   bindEvents();

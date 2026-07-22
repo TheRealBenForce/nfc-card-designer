@@ -166,8 +166,6 @@ let previewArtworkAlignmentGridEl = null;
 let previewArtworkBackgroundModeEl = null;
 /** @type {HTMLInputElement|null} */
 let previewArtworkBackgroundColorEl = null;
-/** @type {HTMLButtonElement|null} */
-let previewArtworkColorToolBtn = null;
 /** @type {HTMLInputElement|null} */
 let previewArtworkZoomEl = null;
 /** @type {HTMLElement|null} */
@@ -326,16 +324,14 @@ function syncArtworkAlignmentGrid(gridEl, artworkDisplay) {
 /**
  * @param {HTMLSelectElement | null} modeEl
  * @param {HTMLInputElement | null} colorEl
- * @param {HTMLButtonElement | null} colorToolBtn
  * @param {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
-function syncArtworkBackgroundControls(modeEl, colorEl, colorToolBtn, artworkDisplay) {
+function syncArtworkBackgroundControls(modeEl, colorEl, artworkDisplay) {
   const selectToolActive = artworkDisplay.backgroundMode === "select";
   if (modeEl) modeEl.value = artworkDisplay.backgroundMode;
-  if (colorEl) colorEl.value = artworkDisplay.backgroundColor;
-  if (colorToolBtn) {
-    colorToolBtn.disabled = !selectToolActive;
-    colorToolBtn.style.setProperty("--swatch-color", artworkDisplay.backgroundColor);
+  if (colorEl) {
+    colorEl.value = artworkDisplay.backgroundColor;
+    colorEl.disabled = !selectToolActive;
   }
 }
 
@@ -348,37 +344,6 @@ function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
   const zoomPercent = artworkZoomToPercent(artworkDisplay.zoom);
   if (zoomEl) zoomEl.value = String(zoomPercent);
   if (valueEl) valueEl.textContent = `${zoomPercent}%`;
-}
-
-/**
- * @param {HTMLButtonElement} toolBtn
- * @param {HTMLInputElement} colorInput
- * @param {(color: string) => void} onColor
- */
-function bindColorToolButton(toolBtn, colorInput, onColor) {
-  toolBtn.addEventListener("click", async () => {
-    if (toolBtn.disabled) return;
-
-    if ("EyeDropper" in window) {
-      try {
-        const dropper = new EyeDropper();
-        const { sRGBHex } = await dropper.open();
-        onColor(sRGBHex);
-        return;
-      } catch (err) {
-        if (err && typeof err === "object" && "name" in err && err.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    colorInput.click();
-  });
-
-  colorInput.addEventListener("input", () => {
-    if (toolBtn.disabled) return;
-    onColor(colorInput.value);
-  });
 }
 
 /**
@@ -449,7 +414,6 @@ function syncPreviewArtworkControls() {
   syncArtworkBackgroundControls(
     previewArtworkBackgroundModeEl,
     previewArtworkBackgroundColorEl,
-    previewArtworkColorToolBtn,
     display,
   );
   syncArtworkZoomControl(previewArtworkZoomEl, previewArtworkZoomValueEl, display);
@@ -466,8 +430,8 @@ function syncPreviewArtworkControls() {
   if (previewArtworkZoomEl) {
     previewArtworkZoomEl.disabled = controlsDisabled;
   }
-  if (previewArtworkColorToolBtn && controlsDisabled) {
-    previewArtworkColorToolBtn.disabled = true;
+  if (previewArtworkBackgroundColorEl && controlsDisabled) {
+    previewArtworkBackgroundColorEl.disabled = true;
   }
 }
 
@@ -1675,9 +1639,6 @@ export async function initUI() {
   previewArtworkBackgroundColorEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-artwork-background-color")
   );
-  previewArtworkColorToolBtn = /** @type {HTMLButtonElement|null} */ (
-    document.getElementById("preview-artwork-color-tool")
-  );
   previewArtworkZoomEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-artwork-zoom")
   );
@@ -1707,14 +1668,13 @@ export async function initUI() {
     mountArtworkBackgroundModeSelect(previewArtworkBackgroundModeEl);
   }
 
-  if (previewArtworkColorToolBtn && previewArtworkBackgroundColorEl) {
-    bindColorToolButton(previewArtworkColorToolBtn, previewArtworkBackgroundColorEl, (color) => {
-      applyPreviewArtworkPatch({
-        backgroundColor: color,
-        backgroundMode: "select",
-      });
+  previewArtworkBackgroundColorEl?.addEventListener("input", (e) => {
+    if (previewArtworkBackgroundColorEl?.disabled) return;
+    applyPreviewArtworkPatch({
+      backgroundColor: /** @type {HTMLInputElement} */ (e.target).value,
+      backgroundMode: "select",
     });
-  }
+  });
 
   syncPreviewArtworkControls();
   syncBrowseActionButton();

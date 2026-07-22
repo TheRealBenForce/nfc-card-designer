@@ -166,17 +166,18 @@
             >
               Card Rotation
             </button>
-            <label class="field">
-              <span class="field__label">Background Type</span>
-              <select id="preview-artwork-background-mode" class="input"></select>
-            </label>
-            <div class="field artwork-color-field">
-              <span class="field__label">Background color</span>
-              <input id="preview-artwork-background-color" class="input input--color-hidden" type="color" value="#000000" tabindex="-1" aria-hidden="true" />
-              <button id="preview-artwork-color-tool" type="button" class="color-tool-btn" disabled>
-                <span class="color-tool-btn__swatch" aria-hidden="true"></span>
-                <span class="color-tool-btn__label">Eyedropper Tool</span>
-              </button>
+            <div class="field artwork-background-field">
+              <span class="field__label">Artwork background</span>
+              <div class="artwork-background-row">
+                <select id="preview-artwork-background-mode" class="input artwork-background-row__mode"></select>
+                <input
+                  id="preview-artwork-background-color"
+                  class="input input--color artwork-background-row__color"
+                  type="color"
+                  value="#000000"
+                  aria-label="Background color"
+                />
+              </div>
             </div>
             <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
               Reset to Platform Defaults
@@ -223,34 +224,42 @@
         </header>
 
         <div class="platform-settings-modal__body">
-          <label class="field">
+          <label class="field field--compact">
             <span class="field__label">Accent color</span>
             <input id="platform-settings-color" class="input input--color" type="color" />
           </label>
-          <p class="field__label">Artwork priority</p>
-          <ol
-            id="platform-settings-priority-list"
-            class="priority-list"
-            aria-label="Platform artwork type priority"
-          ></ol>
-          <p class="field-hint">Preview defaults to the top artwork type in this list.</p>
-          <p class="field__label platform-artwork-heading">Artwork rotation</p>
-          <div
-            id="platform-settings-rotation-fields"
-            class="rotation-fields"
-            aria-label="Artwork rotation defaults"
-          ></div>
 
-          <p class="field__label platform-artwork-heading">Artwork alignment</p>
-          <div
-            id="platform-settings-alignment-grid"
-            class="alignment-grid"
-            role="radiogroup"
-            aria-label="Platform artwork alignment"
-          ></div>
-          <p class="field-hint">Default is top center — artwork at the top, centered on the long edge.</p>
+          <div class="platform-settings-artwork-row">
+            <section class="platform-settings-artwork-section">
+              <p class="field__label">Artwork priority</p>
+              <ol
+                id="platform-settings-priority-list"
+                class="priority-list"
+                aria-label="Platform artwork type priority"
+              ></ol>
+            </section>
 
-          <label for="platform-settings-zoom" class="artwork-zoom-field">
+            <section class="platform-settings-artwork-section">
+              <p class="field__label">Artwork rotation</p>
+              <div
+                id="platform-settings-rotation-fields"
+                class="rotation-fields"
+                aria-label="Artwork rotation defaults"
+              ></div>
+            </section>
+
+            <section class="platform-settings-artwork-section">
+              <p class="field__label">Artwork alignment</p>
+              <div
+                id="platform-settings-alignment-grid"
+                class="alignment-grid"
+                role="radiogroup"
+                aria-label="Platform artwork alignment"
+              ></div>
+            </section>
+          </div>
+
+          <label for="platform-settings-zoom" class="artwork-zoom-field artwork-zoom-field--compact">
             <span class="artwork-zoom-field__label">Artwork zoom</span>
             <input
               id="platform-settings-zoom"
@@ -263,27 +272,19 @@
             />
             <span id="platform-settings-zoom-value" class="artwork-zoom-field__value">100%</span>
           </label>
-          <p class="field-hint">100% is the default fit. Lower values zoom out; higher values zoom in.</p>
 
-          <label class="field">
+          <div class="field field--compact artwork-background-field">
             <span class="field__label">Artwork background</span>
-            <select id="platform-settings-background-mode" class="input"></select>
-          </label>
-
-          <div class="field artwork-color-field">
-            <span class="field__label">Background color</span>
-            <input
-              id="platform-settings-background-color"
-              class="input input--color-hidden"
-              type="color"
-              value="#000000"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <button id="platform-settings-color-tool" type="button" class="color-tool-btn" disabled>
-              <span class="color-tool-btn__swatch" aria-hidden="true"></span>
-              <span class="color-tool-btn__label">Eyedropper Tool</span>
-            </button>
+            <div class="artwork-background-row">
+              <select id="platform-settings-background-mode" class="input artwork-background-row__mode"></select>
+              <input
+                id="platform-settings-background-color"
+                class="input input--color artwork-background-row__color"
+                type="color"
+                value="#000000"
+                aria-label="Background color"
+              />
+            </div>
           </div>
         </div>
 

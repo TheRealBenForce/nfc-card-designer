@@ -968,9 +968,70 @@ body {
 .platform-settings-modal__body {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 1rem;
+  padding: 0.85rem 1rem 1rem;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.platform-settings-modal__body .field--compact {
+  margin-top: 0;
+}
+
+.platform-settings-modal__body .field--compact + .platform-settings-artwork-row,
+.platform-settings-modal__body .platform-settings-artwork-row + .artwork-zoom-field,
+.platform-settings-modal__body .artwork-zoom-field + .artwork-background-field {
+  margin-top: 0.75rem;
+}
+
+.platform-settings-artwork-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.platform-settings-artwork-section {
+  flex: 1 1 11rem;
+  min-width: 0;
+}
+
+.platform-settings-artwork-section .field__label {
+  margin: 0 0 0.35rem;
+}
+
+.platform-settings-artwork-section .rotation-fields {
+  gap: 0.45rem;
+}
+
+.artwork-zoom-field--compact {
+  margin-top: 0.75rem;
+}
+
+.artwork-background-field {
+  margin-top: 0.75rem;
+}
+
+.artwork-background-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.artwork-background-row__mode {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.artwork-background-row__color {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.15rem;
+}
+
+.artwork-background-row__color:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .platform-settings-modal__footer {

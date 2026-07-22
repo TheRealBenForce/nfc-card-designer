@@ -106,7 +106,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.
 
 ### Designer — `index.html`
 
-**Status:** Shipped  
+**Status:** Approved — pending implementation (see [0003](./decisions/0003-select-edit-print-columns.md); PR checklist)  
 **Title:** NFC Card Designer
 
 #### Overall layout

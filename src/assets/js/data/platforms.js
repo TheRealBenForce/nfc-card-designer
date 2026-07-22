@@ -28,7 +28,7 @@ export const platforms = [
   { id: "neo-geo", name: "Neo Geo", emoji: "🐯", defaultColor: "#d4a017", libretroPlaylist: "SNK - Neo Geo", searchAliases: ["neogeo", "neo geo"] },
   { id: "playstation", name: "PlayStation", emoji: "🎲", defaultColor: "#003791", libretroPlaylist: "Sony - PlayStation", searchAliases: ["ps1", "psx", "sony"] },
   { id: "dos", name: "DOS", emoji: "💻", defaultColor: "#000000", libretroPlaylist: "DOS", searchAliases: ["ms-dos", "ibm", "pc dos"] },
-  { id: "arcade", name: "Arcade", emoji: "👾", defaultColor: "#ff3d57", libretroPlaylist: "FBNeo - Arcade Games", searchAliases: ["mame", "cabinets"] },
+  { id: "arcade", name: "Arcade", emoji: "👾", defaultColor: "#f4b20c", libretroPlaylist: "FBNeo - Arcade Games", searchAliases: ["mame", "cabinets"] },
 ];
 
 export const platformById = Object.fromEntries(platforms.map((p) => [p.id, p]));

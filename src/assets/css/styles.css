@@ -378,6 +378,26 @@ body {
   list-style: none;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.collection-platform__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.collection-platform__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.collection-platform:not([open]) .collection-platform__chevron {
+  transform: rotate(-90deg);
 }
 
 .collection-platform > summary::-webkit-details-marker {
@@ -401,37 +421,28 @@ body {
   padding-bottom: 0;
 }
 
-.collection-card__edit-btn {
+.collection-card__copy-btn {
   flex-shrink: 0;
   width: 1.6rem;
   height: 1.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--text-muted);
-  font: inherit;
-  font-size: 0.85rem;
-  line-height: 1;
   cursor: pointer;
 }
 
-.collection-card__edit-btn:hover {
-  border-color: var(--accent);
+.collection-card__copy-btn:hover {
   color: var(--accent);
+  background: rgba(108, 140, 255, 0.08);
 }
 
-.collection-card__edit-btn:focus-visible {
+.collection-card__copy-btn:focus-visible {
   outline: 2px solid rgba(108, 140, 255, 0.65);
   outline-offset: 1px;
-}
-
-.collection-card__edit-btn--active {
-  border-color: var(--accent);
-  background: rgba(108, 140, 255, 0.15);
-  color: var(--accent);
 }
 
 .collection-card__select-btn {

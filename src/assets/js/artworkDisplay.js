@@ -58,7 +58,7 @@ export const ARTWORK_BACKGROUND_MODES = {
   blurredSnapshot: { label: "Blurred snapshot" },
 };
 
-export const DEFAULT_ARTWORK_BACKGROUND_MODE = "select";
+export const DEFAULT_ARTWORK_BACKGROUND_MODE = "consoleColor";
 export const DEFAULT_ARTWORK_BACKGROUND_COLOR = "#000000";
 export const DEFAULT_ARTWORK_ZOOM = 0;
 export const MIN_ARTWORK_ZOOM = -50;

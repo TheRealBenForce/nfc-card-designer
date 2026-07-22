@@ -23,7 +23,7 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 | File | Written by | Read by | Purpose |
 |------|------------|---------|---------|
-| `src/assets/data/game-catalog.json` | `build-game-catalog` (local or CI) | `gameCatalog.js` | Retail-filtered game names per platform (`libretroName` only) |
+| `src/assets/data/game-catalog.json` | `build-game-catalog` (local or CI) | `gameCatalog.js` | Retail-filtered, region-deduped game names per platform (`libretroName` only) |
 
 **Not committed to git** — listed in `.gitignore`. Deploy workflows run `npm run build-game-catalog` before publishing.
 

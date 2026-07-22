@@ -17,6 +17,8 @@ const nonRetail = [
   "~Unlicensed~ Bootleg Game",
   "~Z~ Old Entry",
   "Base Game [Subset - Bonus]",
+  "Dr. Mario (World) (Beta)",
+  "Metroid (Japan) (Proto)",
 ];
 
 for (const title of retail) {
@@ -32,4 +34,4 @@ for (const title of nonRetail) {
 }
 
 console.log("✓ Retail filter accepts retail titles");
-console.log("✓ Retail filter rejects hacks, homebrew, demos, prototypes, subsets");
+console.log("✓ Retail filter rejects hacks, homebrew, demos, prototypes, subsets, beta, and proto");

@@ -121,7 +121,7 @@ async function main() {
 
     await page.fill("#game-search", "doo");
     await page.waitForTimeout(300);
-    const doomOption = page.getByRole("option", { name: "Doom (Europe)", exact: true });
+    const doomOption = page.getByRole("option", { name: "Doom", exact: true });
     await doomOption.waitFor({ state: "visible", timeout: 5000 });
     await doomOption.click();
     await page.waitForTimeout(500);

@@ -1,3 +1,5 @@
+import { isExcludedReleaseTag, parseLibretroTitle, stripLibretroDisplayName } from "./libretroTitle.js";
+
 /**
  * RetroAchievements marks non-retail entries in game titles.
  * @see https://docs.retroachievements.org/guidelines/content/game-info-and-hub-guidelines.html
@@ -28,6 +30,9 @@ export function isRetailRelease(title) {
 
   if (/\[Subset\s*-/i.test(normalized)) return false;
 
+  const { tags } = parseLibretroTitle(normalized);
+  if (tags.some((tag) => isExcludedReleaseTag(tag))) return false;
+
   return true;
 }
 
@@ -35,5 +40,5 @@ export function isRetailRelease(title) {
  * @param {string} title
  */
 export function retailDisplayName(title) {
-  return title.trim();
+  return stripLibretroDisplayName(title);
 }

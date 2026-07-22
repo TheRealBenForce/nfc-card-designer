@@ -6,7 +6,7 @@ Permanent records of **why** we chose an approach. These are not implementation 
 |------|-------|--------|
 | [0001-github-raw-artwork.md](./0001-github-raw-artwork.md) | Game artwork URLs + generated game catalog | Accepted |
 | [0002-github-pages-static-hosting.md](./0002-github-pages-static-hosting.md) | GitHub Pages as sole static-site host | Accepted |
-| [0003-dark-only-color-scheme.md](./0003-dark-only-color-scheme.md) | Declare dark-only `color-scheme` for Safari/Chrome | Accepted |
+| [0003-dark-only-color-scheme.md](./0003-dark-only-color-scheme.md) | Declare dark-only `color-scheme` (Brave/Chrome auto-dark opt-out) | Accepted |
 
 ## When to add a decision doc
 

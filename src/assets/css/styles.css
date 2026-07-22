@@ -5,8 +5,9 @@
 }
 
 :root {
-  /* Opt into UA dark form controls / scrollbars and disable Safari/Chrome
-     auto-darkening that paints white outlines and shifts our palette. */
+  /* Opt into UA dark form controls / scrollbars and opt out of Brave/Chrome
+     content auto-darken (e.g. iPad Brave Night Mode) that paints white
+     outlines and shifts our already-dark palette. */
   color-scheme: dark;
   --bg: #0f1117;
   --surface: #1a1d27;

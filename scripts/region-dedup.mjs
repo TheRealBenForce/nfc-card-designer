@@ -1,6 +1,7 @@
 import { LIBRETRO_IMAGE_FOLDERS } from "../src/assets/js/libretroThumbnails.js";
 import {
   discNumber,
+  normalizeLibretroBaseTitle,
   parseLibretroTitle,
   regionPriorityScore,
   revisionNumber,
@@ -92,7 +93,7 @@ export function dedupeRegionalVariants(names, artworkIndex) {
 
   for (const name of names) {
     const { baseTitle } = parseLibretroTitle(name);
-    const key = baseTitle.toLowerCase();
+    const key = normalizeLibretroBaseTitle(baseTitle).toLowerCase();
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(name);
   }

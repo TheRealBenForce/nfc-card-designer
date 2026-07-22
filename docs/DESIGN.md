@@ -322,7 +322,7 @@ At runtime, the friendly name is derived by:
 
 1. Peeling trailing `(...)` and `[...]` metadata tags (regions, revisions, discs, publishers, years, serials, dump flags like `[!]`, Neo Geo `NGM`/`NGH` IDs, etc.)
 2. Stripping trailing TOSEC-style version tokens (`v1.400`)
-3. Normalizing alternate-title separators: spaced `_` → ` - ` (e.g. Neo Geo English/Japanese dual titles)
+3. Normalizing alternate-title separators: spaced ` _ ` and MAME-style `_ ` (underscore + space) → ` - `; internal underscores like `Q_bert` or `1_2` are kept
 4. **Keeping** parentheses that are part of the real title (e.g. `GS (Ghost Sweeper) Mikami`)
 
 Example:
@@ -331,6 +331,7 @@ Example:
 |----------------------------|------------------|
 | `Andro Dunos (NGM-049)(NGH-049)` | `Andro Dunos` |
 | `Aero Fighters 2 _ Sonic Wings 2` | `Aero Fighters 2 - Sonic Wings 2` |
+| `1941_ Counter Attack (World)` | `1941 - Counter Attack` |
 | `Doom (Europe)` | `Doom` |
 | `Akumajou Dracula X - Gekka no Yasoukyoku v1.400 (1998)(Konami)(NTSC)(JP)[!]` | `Akumajou Dracula X - Gekka no Yasoukyoku` |
 

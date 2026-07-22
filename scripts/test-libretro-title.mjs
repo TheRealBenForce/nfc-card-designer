@@ -35,6 +35,19 @@ if (stripLibretroDisplayName("Aero Fighters 2 _ Sonic Wings 2") !== "Aero Fighte
   throw new Error("Expected spaced underscores to become dashes in display name");
 }
 
+if (stripLibretroDisplayName("1941_ Counter Attack (World)") !== "1941 - Counter Attack") {
+  throw new Error("Expected MAME digit-underscore titles to display as dashes");
+}
+if (stripLibretroDisplayName("1943 Kai_ Midway Kaisen (Japan)") !== "1943 Kai - Midway Kaisen") {
+  throw new Error("Expected MAME word-underscore titles to display as dashes");
+}
+if (stripLibretroDisplayName("Q_bert (Japan)") !== "Q_bert") {
+  throw new Error("Internal underscores like Q_bert should remain");
+}
+if (stripLibretroDisplayName("Ranma 1_2 - Toraware no Hanayome (Japan)") !== "Ranma 1_2 - Toraware no Hanayome") {
+  throw new Error("Fraction-style 1_2 should remain");
+}
+
 const chainedRegion = parseLibretroTitle("Burning Fight (NGH-018)(US)");
 if (chainedRegion.baseTitle !== "Burning Fight") {
   throw new Error(`Expected chained trailing tags to peel, got: ${chainedRegion.baseTitle}`);

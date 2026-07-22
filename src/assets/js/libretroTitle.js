@@ -231,11 +231,26 @@ export function discNumber(tags) {
 }
 
 /**
- * Libretro uses spaced underscores between alternate regional titles.
+ * MAME / FBNeo often use underscores where a dash belongs:
+ * - spaced ` _ ` between alternate titles (Neo Geo)
+ * - `1941_ Counter Attack` (digit + `_ `)
+ * - `Kai_ Midway Kaisen` (word + `_ `)
+ * Internal underscores like `Q_bert` or `1_2` are left alone.
+ * @param {string} title
+ */
+export function normalizeLibretroBaseTitle(title) {
+  let normalized = title.trim();
+  normalized = normalized.replace(/\s+_\s+/g, " - ");
+  normalized = normalized.replace(/_ /g, " - ");
+  return stripTrailingVersionToken(normalized);
+}
+
+/**
+ * @deprecated Prefer normalizeLibretroBaseTitle
  * @param {string} title
  */
 export function normalizeAlternateTitleSeparator(title) {
-  return title.replace(/\s+_\s+/g, " - ");
+  return normalizeLibretroBaseTitle(title);
 }
 
 /**
@@ -251,5 +266,5 @@ export function stripTrailingVersionToken(title) {
  */
 export function stripLibretroDisplayName(title) {
   const base = parseLibretroTitle(title).baseTitle;
-  return stripTrailingVersionToken(normalizeAlternateTitleSeparator(base));
+  return normalizeLibretroBaseTitle(base);
 }

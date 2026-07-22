@@ -1179,6 +1179,9 @@ function renderCollection() {
         thumb.src = PLACEHOLDER_SVG;
       });
 
+      const content = document.createElement("span");
+      content.className = "collection-card__content";
+
       const info = document.createElement("span");
       info.className = "collection-card__info";
 
@@ -1192,9 +1195,12 @@ function renderCollection() {
       if (metaParts.length > 0) {
         const metaEl = document.createElement("span");
         metaEl.className = "collection-card__meta";
-        metaEl.textContent = metaParts.join(" · ");
+        metaEl.textContent = metaParts.join(" - ");
         info.appendChild(metaEl);
       }
+
+      content.appendChild(info);
+      content.appendChild(thumb);
 
       selectBtn.addEventListener("click", () => {
         if (browseState) clearBrowse();
@@ -1207,8 +1213,7 @@ function renderCollection() {
       });
 
       selectBtn.appendChild(mark);
-      selectBtn.appendChild(thumb);
-      selectBtn.appendChild(info);
+      selectBtn.appendChild(content);
 
       if (card.imageFailed) {
         const badge = document.createElement("span");

@@ -6,6 +6,8 @@ const retail = [
   "Super Mario Bros.",
   "The Legend of Zelda",
   "Final Fantasy VII",
+  "Andro Dunos (NGM-049)(NGH-049)",
+  "GS (Ghost Sweeper) Mikami (Japan)",
 ];
 
 const nonRetail = [
@@ -19,6 +21,16 @@ const nonRetail = [
   "Base Game [Subset - Bonus]",
   "Dr. Mario (World) (Beta)",
   "Metroid (Japan) (Proto)",
+  "Alpha Mission II _ ASO II - Last Guardian (prototype)",
+  "Lost Vikings, The (USA) (Beta 1) [b]",
+  "Burning Fight (prototype, older) [Prototype]",
+  "Crouching Tiger Hidden Dragon 2003 Super Plus [Bootleg]",
+  "Digger Man [Homebrew]",
+  "Live A Live (Japan) [T-En by Aeon Genesis v2.00 Deluxe]",
+  "Burning Heroes [English]",
+  "Legend of Zelda, The - Majora's Mask (USA) - SymbolicLink",
+  "Named_Boxarts/Clock Tower",
+  "Matrimelee - Shin Gouketsuji Ichizoku Toukon (bootleg) [Bootleg]",
 ];
 
 for (const title of retail) {
@@ -34,4 +46,4 @@ for (const title of nonRetail) {
 }
 
 console.log("✓ Retail filter accepts retail titles");
-console.log("✓ Retail filter rejects hacks, homebrew, demos, prototypes, subsets, beta, and proto");
+console.log("✓ Retail filter rejects hacks, homebrew, demos, prototypes, subsets, beta, proto, bootlegs, translations, SymbolicLink, and path junk");

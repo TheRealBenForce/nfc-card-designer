@@ -2,6 +2,14 @@ import { platforms } from "./data/platforms.js";
 import { retailDisplayName } from "./retailFilter.js";
 
 /**
+ * Friendly label for a saved card or catalog entry. Artwork always uses `libretroName`.
+ * @param {string} libretroName
+ */
+export function displayNameForLibretroName(libretroName) {
+  return retailDisplayName(libretroName);
+}
+
+/**
  * @typedef {Object} Game
  * @property {string} platformId
  * @property {string} libretroName

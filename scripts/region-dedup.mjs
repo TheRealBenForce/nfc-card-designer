@@ -1,5 +1,7 @@
 import { LIBRETRO_IMAGE_FOLDERS } from "../src/assets/js/libretroThumbnails.js";
 import {
+  discNumber,
+  normalizeLibretroBaseTitle,
   parseLibretroTitle,
   regionPriorityScore,
   revisionNumber,
@@ -70,12 +72,16 @@ export function compareRegionalVariants(a, b, artworkIndex) {
   const revisionDelta = revisionNumber(parsedA.tags) - revisionNumber(parsedB.tags);
   if (revisionDelta !== 0) return revisionDelta;
 
+  const discDelta = discNumber(parsedA.tags) - discNumber(parsedB.tags);
+  if (discDelta !== 0) return discDelta;
+
   return a.localeCompare(b, undefined, { sensitivity: "base" });
 }
 
 /**
  * Keep one libretro filename per base title, preferring USA/World and the variant
- * with the most artwork (box art, title screen, snap).
+ * with the most artwork (box art, title screen, snap). Multi-disc releases collapse
+ * to a single entry (lowest disc number after other tiebreakers).
  *
  * @param {string[]} names
  * @param {Map<string, Set<string>>} artworkIndex
@@ -87,7 +93,7 @@ export function dedupeRegionalVariants(names, artworkIndex) {
 
   for (const name of names) {
     const { baseTitle } = parseLibretroTitle(name);
-    const key = baseTitle.toLowerCase();
+    const key = normalizeLibretroBaseTitle(baseTitle).toLowerCase();
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(name);
   }

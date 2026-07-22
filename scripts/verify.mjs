@@ -99,6 +99,9 @@ async function main() {
   console.log("→ Regional dedupe…");
   await run("node", ["scripts/test-region-dedup.mjs"]);
 
+  console.log("→ Collection storage…");
+  await run("node", ["scripts/test-storage.mjs"]);
+
   console.log("→ Image settings…");
   await run("node", ["scripts/test-image-settings.mjs"]);
 

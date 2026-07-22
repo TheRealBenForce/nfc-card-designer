@@ -29,6 +29,10 @@ Node-only scripts live in `scripts/`. They are **not** imported by the site at r
 
 Search only includes games present in the catalog. Image URLs are computed at runtime from platform + `libretroName` + `imageType` → GitHub raw URL.
 
+Friendly display names are derived at runtime from `libretroName` (see **Artwork & game catalog** in [`docs/DESIGN.md`](./DESIGN.md)). Catalog build filters and the canonical-vs-friendly split are documented there.
+
+**Large repos (Arcade):** `build-game-catalog` prefers a full recursive Git tree, retries transient GitHub `5xx` errors, then falls back to per-folder trees (`Named_Boxarts` / `Named_Titles` / `Named_Snaps`). The contents API is last resort only — it is incomplete for directories with more than 1000 files.
+
 ## Typical maintainer workflows
 
 ### Build or refresh the game catalog
@@ -76,6 +80,7 @@ Platforms with **zero catalog entries** are hidden from the platform selector au
 - **localStorage keys:** `nfc-card-designer-settings`, `nfc-card-designer-collection`
 - **Export file:** `nfc-card-designer.json` (project version `6`)
 - **Per-card:** `platformId`, `gameName`, `libretroName`, `imageType`
+- **Artwork key:** `libretroName` is the exact libretro filename stem used for GitHub raw URLs. `gameName` is a friendly display label derived from `libretroName` on load/save and can change as title cleanup rules evolve without breaking saved artwork.
 
 ## Image types → libretro folders
 

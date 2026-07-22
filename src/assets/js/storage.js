@@ -11,6 +11,7 @@ import {
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
 import { resolveCardSizing } from "./cardSizing.js";
+import { retailDisplayName } from "./retailFilter.js";
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
@@ -31,7 +32,7 @@ function serializeCard(card) {
   return {
     id: card.id,
     platformId: card.platformId,
-    gameName: card.gameName,
+    gameName: retailDisplayName(card.libretroName),
     libretroName: card.libretroName,
     imageType: card.imageType,
     ...(card.imageFailed ? { imageFailed: true } : {}),
@@ -42,22 +43,26 @@ function serializeCard(card) {
 }
 
 /**
+ * Normalize a saved/imported card.
+ * `libretroName` is the canonical libretro filename stem used for GitHub artwork URLs.
+ * `gameName` is always derived for display and may change as title cleanup rules evolve.
+ *
  * @param {unknown} card
  * @param {{ showHeader?: unknown, showPlatformColor?: unknown, headerHeightPercent?: unknown } | null | undefined} [fallbackHeaderSettings]
  */
-function normalizeCard(card, fallbackHeaderSettings) {
+export function normalizeCollectionCard(card, fallbackHeaderSettings) {
   if (!card || typeof card !== "object") return null;
   const entry = /** @type {Record<string, unknown>} */ (card);
   if (
     typeof entry.id !== "string" ||
     typeof entry.platformId !== "string" ||
-    typeof entry.gameName !== "string" ||
     typeof entry.libretroName !== "string" ||
     typeof entry.imageType !== "string"
   ) {
     return null;
   }
 
+  const libretroName = entry.libretroName;
   const normalizedRotation = normalizeRotationDegrees(entry.imageRotation);
   const normalizedCardHeaderSettings = normalizeHeaderSettings(
     (entry.headerSettings && typeof entry.headerSettings === "object")
@@ -68,8 +73,8 @@ function normalizeCard(card, fallbackHeaderSettings) {
   return {
     id: entry.id,
     platformId: entry.platformId,
-    gameName: entry.gameName,
-    libretroName: entry.libretroName,
+    gameName: retailDisplayName(libretroName),
+    libretroName,
     imageType: entry.imageType,
     ...(entry.imageFailed ? { imageFailed: true } : {}),
     ...(entry.artworkDisplay
@@ -78,6 +83,11 @@ function normalizeCard(card, fallbackHeaderSettings) {
     ...(normalizedRotation ? { imageRotation: normalizedRotation } : {}),
     headerSettings: normalizedCardHeaderSettings,
   };
+}
+
+/** @param {unknown} card @param {Parameters<typeof normalizeCollectionCard>[1]} [fallbackHeaderSettings] */
+function normalizeCard(card, fallbackHeaderSettings) {
+  return normalizeCollectionCard(card, fallbackHeaderSettings);
 }
 
 /**

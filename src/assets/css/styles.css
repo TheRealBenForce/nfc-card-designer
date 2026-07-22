@@ -760,6 +760,41 @@ body {
   color: var(--accent);
 }
 
+.list,
+.platform-settings-modal__body,
+.collection-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(108, 140, 255, 0.5) rgba(36, 40, 54, 0.9);
+}
+
+.list::-webkit-scrollbar,
+.platform-settings-modal__body::-webkit-scrollbar,
+.collection-list::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.list::-webkit-scrollbar-track,
+.platform-settings-modal__body::-webkit-scrollbar-track,
+.collection-list::-webkit-scrollbar-track {
+  background: rgba(36, 40, 54, 0.9);
+  border-radius: 999px;
+}
+
+.list::-webkit-scrollbar-thumb,
+.platform-settings-modal__body::-webkit-scrollbar-thumb,
+.collection-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(108, 140, 255, 0.72), rgba(108, 140, 255, 0.42));
+  border: 2px solid rgba(36, 40, 54, 0.9);
+  border-radius: 999px;
+}
+
+.list::-webkit-scrollbar-thumb:hover,
+.platform-settings-modal__body::-webkit-scrollbar-thumb:hover,
+.collection-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(138, 164, 255, 0.9), rgba(108, 140, 255, 0.62));
+}
+
 .list {
   margin-top: 0.5rem;
   max-height: 180px;
@@ -778,6 +813,251 @@ body {
   margin-top: 0;
   margin-bottom: 0.75rem;
   max-height: 220px;
+}
+
+.platform-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.platform-row:last-child {
+  border-bottom: none;
+}
+
+.platform-row:hover {
+  background: rgba(108, 140, 255, 0.12);
+}
+
+.platform-row--selected {
+  background: rgba(108, 140, 255, 0.22);
+}
+
+.platform-row__select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.platform-row--selected .platform-row__select {
+  font-weight: 600;
+}
+
+.platform-row__select:hover,
+.platform-row__select:focus-visible {
+  background: transparent;
+}
+
+.platform-row__select:focus-visible {
+  outline: 2px solid rgba(108, 140, 255, 0.65);
+  outline-offset: -2px;
+}
+
+.platform-row__edit-btn {
+  flex-shrink: 0;
+  width: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.platform-row:hover .platform-row__edit-btn,
+.platform-row--selected .platform-row__edit-btn {
+  border-left-color: rgba(108, 140, 255, 0.28);
+}
+
+.platform-row__edit-btn:hover {
+  color: var(--accent);
+  background: rgba(108, 140, 255, 0.1);
+}
+
+.platform-row__edit-btn:focus-visible {
+  outline: 2px solid rgba(108, 140, 255, 0.65);
+  outline-offset: -2px;
+}
+
+.platform-settings-modal {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  width: min(42rem, calc(100vw - 2rem));
+  max-width: none;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .platform-settings-modal {
+    width: min(52rem, calc(100vw - 3rem));
+  }
+}
+
+@media (min-width: 1200px) {
+  .platform-settings-modal {
+    width: min(68rem, calc(100vw - 4rem));
+  }
+}
+
+.platform-settings-modal::backdrop {
+  background: rgba(8, 10, 18, 0.55);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.platform-settings-modal__panel {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.platform-settings-modal__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.platform-settings-modal__close {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.platform-settings-modal__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.platform-settings-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.85rem 1rem 1rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.platform-settings-modal__body .field--compact {
+  margin-top: 0;
+}
+
+.platform-settings-modal__body .field--compact + .platform-settings-artwork-row,
+.platform-settings-modal__body .platform-settings-artwork-row + .artwork-zoom-field,
+.platform-settings-modal__body .artwork-zoom-field + .artwork-background-field {
+  margin-top: 0.75rem;
+}
+
+.platform-settings-artwork-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.platform-settings-artwork-section {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 11rem;
+  max-width: 16rem;
+}
+
+.platform-settings-artwork-section .field__label {
+  margin: 0 0 0.35rem;
+  width: 100%;
+  text-align: center;
+}
+
+.platform-settings-artwork-section .priority-list,
+.platform-settings-artwork-section .rotation-fields {
+  width: 100%;
+}
+
+.platform-settings-artwork-section .alignment-grid {
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.platform-settings-artwork-section .rotation-fields {
+  gap: 0.45rem;
+}
+
+.artwork-zoom-field--compact {
+  margin-top: 0.75rem;
+}
+
+.artwork-background-field {
+  margin-top: 0.75rem;
+}
+
+.artwork-background-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.artwork-background-row__mode {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.artwork-background-row__color {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.15rem;
+}
+
+.artwork-background-row__color:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.platform-settings-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid var(--border);
 }
 
 .list-more-hint {

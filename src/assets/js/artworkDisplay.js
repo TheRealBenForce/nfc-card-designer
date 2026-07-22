@@ -40,8 +40,8 @@ export const DEFAULT_ARTWORK_ALIGNMENT = "top-center";
 
 /** @type {readonly ArtworkBackgroundMode[]} */
 export const ARTWORK_BACKGROUND_MODE_ORDER = [
-  "select",
   "consoleColor",
+  "select",
   "nearestEdge",
   "blurredBoxArt",
   "blurredTitleScreen",
@@ -51,14 +51,14 @@ export const ARTWORK_BACKGROUND_MODE_ORDER = [
 /** @type {Record<ArtworkBackgroundMode, { label: string }>} */
 export const ARTWORK_BACKGROUND_MODES = {
   select: { label: "Select Tool" },
-  consoleColor: { label: "Console color" },
+  consoleColor: { label: "Console Accent Color" },
   nearestEdge: { label: "Nearest edge" },
   blurredBoxArt: { label: "Blurred box art" },
   blurredTitleScreen: { label: "Blurred title screen" },
   blurredSnapshot: { label: "Blurred snapshot" },
 };
 
-export const DEFAULT_ARTWORK_BACKGROUND_MODE = "select";
+export const DEFAULT_ARTWORK_BACKGROUND_MODE = "consoleColor";
 export const DEFAULT_ARTWORK_BACKGROUND_COLOR = "#000000";
 export const DEFAULT_ARTWORK_ZOOM = 0;
 export const MIN_ARTWORK_ZOOM = -50;

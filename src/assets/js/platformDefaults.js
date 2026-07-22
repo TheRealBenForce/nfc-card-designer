@@ -8,15 +8,7 @@ export const DEFAULT_PLATFORM_COLOR = "#000000";
 /** @type {readonly number[]} */
 export const ROTATION_OPTIONS = [0, 90, 180, 270];
 
-/**
- * Platforms whose box art is predominantly landscape in this catalog and
- * should be rotated clockwise by default for portrait cards.
- * @type {Readonly<Record<string, number>>}
- */
-const SIDEWAYS_BOX_ART_DEFAULTS = Object.freeze({
-  snes: 90,
-  n64: 90,
-});
+const PLATFORM_DEFAULTS_URL = "assets/data/platform-defaults.json";
 
 /**
  * @typedef {Object} PlatformDefaults
@@ -26,6 +18,105 @@ const SIDEWAYS_BOX_ART_DEFAULTS = Object.freeze({
  * @property {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
  */
 
+/** @type {Record<string, Partial<PlatformDefaults>> | null} */
+let seedDefaults = null;
+
+/** @type {Promise<void> | null} */
+let loadPromise = null;
+
+/**
+ * @param {string} platformId
+ * @param {string} [color]
+ * @returns {PlatformDefaults}
+ */
+function buildBarePlatformDefaultEntry(platformId, color = DEFAULT_PLATFORM_COLOR) {
+  return {
+    color,
+    imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
+    imageRotation: defaultImageRotation(),
+    artworkDisplay: defaultArtworkDisplay(),
+  };
+}
+
+/**
+ * @param {Partial<PlatformDefaults>} seed
+ * @param {string} platformId
+ * @returns {PlatformDefaults}
+ */
+function applySeedToEntry(seed, platformId) {
+  const entry = buildBarePlatformDefaultEntry(platformId, platformById[platformId]?.defaultColor);
+  if (!seed || typeof seed !== "object") return entry;
+
+  const normalized = { ...entry };
+  if (typeof seed.color === "string") normalized.color = seed.color;
+
+  if (seed.imageTypePriority) {
+    normalized.imageTypePriority = normalizeImageTypePriority(seed.imageTypePriority);
+  }
+
+  if (seed.imageRotation && typeof seed.imageRotation === "object") {
+    const imageRotation = { ...normalized.imageRotation };
+    for (const type of DEFAULT_IMAGE_TYPE_PRIORITY) {
+      if (type in seed.imageRotation) {
+        imageRotation[type] = normalizeRotationDegrees(seed.imageRotation[type]);
+      }
+    }
+    normalized.imageRotation = imageRotation;
+  }
+
+  if (seed.artworkDisplay) {
+    normalized.artworkDisplay = normalizeArtworkDisplay(seed.artworkDisplay);
+  }
+
+  return normalized;
+}
+
+/**
+ * Load bundled platform defaults from `assets/data/platform-defaults.json`.
+ * Safe to call multiple times; subsequent calls are no-ops.
+ */
+export async function loadPlatformDefaultsSeed() {
+  if (seedDefaults) return;
+  if (loadPromise) return loadPromise;
+
+  loadPromise = (async () => {
+    try {
+      let raw;
+      if (typeof window === "undefined") {
+        const { readFile } = await import("node:fs/promises");
+        const { fileURLToPath } = await import("node:url");
+        const path = await import("node:path");
+        const jsonPath = path.join(
+          fileURLToPath(new URL("../../assets/data/platform-defaults.json", import.meta.url)),
+        );
+        raw = await readFile(jsonPath, "utf8");
+      } else {
+        const response = await fetch(PLATFORM_DEFAULTS_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        raw = await response.text();
+      }
+
+      const parsed = JSON.parse(raw);
+      seedDefaults = parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      seedDefaults = {};
+    }
+  })();
+
+  return loadPromise;
+}
+
+/**
+ * @param {string} platformId
+ * @returns {PlatformDefaults}
+ */
+export function getSeedPlatformDefaults(platformId) {
+  const seed = seedDefaults?.[platformId];
+  return applySeedToEntry(seed ?? {}, platformId);
+}
+
 /** @returns {Record<string, number>} */
 export function defaultImageRotation() {
   return Object.fromEntries(DEFAULT_IMAGE_TYPE_PRIORITY.map((type) => [type, 0]));
@@ -33,23 +124,11 @@ export function defaultImageRotation() {
 
 /**
  * @param {string} platformId
- */
-function defaultImageRotationForPlatform(platformId) {
-  const imageRotation = defaultImageRotation();
-  const defaultBoxArtRotation = SIDEWAYS_BOX_ART_DEFAULTS[platformId];
-  if (typeof defaultBoxArtRotation === "number") {
-    imageRotation.boxArt = normalizeRotationDegrees(defaultBoxArtRotation);
-  }
-  return imageRotation;
-}
-
-/**
- * @param {string} platformId
  * @param {unknown} rotationEntry
  */
 function shouldMigrateLegacyRotation(platformId, rotationEntry) {
-  const defaultBoxArtRotation = SIDEWAYS_BOX_ART_DEFAULTS[platformId];
-  if (!defaultBoxArtRotation) return false;
+  const seedBoxArtRotation = getSeedPlatformDefaults(platformId).imageRotation.boxArt;
+  if (!seedBoxArtRotation) return false;
   if (!rotationEntry || typeof rotationEntry !== "object") return false;
   return DEFAULT_IMAGE_TYPE_PRIORITY.every(
     (type) => normalizeRotationDegrees(rotationEntry[type]) === 0,
@@ -62,12 +141,12 @@ function shouldMigrateLegacyRotation(platformId, rotationEntry) {
  * @returns {PlatformDefaults}
  */
 export function createPlatformDefaultEntry(platformId, color = DEFAULT_PLATFORM_COLOR) {
-  return {
-    color,
-    imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
-    imageRotation: defaultImageRotationForPlatform(platformId),
-    artworkDisplay: defaultArtworkDisplay(),
-  };
+  const seed = seedDefaults?.[platformId];
+  if (seed) {
+    return applySeedToEntry(seed, platformId);
+  }
+
+  return buildBarePlatformDefaultEntry(platformId, color);
 }
 
 /** @returns {Record<string, PlatformDefaults>} */
@@ -122,7 +201,9 @@ export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDis
           }
         }
         if (shouldMigrateLegacyRotation(platformId, entry.imageRotation)) {
-          imageRotation.boxArt = normalizeRotationDegrees(SIDEWAYS_BOX_ART_DEFAULTS[platformId]);
+          imageRotation.boxArt = normalizeRotationDegrees(
+            getSeedPlatformDefaults(platformId).imageRotation.boxArt,
+          );
         }
         normalized.imageRotation = imageRotation;
       }

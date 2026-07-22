@@ -15,7 +15,7 @@ const PNG_1X1 = Buffer.from(
 
 /** @param {import('playwright').Page} page */
 async function countPlatformItems(page) {
-  return page.locator("#platform-results .list-item").count();
+  return page.locator("#platform-results .platform-row").count();
 }
 
 async function main() {
@@ -39,8 +39,6 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
-    await page.locator("summary", { hasText: "Platform Settings" }).click();
-
     const initialCount = await countPlatformItems(page);
     if (initialCount < 1) {
       throw new Error(`Expected at least one platform in browse list, got ${initialCount}`);
@@ -48,18 +46,29 @@ async function main() {
     console.log(`✓ Shows ${initialCount} platforms with artwork-backed games`);
 
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    const segaCdSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    const segaCdSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
     if (!segaCdSelected?.includes("Sega CD")) {
       throw new Error(`Sega CD should be selected after click, got: ${segaCdSelected}`);
     }
     console.log("✓ Clicking a platform selects it");
 
     await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
-    const sega32xSelected = await page.locator("#platform-results .list-item--selected").textContent();
+    const sega32xSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
     if (!sega32xSelected?.includes("Sega 32X")) {
       throw new Error(`Sega 32X should be selected after click, got: ${sega32xSelected}`);
     }
     console.log("✓ Selected platform is highlighted");
+
+    await page.getByRole("button", { name: "Edit Sega CD defaults" }).click();
+    await page.waitForSelector("#platform-settings-modal[open]");
+    const modalTitle = await page.locator("#platform-settings-title").textContent();
+    if (!modalTitle?.includes("Sega CD")) {
+      throw new Error(`Platform settings modal should show Sega CD, got: ${modalTitle}`);
+    }
+    console.log("✓ Pencil icon opens platform settings modal");
+
+    await page.locator("#platform-settings-close").click();
+    await page.waitForFunction(() => !document.getElementById("platform-settings-modal")?.open);
 
     const deleteBtn = page.locator("#delete-selected");
     const deleteClass = await deleteBtn.getAttribute("class");

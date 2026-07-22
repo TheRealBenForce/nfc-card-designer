@@ -96,7 +96,7 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.
 | **Supplies** | After brand | Link to `supplies.html`; shown as muted text (current page) on Supplies |
 | **Recognition** | After Supplies | Link to `recognition.html`; shown as muted text on Recognition |
 
-**Alignment:** Nav is a horizontal flex row, `align-items: baseline`, `gap: 1rem`, with `padding-left: 0.5rem`. Header has bottom border and surface background. Static content pages wrap body copy in `.site-container` (max-width, centered); the designer page header spans full width above the 3-column grid.
+**Alignment:** Nav is a horizontal flex row, `align-items: baseline`, `gap: 1rem`, with `padding-left: 0.5rem`. Header has bottom border and surface background. Static content pages wrap body copy in `.site-container` (max-width, centered); the designer page header spans full width above the Select · Edit · Print grid.
 
 **Not in nav (by design today):** Developer, Colors. Add nav links here only after updating this section and acceptance criteria.
 
@@ -111,23 +111,44 @@ Present on: **Designer**, **Supplies**, **Recognition**, **Developer**.
 
 #### Overall layout
 
-Three-column CSS grid (`.app`), left → center → right:
+Three named columns in a CSS grid (`.app`), left → center → right: **Select** · **Edit** · **Print**.
 
+```mermaid
+flowchart LR
+  subgraph header["Site header"]
+    H["Brand · Supplies · Recognition"]
+  end
+
+  subgraph app["Designer grid (.app)"]
+    direction LR
+  S["Select\n260–320px"]
+  E["Edit\n1fr"]
+  P["Print\n220–280px"]
+  S --- E --- P
+  end
+
+  header --> app
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  HEADER: Brand | Supplies | Recognition                                  │
-├──────────────┬────────────────────────────────────┬───────────────────────┤
-│  CONTROLS    │  PREVIEW                           │  COLLECTION           │
-│  (left)      │  (center)                          │  (right)              │
-│  260–320px   │  flex / 1fr                        │  220–280px            │
-└──────────────┴────────────────────────────────────┴───────────────────────┘
-```
+
+Each column opens with a **centered, pronounced section title** (`Select`, `Edit`, or `Print`) — larger type, semibold, full panel width, text-align center. Subsection labels inside a column (e.g. “Platform”, “Game”) stay left-aligned as today.
 
 - **Desktop:** `grid-template-columns: minmax(260px, 320px) 1fr minmax(220px, 280px)`; full viewport height minus header.
-- **≤ 960px:** Stacks to a single column — Controls → Preview → Collection (top to bottom).
-- Panels are separated by vertical borders; collection panel has left border only (no right border).
+- **≤ 960px:** Stacks to a single column — **Select → Edit → Print** (top to bottom).
+- Panels are separated by vertical borders; the Print panel has left border only (no right border).
 
-#### Left column — Controls (`panel--controls`)
+#### User flow
+
+```mermaid
+flowchart LR
+  A["Select\nplatform + game\nor copy from list"] --> B["Edit\ncustomize card"]
+  B --> C["Add to collection"]
+  C --> D["Print\nselect cards · PDF"]
+  D -.->|"edit ✎ or copy"| A
+```
+
+#### Select (`panel--select`, left column)
+
+**Purpose:** Choose what to work on — a catalog game or settings copied from an existing collection card.
 
 Top to bottom:
 
@@ -137,52 +158,98 @@ Top to bottom:
    - Card Height (mm) — default 84
    - Sticker Inset (mm) — default 2
 
-2. **Platform Settings** (collapsible `<details>`, collapsed by default)
-   - Accent color (color picker)
-   - Artwork priority — ordered list (box art / title screen / in-game); drag to reorder
-   - Artwork rotation — per-orientation defaults
-   - Artwork alignment — 3×3 grid, default top-center
-   - Artwork zoom — 50–200%, default 100%
-   - Artwork background — mode select + optional eyedropper color
-
-3. **Platform** (always visible section)
+2. **Platform** (subsection)
    - Scrollable list of platforms with games in the catalog
    - Selecting a platform filters game search to that platform
+   - Per-platform defaults open in the **Platform Settings** modal (accent color, artwork priority, rotation, alignment, zoom, background)
 
-4. **Game** (always visible section)
+3. **Game** (subsection)
    - Search input (`Search games…`)
    - Hint line (contextual): select platform, type N more chars, match count, etc.
    - Results list (hidden until platform selected and user interacts)
    - Search requires **3+ characters** for filtered search; shorter input can still browse A–Z list
 
-5. **Project actions** (bottom section)
+4. **Project actions** (bottom)
    - **Export** — download `nfc-card-designer.json`
    - **Import** — load JSON backup
    - **Clear** — wipe settings + collection (with confirmation)
 
-#### Center column — Preview (`panel--preview`)
+**Always interactive** — Select is never gated.
 
-Vertically top-aligned, content centered horizontally.
+#### Edit (`panel--edit`, center column)
+
+**Purpose:** Preview and customize the card currently loaded in the editor.
 
 | Block | Contents |
 |-------|----------|
-| **Preview meta** | Status line (e.g. “Search for a game to preview artwork.”) |
+| **Preview meta** | Status line (e.g. “Select a game to start editing.” when idle) |
 | **Preview layout** | Flex row: main preview + artwork controls sidebar |
-| **Preview main** | Artwork type tabs → card frame (life-size preview) → screen calibration slider → **Add to collection** (primary, disabled until a game is browsed) |
-| **Artwork controls** | Per-preview overrides: alignment, zoom, rotation, background, reset to platform defaults; **Card customization** checkboxes (Show Header, Show Platform Accents) |
+| **Preview main** | Image-type tabs → card frame (life-size preview) → screen calibration slider → **Add to collection** / **Update Card** (primary) |
+| **Artwork controls** | Alignment grid, zoom, rotation, background mode/color, reset to platform defaults; **Card customization** checkboxes (Show Header, Show Platform Accents) |
 
-**Preview frame:** Renders card at physical dimensions (52 × 84 mm default) with optional calibration scale (70–130%). Shows loading skeleton while artwork fetches. Sticker inset visible as inner guide on card.
+**Enabled when** the editor has an active card session (`browseState` is set):
 
-**Add flow:** User selects platform → searches/browses game → previews artwork type → adjusts if needed → **Add to collection**. Editing an existing collection card reopens browse mode for that card.
+1. User **selects a game** from search results, **or**
+2. User **edits** a collection card (✎) from the Print list, **or**
+3. User **copies** a collection card’s settings into the editor (copy-in)
 
-#### Right column — Collection (`panel--collection`)
+**Disabled otherwise** — every interactive control in Edit is non-interactive:
+
+- Image-type tabs
+- Artwork alignment, zoom, rotation, background controls, reset
+- Card customization checkboxes
+- Screen calibration slider
+- Add to collection / Update Card button
+
+Disabled controls use existing `:disabled` styling. The Edit panel wrapper may expose `aria-disabled` when the whole workspace is idle.
+
+**Sticker / skeleton states:**
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle: page load / no browseState
+  Idle --> Loading: game selected or copied in
+  Loading --> Ready: artwork resolved
+  Loading --> Ready: placeholder artwork
+  Ready --> Loading: switch image type / game
+  Ready --> Idle: clear browse session
+
+  state Idle {
+    [*] --> SkeletonIdle
+    note right of SkeletonIdle: preview-skeleton visible\n(continuous idle state)
+  }
+
+  state Loading {
+    [*] --> SkeletonLoad
+    note right of SkeletonLoad: preview-skeleton visible\n(existing load behavior)
+  }
+
+  state Ready {
+    [*] --> LivePreview
+    note right of LivePreview: artwork on card frame
+  }
+```
+
+- **Idle (no `browseState`):** The existing `.preview-skeleton` sticker is shown continuously on the card frame. No artwork image.
+- **Loading (session active, artwork fetching):** Same skeleton element and animation as today (120 ms delay, pulse while fetch runs).
+- **Ready:** Live card preview at physical dimensions (52 × 84 mm default) with optional calibration scale (70–130%). Sticker inset visible as inner guide.
+
+**Add flow:** User selects platform → searches/browses game → customizes in Edit → **Add to collection**. Cards land in the Print list. Edit (✎) or copy-in from Print reloads a card into Edit.
+
+**Layout:** Card preview remains horizontally centered within Edit. Artwork controls stay in the right sidebar of the Edit column.
+
+#### Print (`panel--print`, right column)
+
+**Purpose:** Manage the saved card list and export a print-ready PDF.
+
+There is **no separate “Collection” heading** — the **Print** section title is the only panel header. The collection is the list of saved games/cards in this column.
 
 | Block | Contents |
 |-------|----------|
-| **Header** | “Collection” title + selection meta (“No cards selected”, “N cards selected”) |
+| **Selection meta** | “No cards selected” / “N cards selected” |
 | **Selection actions** | Select All / Deselect All |
 | **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
-| **Collection list** | Grouped by platform (`<details>` per platform, open by default). Each card row: edit (✎), select toggle, label `Game Name - Artwork Type`, optional “placeholder” badge if image failed |
+| **Card list** | Grouped by platform (`<details>` per platform, open by default). Each row: edit (✎), copy-in, select toggle, label `Game Name - Artwork Type`, optional “placeholder” badge if image failed |
 
 **Empty state:** “Search for a game and press Enter to add cards.”
 
@@ -347,7 +414,9 @@ Example:
 
 High-level checklist — detail lives in [Page specifications](#page-specifications-shipped) above.
 
-- [x] Three-column designer: controls | preview | collection
+- [x] Three-column designer: Select | Edit | Print (centered section titles)
+- [x] Edit gated until a game is selected or copied from the Print list; idle skeleton on card frame
+- [x] Print column holds the saved card list (no redundant “Collection” heading)
 - [x] Game search (3+ chars) scoped to selected platform
 - [x] Artwork browse (box / title / in-game) with per-card overrides
 - [x] Artwork from libretro-thumbnails GitHub raw URLs (CORS-safe for canvas/PDF)
@@ -381,3 +450,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-21 | GitHub raw artwork + generated catalog shipped |
 | 2026-07-21 | Rebranded product as NFC Card Designer |
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
+| 2026-07-22 | Designer reframed as Select · Edit · Print columns; Edit idle skeleton + gating spec |

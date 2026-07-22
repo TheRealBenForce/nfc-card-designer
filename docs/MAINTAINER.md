@@ -76,6 +76,7 @@ Platforms with **zero catalog entries** are hidden from the platform selector au
 - **localStorage keys:** `nfc-card-designer-settings`, `nfc-card-designer-collection`
 - **Export file:** `nfc-card-designer.json` (project version `6`)
 - **Per-card:** `platformId`, `gameName`, `libretroName`, `imageType`
+- **Artwork key:** `libretroName` is the exact libretro filename stem used for GitHub raw URLs. `gameName` is a friendly display label derived from `libretroName` on load/save and can change as title cleanup rules evolve without breaking saved artwork.
 
 ## Image types → libretro folders
 

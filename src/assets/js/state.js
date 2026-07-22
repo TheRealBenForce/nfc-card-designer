@@ -11,8 +11,8 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @typedef {Object} Card
  * @property {string} id
  * @property {string} platformId
- * @property {string} gameName
- * @property {string} libretroName
+ * @property {string} gameName Friendly display label derived from `libretroName`
+ * @property {string} libretroName Canonical libretro filename stem for GitHub artwork URLs
  * @property {string} imageType
  * @property {boolean} [imageFailed]
  * @property {ArtworkDisplaySettings} [artworkDisplay]

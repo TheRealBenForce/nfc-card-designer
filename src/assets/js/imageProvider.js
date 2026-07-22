@@ -9,6 +9,9 @@ import {
 } from "./libretroThumbnails.js";
 
 /**
+ * Build a GitHub raw artwork URL from the canonical libretro filename stem.
+ * Collection cards always resolve artwork through `libretroName`, not `gameName`.
+ *
  * @param {string} platformId
  * @param {string} libretroName
  * @param {string} imageType

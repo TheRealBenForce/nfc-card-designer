@@ -6,10 +6,11 @@
     <title>NFC Card Designer</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon-gamepad.svg" />
     <link rel="alternate icon" href="assets/images/favicon-gamepad.svg" />
+    <script src="assets/js/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:wght@700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/styles.css" />
@@ -25,8 +26,48 @@
             </span>
           </a>
         </h1>
-        <a class="header__link" href="supplies.html">Supplies</a>
-        <a class="header__link" href="recognition.html">Recognition</a>
+        <div class="header__links">
+          <a class="header__link" href="supplies.html">Supplies</a>
+          <a class="header__link" href="recognition.html">Recognition</a>
+        </div>
+        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Switch to dark mode">
+          <svg
+            class="theme-toggle__icon theme-toggle__icon--moon"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
+          <svg
+            class="theme-toggle__icon theme-toggle__icon--sun"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="M4.93 4.93l1.41 1.41" />
+            <path d="M17.66 17.66l1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="M4.93 19.07l1.41-1.41" />
+            <path d="M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
       </nav>
     </header>
 

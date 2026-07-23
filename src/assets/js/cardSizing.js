@@ -102,3 +102,39 @@ export function mmToRenderPx(mm, dpi = 300) {
 export function getCardPreviewWidthPx(settings) {
   return mmToCssPx(resolveCardSizing(settings).cardWidthMm);
 }
+
+export const PREVIEW_CALIBRATION_MIN_SCALE = 0.7;
+/** Keep the scaled card slightly inside the mat on the limiting edge. */
+export const PREVIEW_CALIBRATION_MAX_INSET_RATIO = 0.98;
+
+/**
+ * Max preview calibration scale so the card's smaller edge stays just inside
+ * the mat's smaller edge (matches container-query fit sizing at scale 1).
+ *
+ * @param {number} stageWidth
+ * @param {number} stageHeight
+ * @param {number} cardWidthMm
+ * @param {number} cardHeightMm
+ * @param {number} [insetRatio]
+ */
+export function computePreviewCalibrationMaxScale(
+  stageWidth,
+  stageHeight,
+  cardWidthMm,
+  cardHeightMm,
+  insetRatio = PREVIEW_CALIBRATION_MAX_INSET_RATIO,
+) {
+  if (!(stageWidth > 0 && stageHeight > 0 && cardWidthMm > 0 && cardHeightMm > 0)) {
+    return 1;
+  }
+
+  const aspect = cardWidthMm / cardHeightMm;
+  const fitWidth = Math.min(stageWidth, stageHeight * aspect);
+  const fitHeight = fitWidth / aspect;
+  const cardSmallestAtFit = Math.min(fitWidth, fitHeight);
+  const matSmallest = Math.min(stageWidth, stageHeight);
+
+  if (!(cardSmallestAtFit > 0)) return 1;
+
+  return (matSmallest / cardSmallestAtFit) * insetRatio;
+}

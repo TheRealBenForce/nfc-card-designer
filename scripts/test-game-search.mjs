@@ -142,6 +142,31 @@ async function main() {
     }
     console.log("✓ Narrow viewport shows a sized preview card after game selection");
 
+    const calibrationAtMax = await page.evaluate(() => {
+      const input = document.getElementById("preview-calibration-input");
+      const stage = document.querySelector(".preview-stage");
+      const card = document.getElementById("preview-card");
+      if (!(input instanceof HTMLInputElement) || !stage || !card) return null;
+      input.value = input.max;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      const stageRect = stage.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      return {
+        max: Number(input.max),
+        matSmallest: Math.min(stageRect.width, stageRect.height),
+        cardSmallest: Math.min(cardRect.width, cardRect.height),
+      };
+    });
+    if (!calibrationAtMax) {
+      throw new Error("Expected preview calibration controls on narrow viewport");
+    }
+    if (calibrationAtMax.cardSmallest > calibrationAtMax.matSmallest + 1) {
+      throw new Error(
+        `Max card scale should stay inside the mat, got card=${calibrationAtMax.cardSmallest}px mat=${calibrationAtMax.matSmallest}px`,
+      );
+    }
+    console.log("✓ Max card scale stays inside the preview mat on narrow viewports");
+
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.reload({ waitUntil: "networkidle", timeout: 15000 });
 

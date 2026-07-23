@@ -17,12 +17,14 @@ import {
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import {
+  computePreviewCalibrationMaxScale,
   getCardPreviewWidthPx,
   maxStickerInsetMm,
   mmToRenderPx,
   normalizeCardHeightMm,
   normalizeCardWidthMm,
   normalizeStickerInsetMm,
+  PREVIEW_CALIBRATION_MIN_SCALE,
   resolveCardSizing,
 } from "./cardSizing.js";
 import {
@@ -128,6 +130,8 @@ let deselectAllBtn = null;
 let previewImageEl = null;
 /** @type {HTMLElement|null} */
 let previewFrameEl = null;
+/** @type {HTMLElement|null} */
+let previewStageEl = null;
 /** @type {HTMLElement|null} */
 let previewSkeletonEl = null;
 /** @type {HTMLElement|null} */
@@ -373,11 +377,44 @@ function logStatus(message, isError = false) {
   else console.log(message);
 }
 
+/** @type {number} */
+let previewCalibrationMaxScale = 1;
+
 /**
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(1.3, Math.max(0.7, value));
+  return Math.min(previewCalibrationMaxScale, Math.max(PREVIEW_CALIBRATION_MIN_SCALE, value));
+}
+
+function syncPreviewCalibrationBounds() {
+  if (!previewStageEl || !previewCalibrationInputEl) return;
+
+  const sizing = resolveCardSizing(getSettings());
+  previewCalibrationMaxScale = Math.max(
+    PREVIEW_CALIBRATION_MIN_SCALE,
+    computePreviewCalibrationMaxScale(
+      previewStageEl.clientWidth,
+      previewStageEl.clientHeight,
+      sizing.cardWidthMm,
+      sizing.cardHeightMm,
+    ),
+  );
+
+  previewCalibrationInputEl.max = String(Math.round(previewCalibrationMaxScale * 100));
+
+  const storedScale = (() => {
+    try {
+      const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
+      if (!raw) return 1;
+      const parsed = Number(raw);
+      return Number.isFinite(parsed) ? parsed : 1;
+    } catch {
+      return 1;
+    }
+  })();
+
+  applyPreviewCalibrationScale(storedScale, { persist: storedScale !== clampPreviewCalibrationScale(storedScale) });
 }
 
 function loadPreviewCalibrationScale() {
@@ -1005,6 +1042,7 @@ function applyCardSizingCssVariables(settings) {
   document.documentElement.style.setProperty("--card-height-mm", String(sizing.cardHeightMm));
   document.documentElement.style.setProperty("--sticker-width-mm", String(sizing.stickerWidthMm));
   document.documentElement.style.setProperty("--sticker-height-mm", String(sizing.stickerHeightMm));
+  syncPreviewCalibrationBounds();
 }
 
 function syncGlobalSettingsControls() {
@@ -1850,6 +1888,7 @@ export async function initUI() {
     previewImageEl.alt = "";
   }
   previewFrameEl = document.getElementById("preview-frame");
+  previewStageEl = document.querySelector(".preview-stage");
   previewSkeletonEl = document.getElementById("preview-skeleton");
   previewMetaGameEl = document.getElementById("preview-meta-game");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
@@ -1948,7 +1987,19 @@ export async function initUI() {
   });
 
   bindEvents();
-  applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
+
+  if (previewStageEl && typeof ResizeObserver !== "undefined") {
+    const calibrationBoundsObserver = new ResizeObserver(() => {
+      syncPreviewCalibrationBounds();
+    });
+    calibrationBoundsObserver.observe(previewStageEl);
+  } else {
+    globalThis.addEventListener("resize", () => {
+      syncPreviewCalibrationBounds();
+    });
+  }
+
+  syncPreviewCalibrationBounds();
   syncPlatformControls();
   renderPreviewTypeTabs();
   if (gameResultsEl) gameResultsEl.hidden = true;

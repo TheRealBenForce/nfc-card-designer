@@ -135,7 +135,7 @@ let previewMetaGameEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
-let previewCalibrationValueEl = null;
+let editGatedRegionEl = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
@@ -304,10 +304,13 @@ function syncEditColumnState() {
     editControlsEl.classList.toggle("edit-controls--idle", !active);
     editControlsEl.classList.toggle("edit-controls--loading", browseLoading);
     editControlsEl.classList.toggle("edit-controls--ready", interactive);
+  }
+
+  if (editGatedRegionEl) {
     if (interactive) {
-      editControlsEl.removeAttribute("inert");
+      editGatedRegionEl.removeAttribute("inert");
     } else {
-      editControlsEl.setAttribute("inert", "");
+      editGatedRegionEl.setAttribute("inert", "");
     }
   }
 
@@ -374,7 +377,7 @@ function logStatus(message, isError = false) {
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(2, Math.max(0.7, value));
+  return Math.min(1.3, Math.max(0.7, value));
 }
 
 function loadPreviewCalibrationScale() {
@@ -401,9 +404,6 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
   const percent = Math.round(scale * 100);
   if (previewCalibrationInputEl) {
     previewCalibrationInputEl.value = String(percent);
-  }
-  if (previewCalibrationValueEl) {
-    previewCalibrationValueEl.textContent = `${percent}%`;
   }
 
   if (options.persist !== false) {
@@ -1855,7 +1855,7 @@ export async function initUI() {
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
-  previewCalibrationValueEl = document.getElementById("preview-calibration-value");
+  editGatedRegionEl = document.getElementById("edit-gated-region");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchAnchorEl = document.querySelector(".game-search-anchor");
   gameSearchHintEl = document.getElementById("game-search-hint");

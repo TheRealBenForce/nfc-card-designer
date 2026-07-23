@@ -8,7 +8,7 @@ import {
   catalogCountForPlatform,
   platformsWithArtwork,
   platformHasArtwork,
-  MIN_GAME_SEARCH_CHARS,
+  GAME_SEARCH_PAGE_SIZE,
 } from "./gameCatalog.js";
 import { platformById } from "./data/platforms.js";
 import {
@@ -338,7 +338,11 @@ let filteredGames = [];
 /** @type {number} */
 let filteredGamesTotal = 0;
 /** @type {boolean} */
-let filteredGamesBrowseMode = false;
+let filteredGamesNoMatchFallback = false;
+/** @type {number} */
+let filteredGamesVisibleCount = GAME_SEARCH_PAGE_SIZE;
+/** @type {boolean} */
+let gameResultsScrollBound = false;
 /** @type {boolean} */
 let gameSearchFocused = false;
 
@@ -734,41 +738,23 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     return;
   }
 
-  if (query.length < MIN_GAME_SEARCH_CHARS) {
-    const remaining = MIN_GAME_SEARCH_CHARS - query.length;
-    const countHint = gameCount > 0 ? artworkCountLabel(gameCount) : "available games";
-    gameSearchHintEl.textContent =
-      remaining === 1
-        ? `Type 1 more character to search, or pick from the list (${countHint}).`
-        : `Type ${remaining} more characters to search, or pick from the list (${countHint}).`;
-    gameSearchHintEl.classList.remove("field-hint--ready");
-    syncGameSearchHintVisibility();
-    return;
-  }
-
-  if (filteredGamesTotal === 0 && !filteredGamesBrowseMode) {
-    gameSearchHintEl.textContent = `No games with artwork matching "${query}".`;
-    gameSearchHintEl.classList.remove("field-hint--ready");
-    syncGameSearchHintVisibility();
-    return;
-  }
-
-  if (filteredGamesBrowseMode && filteredGamesTotal === 0) {
+  if (filteredGamesNoMatchFallback && filteredGamesTotal === 0) {
     gameSearchHintEl.textContent = `No matches for "${query}" — browse available games below`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     syncGameSearchHintVisibility();
     return;
   }
 
-  if (filteredGamesBrowseMode) {
-    gameSearchHintEl.textContent = "Browse games with artwork (A–Z)";
+  if (filteredGamesTotal === 0) {
+    gameSearchHintEl.textContent = `No games with artwork matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     syncGameSearchHintVisibility();
     return;
   }
 
-  if (filteredGamesTotal > filteredGames.length) {
-    gameSearchHintEl.textContent = `Showing ${filteredGames.length} of ${filteredGamesTotal} matches — refine your search`;
+  const visibleCount = Math.min(filteredGamesVisibleCount, filteredGames.length);
+  if (filteredGamesTotal > visibleCount) {
+    gameSearchHintEl.textContent = `Showing ${visibleCount} of ${filteredGamesTotal} matches — scroll for more`;
   } else {
     gameSearchHintEl.textContent = `${filteredGamesTotal} game${filteredGamesTotal === 1 ? "" : "s"} found`;
   }
@@ -782,7 +768,8 @@ function filterGames(query) {
   if (!activePlatformId) {
     filteredGames = [];
     filteredGamesTotal = 0;
-    filteredGamesBrowseMode = false;
+    filteredGamesNoMatchFallback = false;
+    filteredGamesVisibleCount = GAME_SEARCH_PAGE_SIZE;
     gameHighlightIndex = 0;
     renderGameResults();
     updateGameSearchHint(q);
@@ -792,7 +779,8 @@ function filterGames(query) {
   if (q.length === 0 && !gameSearchFocused) {
     filteredGames = [];
     filteredGamesTotal = 0;
-    filteredGamesBrowseMode = false;
+    filteredGamesNoMatchFallback = false;
+    filteredGamesVisibleCount = GAME_SEARCH_PAGE_SIZE;
     gameHighlightIndex = 0;
     renderGameResults();
     updateGameSearchHint(q);
@@ -801,8 +789,9 @@ function filterGames(query) {
 
   const result = searchGames(activePlatformId, q);
   filteredGames = result.games;
-  filteredGamesTotal = result.total;
-  filteredGamesBrowseMode = result.isBrowseSample;
+  filteredGamesTotal = result.isNoMatchFallback ? result.games.length : result.total;
+  filteredGamesNoMatchFallback = result.isNoMatchFallback;
+  filteredGamesVisibleCount = GAME_SEARCH_PAGE_SIZE;
   gameHighlightIndex = 0;
   renderGameResults();
   updateGameSearchHint(q);
@@ -863,6 +852,54 @@ function closeGameResults() {
   syncGameSearchHintVisibility();
 }
 
+/**
+ * @param {import("./gameCatalog.js").Game} game
+ * @param {number} index
+ */
+function createGameResultItem(game, index) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "list-item";
+  btn.setAttribute("role", "option");
+  if (index === gameHighlightIndex) btn.classList.add("list-item--highlight");
+  btn.textContent = game.name;
+  btn.addEventListener("click", () => {
+    if (gameSearchInput) gameSearchInput.value = game.name;
+    closeGameResults();
+    void browseGameFromSearch(game);
+  });
+  return btn;
+}
+
+function loadMoreGameResults() {
+  if (!gameResultsEl || filteredGamesVisibleCount >= filteredGames.length) return;
+
+  const previousCount = filteredGamesVisibleCount;
+  filteredGamesVisibleCount = Math.min(
+    filteredGamesVisibleCount + GAME_SEARCH_PAGE_SIZE,
+    filteredGames.length,
+  );
+
+  const newGames = filteredGames.slice(previousCount, filteredGamesVisibleCount);
+  newGames.forEach((game, offset) => {
+    gameResultsEl.appendChild(createGameResultItem(game, previousCount + offset));
+  });
+
+  updateGameSearchHint();
+}
+
+function bindGameResultsScroll() {
+  if (!gameResultsEl || gameResultsScrollBound) return;
+  gameResultsScrollBound = true;
+  gameResultsEl.addEventListener("scroll", () => {
+    if (gameResultsEl.hidden) return;
+    const remaining = gameResultsEl.scrollHeight - gameResultsEl.scrollTop - gameResultsEl.clientHeight;
+    if (remaining < 48) {
+      loadMoreGameResults();
+    }
+  });
+}
+
 function renderGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.innerHTML = "";
@@ -887,46 +924,24 @@ function renderGameResults() {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     empty.textContent =
-      query.length >= MIN_GAME_SEARCH_CHARS
+      query.length > 0
         ? `No games with artwork matching "${query}".`
         : "No games with artwork available yet.";
     gameResultsEl.appendChild(empty);
     return;
   }
 
-  if (filteredGamesBrowseMode && query.length >= MIN_GAME_SEARCH_CHARS && filteredGamesTotal === 0) {
+  if (filteredGamesNoMatchFallback) {
     const intro = document.createElement("p");
     intro.className = "list-more-hint";
     intro.textContent = `No matches for "${query}" — browse available games:`;
     gameResultsEl.appendChild(intro);
-  } else if (filteredGamesBrowseMode && query.length < MIN_GAME_SEARCH_CHARS && query.length > 0) {
-    const intro = document.createElement("p");
-    intro.className = "list-more-hint";
-    intro.textContent = "Matching games with artwork:";
-    gameResultsEl.appendChild(intro);
   }
 
-  filteredGames.forEach((game, index) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "list-item";
-    btn.setAttribute("role", "option");
-    if (index === gameHighlightIndex) btn.classList.add("list-item--highlight");
-    btn.textContent = game.name;
-    btn.addEventListener("click", () => {
-      if (gameSearchInput) gameSearchInput.value = game.name;
-      closeGameResults();
-      void browseGameFromSearch(game);
-    });
-    gameResultsEl.appendChild(btn);
+  const visibleGames = filteredGames.slice(0, filteredGamesVisibleCount);
+  visibleGames.forEach((game, index) => {
+    gameResultsEl.appendChild(createGameResultItem(game, index));
   });
-
-  if (!filteredGamesBrowseMode && filteredGamesTotal > filteredGames.length) {
-    const more = document.createElement("p");
-    more.className = "list-more-hint";
-    more.textContent = `${filteredGamesTotal - filteredGames.length} more matches — keep typing to narrow down`;
-    gameResultsEl.appendChild(more);
-  }
 }
 
 function selectPlatform(platformId) {
@@ -1082,8 +1097,8 @@ function pickGameFromSearch() {
   }
 
   const query = gameSearchInput?.value.trim() ?? "";
-  if (query.length < MIN_GAME_SEARCH_CHARS) {
-    logStatus(`Type at least ${MIN_GAME_SEARCH_CHARS} characters to search games.`, true);
+  if (!query) {
+    logStatus("Type a game name to search.", true);
     return null;
   }
 
@@ -1492,6 +1507,7 @@ function bindCollectionDrawer() {
 
 function bindEvents() {
   bindCollectionDrawer();
+  bindGameResultsScroll();
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
     filterGames(gameSearchInput?.value ?? "");

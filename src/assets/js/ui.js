@@ -129,6 +129,8 @@ let previewSkeletonEl = null;
 let previewMetaEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
+/** @type {HTMLElement|null} */
+let previewCalibrationValueEl = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
@@ -387,7 +389,9 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
   const percent = Math.round(scale * 100);
   if (previewCalibrationInputEl) {
     previewCalibrationInputEl.value = String(percent);
-    previewCalibrationInputEl.setAttribute("aria-valuetext", `${percent}%`);
+  }
+  if (previewCalibrationValueEl) {
+    previewCalibrationValueEl.textContent = `${percent}%`;
   }
 
   if (options.persist !== false) {
@@ -1452,7 +1456,7 @@ async function refreshPreview() {
 }
 
 function bindCollectionDrawer() {
-  const teaser = document.getElementById("collection-drawer-teaser");
+  const toggle = document.getElementById("collection-drawer-toggle");
   const backdrop = document.getElementById("collection-drawer-backdrop");
   const printPanel = document.getElementById("print-panel");
   const storageKey = "nfc-card-designer-collection-drawer";
@@ -1460,7 +1464,7 @@ function bindCollectionDrawer() {
   const setOpen = (open) => {
     document.body.classList.toggle("collection-drawer-open", open);
     document.body.style.overflow = open ? "hidden" : "";
-    teaser?.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle?.setAttribute("aria-expanded", open ? "true" : "false");
     backdrop?.toggleAttribute("hidden", !open);
     try {
       localStorage.setItem(storageKey, open ? "1" : "0");
@@ -1469,8 +1473,8 @@ function bindCollectionDrawer() {
     }
   };
 
-  teaser?.addEventListener("click", () => {
-    setOpen(true);
+  toggle?.addEventListener("click", () => {
+    setOpen(!document.body.classList.contains("collection-drawer-open"));
   });
 
   backdrop?.addEventListener("click", () => setOpen(false));
@@ -1783,6 +1787,7 @@ export async function initUI() {
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
+  previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchHintEl = document.getElementById("game-search-hint");
   globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (

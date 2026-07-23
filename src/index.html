@@ -132,15 +132,6 @@
 
         <section class="section section--game-search">
           <div class="search-field">
-            <input
-              id="game-search"
-              class="input search-field__input"
-              type="search"
-              placeholder="Search games..."
-              autocomplete="off"
-              aria-autocomplete="list"
-              aria-controls="game-results"
-            />
             <svg
               class="search-field__icon"
               width="18"
@@ -156,6 +147,15 @@
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
+            <input
+              id="game-search"
+              class="input search-field__input"
+              type="search"
+              placeholder="Search games..."
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="game-results"
+            />
           </div>
           <p id="game-search-hint" class="field-hint">Select a platform to search retail releases.</p>
           <div id="game-results" class="list list--games" role="listbox" aria-label="Games" hidden></div>
@@ -189,17 +189,22 @@
                     <img id="preview-image" class="preview-image" alt="" hidden />
                   </div>
                 </div>
-                <input
-                  id="preview-calibration-input"
-                  class="preview-calibration__range"
-                  type="range"
-                  min="70"
-                  max="130"
-                  step="1"
-                  value="100"
-                  aria-label="Card size"
-                  aria-valuetext="100%"
-                />
+                <div class="preview-calibration-panel">
+                  <label for="preview-calibration-input" class="preview-calibration">
+                    <span class="preview-calibration__label">Card size</span>
+                    <input
+                      id="preview-calibration-input"
+                      class="preview-calibration__range"
+                      type="range"
+                      min="70"
+                      max="130"
+                      step="1"
+                      value="100"
+                    />
+                    <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+                  </label>
+                  <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+                </div>
               </div>
               <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
                 Add to collection
@@ -269,20 +274,18 @@
         </div>
       </section>
 
+      <button
+        id="collection-drawer-toggle"
+        type="button"
+        class="collection-drawer-toggle"
+        aria-expanded="false"
+        aria-controls="print-panel"
+      >
+        Collection
+      </button>
       <div id="collection-drawer-backdrop" class="collection-drawer-backdrop" hidden></div>
 
       <aside class="panel panel--print" id="print-panel">
-        <button
-          id="collection-drawer-teaser"
-          type="button"
-          class="collection-drawer-teaser"
-          aria-expanded="false"
-          aria-controls="collection-drawer-content"
-        >
-          <span class="collection-drawer-teaser__label" aria-hidden="true">Collection</span>
-          <span class="visually-hidden">Open collection</span>
-        </button>
-        <div id="collection-drawer-content" class="collection-drawer-content">
         <h2 class="panel__title">Print</h2>
         <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
         <div class="print-toolbar">
@@ -296,7 +299,6 @@
           </div>
         </div>
         <div id="collection-list" class="collection-list"></div>
-        </div>
       </aside>
     </div>
 

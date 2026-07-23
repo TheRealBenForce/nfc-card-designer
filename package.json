@@ -10,6 +10,7 @@
     "test:card-render": "node scripts/test-card-render.mjs",
     "test:pdf-layout": "node scripts/test-pdf-layout.mjs",
     "test:collection-tree": "node scripts/test-collection-tree.mjs",
+    "test:collection-delete": "node scripts/test-collection-delete.mjs",
     "test:image-lookup": "node scripts/test-image-lookup.mjs",
     "test:libretro-thumbnails": "node scripts/test-libretro-thumbnails.mjs",
     "test:build-game-catalog": "node scripts/test-build-game-catalog.mjs",

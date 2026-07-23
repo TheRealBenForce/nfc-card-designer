@@ -104,8 +104,6 @@
               — bundled fallback system artwork when an XMB icon is unavailable
             </li>
           </ul>
-          <p>Supported platforms:</p>
-          <ul id="supported-platforms-list" class="static-card__platform-list"></ul>
         </section>
 
         <section class="static-card">
@@ -178,20 +176,5 @@
         <a class="static-page__back header__link" href="./">← Back to NFC Card Maker</a>
       </footer>
     </main>
-    <script type="module">
-      import { platforms } from "./assets/js/data/platforms.js";
-
-      const list = document.getElementById("supported-platforms-list");
-      if (list) {
-        const sorted = [...platforms].sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-        );
-        for (const platform of sorted) {
-          const item = document.createElement("li");
-          item.textContent = platform.name;
-          list.appendChild(item);
-        }
-      }
-    </script>
   </body>
 </html>

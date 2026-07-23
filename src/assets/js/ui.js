@@ -720,6 +720,7 @@ function renderPlatformResults() {
   visiblePlatforms.forEach((platform) => {
     const row = document.createElement("div");
     row.className = "platform-row";
+    row.style.setProperty("--platform-color", platform.defaultColor);
     if (platform.id === settings.selectedPlatformId) {
       row.classList.add("platform-row--selected");
     }
@@ -727,7 +728,17 @@ function renderPlatformResults() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "platform-row__select";
-    btn.textContent = platform.name;
+
+    const emoji = document.createElement("span");
+    emoji.className = "platform-row__emoji";
+    emoji.textContent = platform.emoji;
+    emoji.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "platform-row__label";
+    label.textContent = platform.name;
+
+    btn.append(emoji, label);
     btn.addEventListener("click", () => selectPlatform(platform.id));
 
     const editBtn = document.createElement("button");

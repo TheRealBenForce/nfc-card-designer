@@ -163,7 +163,7 @@
         <h2 class="panel__title">Edit</h2>
         <p id="preview-meta" class="preview-meta">Select a game to start editing.</p>
         <div id="edit-idle" class="edit-idle">
-          <div class="preview-frame">
+          <div class="preview-frame preview-frame--idle">
             <div class="preview-card">
               <div class="preview-sticker-base" aria-hidden="true"></div>
               <div class="preview-skeleton preview-skeleton--idle" aria-hidden="false"></div>
@@ -172,80 +172,85 @@
         </div>
         <div id="edit-controls" class="preview-layout" hidden>
           <div class="preview-main">
-            <div id="preview-type-tabs" class="preview-type-tabs"></div>
-            <div id="preview-frame" class="preview-frame">
+            <div id="preview-type-tabs" class="preview-type-tabs" role="tablist" aria-label="Artwork type"></div>
+            <div id="preview-frame" class="preview-frame preview-mat">
               <div id="preview-card" class="preview-card">
                 <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
                 <div id="preview-skeleton" class="preview-skeleton" hidden aria-hidden="true"></div>
                 <img id="preview-image" class="preview-image" alt="" hidden />
               </div>
             </div>
-            <label for="preview-calibration-input" class="preview-calibration">
-              <span class="preview-calibration__label">Screen calibration</span>
-              <input
-                id="preview-calibration-input"
-                class="preview-calibration__range"
-                type="range"
-                min="70"
-                max="130"
-                step="1"
-                value="100"
-              />
-              <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-            </label>
-            <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+            <div class="edit-control-group edit-control-group--calibration">
+              <h3 class="edit-control-group__title">Size check</h3>
+              <label for="preview-calibration-input" class="preview-calibration">
+                <span class="preview-calibration__label">Screen calibration</span>
+                <input
+                  id="preview-calibration-input"
+                  class="preview-calibration__range"
+                  type="range"
+                  min="70"
+                  max="130"
+                  step="1"
+                  value="100"
+                />
+                <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+              </label>
+              <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+            </div>
             <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
               Add to collection
             </button>
           </div>
           <aside id="preview-artwork-controls" class="preview-artwork-controls">
-            <p id="preview-artwork-controls-title" class="field__label">Artwork Display</p>
-            <div
-              id="preview-artwork-alignment-grid"
-              class="alignment-grid"
-              role="radiogroup"
-              aria-label="Card artwork alignment override"
-            ></div>
-            <label for="preview-artwork-zoom" class="artwork-zoom-field">
-              <span class="artwork-zoom-field__label">Zoom</span>
-              <input
-                id="preview-artwork-zoom"
-                class="artwork-zoom-field__range"
-                type="range"
-                min="50"
-                max="200"
-                step="1"
-                value="100"
-              />
-              <span id="preview-artwork-zoom-value" class="artwork-zoom-field__value">100%</span>
-            </label>
-            <button
-              id="preview-artwork-rotate"
-              type="button"
-              class="btn btn--secondary preview-artwork-rotate-btn"
-              title="Rotate artwork 90°"
-              aria-label="Rotate artwork 90 degrees"
-            >
-              Card Rotation
-            </button>
-            <div class="field artwork-background-field">
-              <span class="field__label">Artwork background</span>
-              <div class="artwork-background-row">
-                <select id="preview-artwork-background-mode" class="input artwork-background-row__mode"></select>
+            <div class="edit-control-group">
+              <h3 id="preview-artwork-controls-title" class="edit-control-group__title">Artwork</h3>
+              <div
+                id="preview-artwork-alignment-grid"
+                class="alignment-grid"
+                role="radiogroup"
+                aria-label="Card artwork alignment override"
+              ></div>
+              <label for="preview-artwork-zoom" class="artwork-zoom-field">
+                <span class="artwork-zoom-field__label">Zoom</span>
                 <input
-                  id="preview-artwork-background-color"
-                  class="input input--color artwork-background-row__color"
-                  type="color"
-                  value="#000000"
-                  aria-label="Background color"
+                  id="preview-artwork-zoom"
+                  class="artwork-zoom-field__range"
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="1"
+                  value="100"
                 />
+                <span id="preview-artwork-zoom-value" class="artwork-zoom-field__value">100%</span>
+              </label>
+              <button
+                id="preview-artwork-rotate"
+                type="button"
+                class="btn btn--secondary preview-artwork-rotate-btn"
+                title="Rotate artwork 90°"
+                aria-label="Rotate artwork 90 degrees"
+              >
+                Card Rotation
+              </button>
+              <div class="field artwork-background-field">
+                <span class="field__label">Artwork background</span>
+                <div class="artwork-background-row">
+                  <select id="preview-artwork-background-mode" class="input artwork-background-row__mode"></select>
+                  <input
+                    id="preview-artwork-background-color"
+                    class="input input--color artwork-background-row__color"
+                    type="color"
+                    value="#000000"
+                    aria-label="Background color"
+                  />
+                </div>
               </div>
+              <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
+                Reset to Platform Defaults
+              </button>
             </div>
-            <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
-              Reset to Platform Defaults
-            </button>
-            <div class="preview-card-customization" role="group" aria-label="Card customization controls">
-              <p class="field__label">Card Customization</p>
+            <div class="edit-control-group preview-card-customization" role="group" aria-label="Card customization controls">
+              <h3 class="edit-control-group__title">Card options</h3>
               <label class="field field--checkbox">
                 <input id="global-show-header" type="checkbox" checked />
                 <span class="field__label field__label--inline">Show Header</span>

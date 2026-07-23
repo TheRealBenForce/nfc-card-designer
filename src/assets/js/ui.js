@@ -221,6 +221,17 @@ function cancelPreviewSkeleton() {
   previewFrameEl.classList.remove("preview-frame--loading");
 }
 
+function syncPreviewPlatformAccent() {
+  const platformId = browseState?.game.platformId ?? getActivePlatformId();
+  const color = platformId ? platformById[platformId]?.defaultColor : null;
+  const targets = [editPanelEl, ...document.querySelectorAll(".preview-frame")].filter(Boolean);
+
+  targets.forEach((el) => {
+    if (color) el.style.setProperty("--platform-color", color);
+    else el.style.removeProperty("--platform-color");
+  });
+}
+
 function syncEditColumnState() {
   const active = Boolean(browseState);
 
@@ -252,6 +263,7 @@ function syncEditColumnState() {
     renderPreviewTypeTabs();
   }
 
+  syncPreviewPlatformAccent();
   syncBrowseActionButton();
   syncPreviewArtworkControls();
 }
@@ -420,7 +432,7 @@ function syncPreviewArtworkControls() {
   const display = context.display;
 
   if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Artwork Display";
+    previewArtworkControlsTitleEl.textContent = "Artwork";
   }
 
   if (previewArtworkResetBtn) {
@@ -838,6 +850,7 @@ function selectPlatform(platformId) {
   }
 
   syncPlatformControls();
+  syncPreviewPlatformAccent();
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
@@ -1272,6 +1285,8 @@ async function refreshPreview() {
         : {}),
     };
     previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+
+    syncPreviewPlatformAccent();
 
     const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
     if (requestId !== previewRequestId) return;

@@ -1466,6 +1466,9 @@ function bindEvents() {
     const clickedGameResult = gameResultsEl?.contains(target);
     if (clickedSearchInput || clickedGameResult) return;
     closeGameResults();
+    if (document.activeElement === gameSearchInput) {
+      gameSearchInput.blur();
+    }
   });
 
   gameSearchInput?.addEventListener("focus", () => {

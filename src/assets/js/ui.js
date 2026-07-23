@@ -25,6 +25,8 @@ import {
   normalizeCardWidthMm,
   normalizeStickerInsetMm,
   PREVIEW_CALIBRATION_MIN_SCALE,
+  PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE,
+  PREVIEW_LAYOUT_BREAKPOINT_PX,
   resolveCardSizing,
 } from "./cardSizing.js";
 import {
@@ -377,18 +379,49 @@ function logStatus(message, isError = false) {
   else console.log(message);
 }
 
+/** @type {HTMLElement|null} */
+let previewCalibrationPanelEl = null;
+
 /** @type {number} */
 let previewCalibrationMaxScale = 1;
+
+/**
+ * @returns {boolean}
+ */
+function isWidePreviewViewport() {
+  return globalThis.matchMedia(`(min-width: ${PREVIEW_LAYOUT_BREAKPOINT_PX + 1}px)`).matches;
+}
+
+/**
+ * @param {number} value
+ */
+function clampWidePreviewCalibrationScale(value) {
+  return Math.min(previewCalibrationMaxScale, Math.max(PREVIEW_CALIBRATION_MIN_SCALE, value));
+}
 
 /**
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(previewCalibrationMaxScale, Math.max(PREVIEW_CALIBRATION_MIN_SCALE, value));
+  return isWidePreviewViewport()
+    ? clampWidePreviewCalibrationScale(value)
+    : previewCalibrationMaxScale;
+}
+
+function loadWidePreviewCalibrationScale() {
+  try {
+    const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
+    if (!raw) return PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE;
+    return clampWidePreviewCalibrationScale(parsed);
+  } catch {
+    return PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE;
+  }
 }
 
 function syncPreviewCalibrationBounds() {
-  if (!previewStageEl || !previewCalibrationInputEl) return;
+  if (!previewStageEl) return;
 
   const sizing = resolveCardSizing(getSettings());
   previewCalibrationMaxScale = Math.max(
@@ -401,32 +434,32 @@ function syncPreviewCalibrationBounds() {
     ),
   );
 
-  previewCalibrationInputEl.max = String(Math.round(previewCalibrationMaxScale * 100));
+  if (previewCalibrationPanelEl) {
+    previewCalibrationPanelEl.hidden = !isWidePreviewViewport();
+  }
 
-  const storedScale = (() => {
-    try {
-      const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
-      if (!raw) return 1;
-      const parsed = Number(raw);
-      return Number.isFinite(parsed) ? parsed : 1;
-    } catch {
-      return 1;
+  if (isWidePreviewViewport()) {
+    if (previewCalibrationInputEl) {
+      previewCalibrationInputEl.min = String(Math.round(PREVIEW_CALIBRATION_MIN_SCALE * 100));
+      previewCalibrationInputEl.max = String(Math.round(previewCalibrationMaxScale * 100));
     }
-  })();
 
-  applyPreviewCalibrationScale(storedScale, { persist: storedScale !== clampPreviewCalibrationScale(storedScale) });
+    const storedScale = loadWidePreviewCalibrationScale();
+    applyPreviewCalibrationScale(storedScale, {
+      persist: storedScale !== clampWidePreviewCalibrationScale(storedScale),
+    });
+    return;
+  }
+
+  applyPreviewCalibrationScale(previewCalibrationMaxScale, { persist: false });
 }
 
 function loadPreviewCalibrationScale() {
-  try {
-    const raw = localStorage.getItem(PREVIEW_CALIBRATION_STORAGE_KEY);
-    if (!raw) return 1;
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) return 1;
-    return clampPreviewCalibrationScale(parsed);
-  } catch {
-    return 1;
+  if (!isWidePreviewViewport()) {
+    return previewCalibrationMaxScale;
   }
+
+  return loadWidePreviewCalibrationScale();
 }
 
 /**
@@ -443,7 +476,7 @@ function applyPreviewCalibrationScale(nextScale, options = {}) {
     previewCalibrationInputEl.value = String(percent);
   }
 
-  if (options.persist !== false) {
+  if (options.persist !== false && isWidePreviewViewport()) {
     try {
       localStorage.setItem(PREVIEW_CALIBRATION_STORAGE_KEY, String(scale));
     } catch {
@@ -1894,6 +1927,7 @@ export async function initUI() {
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
+  previewCalibrationPanelEl = document.querySelector(".preview-calibration-panel");
   editGatedRegionEl = document.getElementById("edit-gated-region");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchAnchorEl = document.querySelector(".game-search-anchor");
@@ -1998,6 +2032,13 @@ export async function initUI() {
       syncPreviewCalibrationBounds();
     });
   }
+
+  const previewLayoutMedia = globalThis.matchMedia(
+    `(min-width: ${PREVIEW_LAYOUT_BREAKPOINT_PX + 1}px)`,
+  );
+  previewLayoutMedia.addEventListener("change", () => {
+    syncPreviewCalibrationBounds();
+  });
 
   syncPreviewCalibrationBounds();
   syncPlatformControls();

@@ -103,9 +103,11 @@ export function getCardPreviewWidthPx(settings) {
   return mmToCssPx(resolveCardSizing(settings).cardWidthMm);
 }
 
-export const PREVIEW_CALIBRATION_MIN_SCALE = 0.7;
+export const PREVIEW_CALIBRATION_MIN_SCALE = 0.5;
+export const PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE = 0.5;
 /** Keep the scaled card slightly inside the mat on the limiting edge. */
 export const PREVIEW_CALIBRATION_MAX_INSET_RATIO = 0.98;
+export const PREVIEW_LAYOUT_BREAKPOINT_PX = 1100;
 
 /**
  * Max preview calibration scale so the card's smaller edge stays just inside

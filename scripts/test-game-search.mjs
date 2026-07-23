@@ -142,35 +142,36 @@ async function main() {
     }
     console.log("✓ Narrow viewport shows a sized preview card after game selection");
 
-    const calibrationAtMax = await page.evaluate(() => {
-      const input = document.getElementById("preview-calibration-input");
+    const narrowPreview = await page.evaluate(() => {
+      const panel = document.querySelector(".preview-calibration-panel");
       const stage = document.querySelector(".preview-stage");
       const card = document.getElementById("preview-card");
-      if (!(input instanceof HTMLInputElement) || !stage || !card) return null;
-      input.value = input.max;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+      if (!panel || !stage || !card) return null;
+      const panelStyle = getComputedStyle(panel);
       const stageRect = stage.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
       return {
-        max: Number(input.max),
+        panelDisplay: panelStyle.display,
         stageWidth: stageRect.width,
         stageHeight: stageRect.height,
         cardWidth: cardRect.width,
         cardHeight: cardRect.height,
       };
     });
-    if (!calibrationAtMax) {
-      throw new Error("Expected preview calibration controls on narrow viewport");
+    if (!narrowPreview) {
+      throw new Error("Expected preview card and mat on narrow viewport");
     }
-    if (
-      calibrationAtMax.cardWidth > calibrationAtMax.stageWidth + 1 ||
-      calibrationAtMax.cardHeight > calibrationAtMax.stageHeight + 1
-    ) {
+    if (narrowPreview.panelDisplay !== "none") {
+      throw new Error("Card scale slider should be hidden on narrow viewports");
+    }
+    const widthFill = narrowPreview.cardWidth / narrowPreview.stageWidth;
+    const heightFill = narrowPreview.cardHeight / narrowPreview.stageHeight;
+    if (Math.max(widthFill, heightFill) < 0.9) {
       throw new Error(
-        `Max card scale should stay inside the mat, got card=${calibrationAtMax.cardWidth}x${calibrationAtMax.cardHeight}px stage=${calibrationAtMax.stageWidth}x${calibrationAtMax.stageHeight}px`,
+        `Narrow viewport should zoom the card to fill the mat, got fill=${Math.max(widthFill, heightFill).toFixed(2)}`,
       );
     }
-    console.log("✓ Max card scale stays inside the preview mat on narrow viewports");
+    console.log("✓ Narrow viewport hides card scale slider and zooms card to fill the mat");
 
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.reload({ waitUntil: "networkidle", timeout: 15000 });

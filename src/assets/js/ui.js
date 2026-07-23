@@ -131,13 +131,15 @@ let previewFrameEl = null;
 /** @type {HTMLElement|null} */
 let previewSkeletonEl = null;
 /** @type {HTMLElement|null} */
-let previewMetaEl = null;
+let previewMetaGameEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
 let previewCalibrationValueEl = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
+/** @type {HTMLElement|null} */
+let gameSearchAnchorEl = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
@@ -175,7 +177,6 @@ let previewArtworkZoomValueEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
-let previewArtworkControlsTitleEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkRotateBtn = null;
 /** @type {HTMLElement|null} */
@@ -316,8 +317,8 @@ function syncEditColumnState() {
       previewImageEl.removeAttribute("src");
       previewImageEl.alt = "";
     }
-    if (previewMetaEl) {
-      previewMetaEl.textContent = "Select a game to start editing.";
+    if (previewMetaGameEl) {
+      previewMetaGameEl.textContent = "Select a game to start editing.";
     }
     renderPreviewTypeTabs();
     if (previewSkeletonEl && previewFrameEl) {
@@ -373,7 +374,7 @@ function logStatus(message, isError = false) {
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(1.3, Math.max(0.7, value));
+  return Math.min(2, Math.max(0.7, value));
 }
 
 function loadPreviewCalibrationScale() {
@@ -503,10 +504,6 @@ function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
   const interactive = isEditInteractive();
   const display = context?.display ?? getPreviewArtworkDisplayFallback();
-
-  if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Artwork";
-  }
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
@@ -650,8 +647,8 @@ function syncBrowseActionButton() {
 async function copyCardSettingsToEditor(card) {
   const requestId = ++browseRequestId;
   browseLoading = true;
-  if (previewMetaEl) {
-    previewMetaEl.textContent = `Loading ${card.gameName}…`;
+  if (previewMetaGameEl) {
+    previewMetaGameEl.textContent = `Loading ${card.gameName}…`;
   }
   syncEditColumnState();
   showPreviewSkeletonImmediate();
@@ -891,6 +888,7 @@ function createGameResultItem(game, index) {
   btn.addEventListener("click", () => {
     if (gameSearchInput) gameSearchInput.value = game.name;
     closeGameResults();
+    gameSearchInput?.blur();
     void browseGameFromSearch(game);
   });
   return btn;
@@ -935,7 +933,7 @@ function renderGameResults() {
   }
 
   const query = gameSearchInput?.value.trim() ?? "";
-  const shouldShow = gameSearchFocused || query.length > 0;
+  const shouldShow = gameSearchFocused;
   if (!shouldShow) {
     gameResultsEl.hidden = true;
     syncGameSearchHintVisibility();
@@ -1142,8 +1140,8 @@ function pickGameFromSearch() {
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
   browseLoading = true;
-  if (previewMetaEl) {
-    previewMetaEl.textContent = `Loading ${game.name}…`;
+  if (previewMetaGameEl) {
+    previewMetaGameEl.textContent = `Loading ${game.name}…`;
   }
   syncEditColumnState();
   showPreviewSkeletonImmediate();
@@ -1228,7 +1226,7 @@ function celebrateAddToCollection() {
   void addBrowsedGameBtn.offsetWidth;
   addBrowsedGameBtn.classList.add("preview-add-btn--celebrate");
 
-  const host = addBrowsedGameBtn.closest(".preview-main") ?? addBrowsedGameBtn.parentElement;
+  const host = addBrowsedGameBtn.closest(".preview-layout__workspace") ?? addBrowsedGameBtn.parentElement;
   if (!host) return;
 
   const burst = document.createElement("div");
@@ -1450,7 +1448,7 @@ async function refreshCollectionImageStatus() {
 }
 
 async function refreshPreview() {
-  if (!previewImageEl || !previewMetaEl) return;
+  if (!previewImageEl || !previewMetaGameEl) return;
 
   if (!browseState) {
     syncEditColumnState();
@@ -1464,7 +1462,6 @@ async function refreshPreview() {
   try {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
-    const platform = platformById[game.platformId];
     const cardForRender = {
       id: "browse",
       platformId: game.platformId,
@@ -1477,7 +1474,7 @@ async function refreshPreview() {
         ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
         : {}),
     };
-    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+    previewMetaGameEl.textContent = game.name;
 
     syncPreviewPlatformAccent();
 
@@ -1498,43 +1495,23 @@ async function refreshPreview() {
   }
 }
 
-function bindCollectionDrawer() {
-  const toggle = document.getElementById("collection-drawer-toggle");
-  const backdrop = document.getElementById("collection-drawer-backdrop");
-  const printPanel = document.getElementById("print-panel");
-  const storageKey = "nfc-card-designer-collection-drawer";
-
-  const setOpen = (open) => {
-    document.body.classList.toggle("collection-drawer-open", open);
-    document.body.style.overflow = open ? "hidden" : "";
-    toggle?.setAttribute("aria-expanded", open ? "true" : "false");
-    backdrop?.toggleAttribute("hidden", !open);
-    try {
-      localStorage.setItem(storageKey, open ? "1" : "0");
-    } catch {
-      // ignore storage failures
-    }
-  };
-
-  toggle?.addEventListener("click", () => {
-    setOpen(!document.body.classList.contains("collection-drawer-open"));
-  });
-
-  backdrop?.addEventListener("click", () => setOpen(false));
-
-  printPanel?.querySelector(".panel__title")?.addEventListener("click", () => {
-    setOpen(false);
-  });
-
-  globalThis.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && document.body.classList.contains("collection-drawer-open")) {
-      setOpen(false);
-    }
-  });
-}
-
 function bindEvents() {
-  bindCollectionDrawer();
+  document.addEventListener("pointerdown", (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+    const clickedSearchInput =
+      gameSearchInput === target || gameSearchInput?.contains(target);
+    const clickedGameResult = gameResultsEl?.contains(target);
+    if (clickedSearchInput || clickedGameResult) return;
+    globalThis.requestAnimationFrame(() => {
+      closeGameResults();
+      if (document.activeElement === gameSearchInput) {
+        gameSearchFocused = false;
+        gameSearchInput?.blur();
+      }
+    });
+  });
+
   bindGameResultsScroll();
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
@@ -1559,7 +1536,7 @@ function bindEvents() {
     const query = gameSearchInput?.value.trim() ?? "";
     const dropdownOpen =
       Boolean(getActivePlatformId()) &&
-      (gameSearchFocused || query.length > 0) &&
+      gameSearchFocused &&
       filteredGames.length > 0;
 
     if (dropdownOpen && e.key === "ArrowDown") {
@@ -1579,6 +1556,7 @@ function bindEvents() {
       const game = pickGameFromSearch();
       if (game) {
         closeGameResults();
+        gameSearchInput?.blur();
         void browseGameFromSearch(game);
       }
     }
@@ -1838,12 +1816,13 @@ export async function initUI() {
   }
   previewFrameEl = document.getElementById("preview-frame");
   previewSkeletonEl = document.getElementById("preview-skeleton");
-  previewMetaEl = document.getElementById("preview-meta");
+  previewMetaGameEl = document.getElementById("preview-meta-game");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
+  gameSearchAnchorEl = document.querySelector(".game-search-anchor");
   gameSearchHintEl = document.getElementById("game-search-hint");
   globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
     document.getElementById("global-show-header")
@@ -1886,7 +1865,6 @@ export async function initUI() {
   previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-reset")
   );
-  previewArtworkControlsTitleEl = document.getElementById("preview-artwork-controls-title");
   previewArtworkRotateBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-rotate")
   );

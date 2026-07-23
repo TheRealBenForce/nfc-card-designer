@@ -105,7 +105,7 @@ async function main() {
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: /Ecco the Dolphin/ }).click();
+    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
     await page.waitForTimeout(500);
 
     const addBtn = page.locator("#add-browsed-game");
@@ -159,7 +159,7 @@ async function main() {
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: /Ecco the Dolphin/ }).click();
+    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
     await page.waitForTimeout(300);
 
     await addBtn.click();

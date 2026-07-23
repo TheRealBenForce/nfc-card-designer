@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Recognition — NFC Card Designer</title>
+    <title>Recognition · NFC Card Maker</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon-gamepad.svg" />
     <link rel="alternate icon" href="assets/images/favicon-gamepad.svg" />
     <link rel="shortcut icon" href="assets/images/favicon-gamepad.svg" />
@@ -68,49 +68,65 @@
     </header>
 
     <main class="static-page site-container">
-      <h1>Recognition</h1>
-      <p class="static-page__lead">
-        This app bundles artwork and icons from the projects below. We are grateful to their authors and
-        maintainers.
-      </p>
-
-      <section>
-        <h2>Platform logos</h2>
-        <p>
-          Default platform logos on NFC card labels are adapted from the <strong>Carbon</strong>
-          EmulationStation theme by RetroPie.
+      <header class="static-hero">
+        <p class="static-hero__eyebrow">Credits</p>
+        <h1>Recognition</h1>
+        <p class="static-page__lead">
+          This app bundles artwork and icons from the projects below. We are grateful to their authors and
+          maintainers.
         </p>
-        <ul>
-          <li>
-            <a href="https://github.com/RetroPie/es-theme-carbon" rel="noopener noreferrer"
-              >RetroPie/es-theme-carbon</a
+      </header>
+
+      <div class="static-grid static-grid--recognition">
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">🎮</span>
+            <h2 class="static-card__title">Platform logos</h2>
+          </div>
+          <p>
+            Default platform logos on NFC card labels are adapted from the <strong>Carbon</strong>
+            EmulationStation theme by RetroPie.
+          </p>
+          <ul>
+            <li>
+              <a href="https://github.com/RetroPie/es-theme-carbon" rel="noopener noreferrer"
+                >RetroPie/es-theme-carbon</a
+              >
+              — system artwork (<code>*/art/system.svg</code>) for each supported console
+            </li>
+          </ul>
+        </section>
+
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">🖼️</span>
+            <h2 class="static-card__title">Game artwork</h2>
+          </div>
+          <p>
+            Box art, title screens, and in-game snapshots are sourced from the
+            <a href="https://github.com/libretro-thumbnails/libretro-thumbnails" rel="noopener noreferrer"
+              >libretro-thumbnails</a
             >
-            — system artwork (<code>*/art/system.svg</code>) for each supported console
-          </li>
-        </ul>
-      </section>
+            project on GitHub and loaded at runtime via
+            <code>raw.githubusercontent.com</code>.
+          </p>
+        </section>
 
-      <section>
-        <h2>Game artwork</h2>
-        <p>
-          Box art, title screens, and in-game snapshots are sourced from the
-          <a href="https://github.com/libretro-thumbnails/libretro-thumbnails" rel="noopener noreferrer"
-            >libretro-thumbnails</a
-          >
-          project on GitHub and loaded at runtime via
-          <code>raw.githubusercontent.com</code>.
-        </p>
-      </section>
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">🔤</span>
+            <h2 class="static-card__title">Fonts &amp; UI</h2>
+          </div>
+          <p>
+            The Carbon theme also ships Cabin Bold and other UI assets we do not currently bundle; only the
+            platform system SVGs listed above are used here.
+          </p>
+        </section>
+      </div>
 
-      <section>
-        <h2>Fonts &amp; UI</h2>
-        <p>
-          The Carbon theme also ships Cabin Bold and other UI assets we do not currently bundle; only the
-          platform system SVGs listed above are used here.
-        </p>
-      </section>
-
-      <a class="static-page__back header__link" href="./">← Back to NFC Card Designer</a>
+      <footer class="static-footer">
+        <a class="static-page__back header__link" href="./">← Back to NFC Card Maker</a>
+      </footer>
     </main>
   </body>
 </html>

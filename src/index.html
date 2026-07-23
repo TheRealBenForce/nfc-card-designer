@@ -19,10 +19,7 @@
     <header class="header">
       <nav class="header__nav" aria-label="Site">
         <h1 class="header__title">
-          <a class="header__brand wordmark" href="./">
-            <span class="wordmark__prefix">NFC</span>
-            <span class="wordmark__accent">Card Designer</span>
-          </a>
+          <a class="header__brand wordmark" href="./">NFC Card Maker</a>
         </h1>
         <div class="header__links">
           <a class="header__link" href="supplies.html">Supplies</a>
@@ -267,13 +264,15 @@
       <aside class="panel panel--print">
         <h2 class="panel__title">Print</h2>
         <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
-        <div class="collection-actions">
-          <button id="select-all" type="button" class="btn btn--secondary" disabled>Select All</button>
-          <button id="deselect-all" type="button" class="btn btn--secondary" disabled>Deselect All</button>
-        </div>
-        <div class="collection-actions">
-          <button id="print-selected" type="button" class="btn btn--primary" disabled>Print PDF</button>
-          <button id="delete-selected" type="button" class="btn btn--danger" disabled>Delete Selected</button>
+        <div class="print-toolbar">
+          <div class="collection-actions">
+            <button id="select-all" type="button" class="btn btn--secondary" disabled>Select All</button>
+            <button id="deselect-all" type="button" class="btn btn--secondary" disabled>Deselect All</button>
+          </div>
+          <div class="collection-actions collection-actions--primary">
+            <button id="print-selected" type="button" class="btn btn--primary" disabled>Print PDF</button>
+            <button id="delete-selected" type="button" class="btn btn--danger" disabled>Delete Selected</button>
+          </div>
         </div>
         <div id="collection-list" class="collection-list"></div>
       </aside>

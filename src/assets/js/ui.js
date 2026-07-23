@@ -1115,7 +1115,10 @@ function updateCollectionActions() {
         ? "1 card selected"
         : `${selectedCount} cards selected`;
 
-  if (collectionSelectionMetaEl) collectionSelectionMetaEl.textContent = label;
+  if (collectionSelectionMetaEl) {
+    collectionSelectionMetaEl.textContent = label;
+    collectionSelectionMetaEl.classList.toggle("collection-meta--active", selectedCount > 0);
+  }
   if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedCount === 0;
   if (printSelectedBtn) printSelectedBtn.disabled = selectedCount === 0;
   if (selectAllBtn) selectAllBtn.disabled = totalCards === 0 || selectedCount === totalCards;
@@ -1131,7 +1134,7 @@ function renderCollection() {
   if (collection.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
-    empty.textContent = "Search for a game and press Enter to add cards.";
+    empty.textContent = "Add a game from Select to build your print sheet.";
     collectionListEl.appendChild(empty);
     updateCollectionActions();
     return;
@@ -1143,13 +1146,28 @@ function renderCollection() {
     const platformDetails = document.createElement("details");
     platformDetails.className = "collection-platform";
     platformDetails.open = true;
+    platformDetails.style.setProperty("--platform-color", platform.defaultColor);
 
     const platformSummary = document.createElement("summary");
     platformSummary.className = "collection-platform__summary";
 
+    const platformLead = document.createElement("span");
+    platformLead.className = "collection-platform__lead";
+
+    const platformEmoji = document.createElement("span");
+    platformEmoji.className = "collection-platform__emoji";
+    platformEmoji.textContent = platform.emoji;
+    platformEmoji.setAttribute("aria-hidden", "true");
+
     const platformName = document.createElement("span");
     platformName.className = "collection-platform__name";
     platformName.textContent = platform.name;
+
+    platformLead.append(platformEmoji, platformName);
+
+    const platformCount = document.createElement("span");
+    platformCount.className = "collection-platform__count";
+    platformCount.textContent = String(cards.length);
 
     const platformChevron = document.createElement("span");
     platformChevron.className = "collection-platform__chevron";
@@ -1157,8 +1175,7 @@ function renderCollection() {
     platformChevron.innerHTML =
       '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-    platformSummary.appendChild(platformName);
-    platformSummary.appendChild(platformChevron);
+    platformSummary.append(platformLead, platformCount, platformChevron);
     platformDetails.appendChild(platformSummary);
 
     const cardsEl = document.createElement("div");

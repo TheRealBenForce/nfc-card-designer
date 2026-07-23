@@ -2385,15 +2385,15 @@ body {
   margin-top: 0.65rem;
 }
 
-.preview-artwork-controls .artwork-background-field {
-  margin-top: 0.65rem;
+.artwork-zoom-section,
+.artwork-background-section {
+  margin-top: 0.75rem;
 }
 
 .artwork-actions-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.65rem;
 }
 
 .artwork-zoom-field--inline {
@@ -2417,9 +2417,10 @@ body {
 .alignment-rotate-btn--inline {
   flex: 0 0 auto;
   align-self: center;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
   padding: 0.35rem;
+  box-sizing: border-box;
 }
 
 .alignment-rotate-btn {

@@ -217,45 +217,48 @@
                 role="radiogroup"
                 aria-label="Card artwork alignment override"
               ></div>
-              <div class="artwork-actions-row">
-                <label for="preview-artwork-zoom" class="artwork-zoom-field artwork-zoom-field--inline">
-                  <input
-                    id="preview-artwork-zoom"
-                    class="artwork-zoom-field__range"
-                    type="range"
-                    min="50"
-                    max="200"
-                    step="1"
-                    value="100"
-                    aria-label="Artwork zoom"
-                  />
-                  <span id="preview-artwork-zoom-value" class="artwork-zoom-field__value" hidden>100%</span>
-                </label>
-                <button
-                  id="preview-artwork-rotate"
-                  type="button"
-                  class="alignment-rotate-btn alignment-rotate-btn--inline"
-                  title="Rotate artwork 90°"
-                  aria-label="Rotate artwork 90 degrees"
-                >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+              <div class="artwork-zoom-section">
+                <h3 class="edit-control-group__title">Artwork zoom</h3>
+                <div class="artwork-actions-row">
+                  <label for="preview-artwork-zoom" class="artwork-zoom-field artwork-zoom-field--inline">
+                    <input
+                      id="preview-artwork-zoom"
+                      class="artwork-zoom-field__range"
+                      type="range"
+                      min="50"
+                      max="200"
+                      step="1"
+                      value="100"
+                      aria-label="Artwork zoom"
+                    />
+                    <span id="preview-artwork-zoom-value" class="artwork-zoom-field__value" hidden>100%</span>
+                  </label>
+                  <button
+                    id="preview-artwork-rotate"
+                    type="button"
+                    class="alignment-rotate-btn alignment-rotate-btn--inline"
+                    title="Rotate artwork 90°"
+                    aria-label="Rotate artwork 90 degrees"
                   >
-                    <path d="M21 12a9 9 0 1 1-3-6.7" />
-                    <polyline points="21 3 21 9 15 9" />
-                  </svg>
-                </button>
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M21 12a9 9 0 1 1-3-6.7" />
+                      <polyline points="21 3 21 9 15 9" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <div class="field artwork-background-field">
-                <span class="field__label">Artwork background</span>
+              <div class="artwork-background-section">
+                <h3 class="edit-control-group__title">Artwork background</h3>
                 <div class="artwork-background-row">
                   <select id="preview-artwork-background-mode" class="input artwork-background-row__mode"></select>
                   <input

@@ -1,7 +1,7 @@
 # NFC Card Designer — Design Document
 
 **Status:** Living document (current product state)  
-**Last updated:** 2026-07-22  
+**Last updated:** 2026-07-23  
 **Audience:** Product owner + AI assistant collaboration
 
 This document describes **what the app is today**. Planned work lives in **[GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)**.
@@ -234,18 +234,52 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 
 **Purpose:** Manage the saved card list and export a print-ready PDF.
 
-There is **no separate “Collection” heading** — the **Print** section title is the only panel header. The collection is the list of saved games/cards in this column.
+There is **no separate “Collection” heading** — the **Print** section title is the only panel header. The collection is organized by platform; individual cards are browsed in an overlay carousel, not inline in the column.
 
 | Block | Contents |
 |-------|----------|
-| **Selection meta** | “No cards selected” / “N cards selected” |
+| **Selection meta** | “No cards selected” / “N cards selected” — **global total only** (not per platform) |
 | **Selection actions** | Select All / Deselect All |
 | **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
-| **Card list** | Grouped by platform (`<details>` per platform, open by default). Each row: **copy-in** button, select toggle, label `Game Name - Artwork Type`, optional “placeholder” badge if image failed. No edit (✎) control. |
+| **Platform list** | Flat, scrollable list of platforms that have at least one saved card. Each row: platform icon, name, **collection size** badge (total cards on that platform). Rows are buttons — not collapsible. No inline card rows. |
 
-**Empty state:** “Search for a game and press Enter to add cards.”
+**Empty state:** “Add a game from Select to build your print sheet.”
 
 **Print PDF:** Exports US Letter sheet, 3×3 cards per page, cut marks (see [Card layout](#card-layout-print)).
+
+##### Platform card browser (overlay)
+
+Selecting a platform row opens a **card browser** over the designer. The Print toolbar and global selection meta stay visible in the column behind the backdrop (dimmed/blurred with the rest of the page).
+
+```
+  Narrow (≤1100px)                    Wide (≥1101px)
+  ────────────────                    ──────────────
+
+  ┌─────────────────────┐             ┌──────────┬────────────┐
+  │ ░░░ blurred page ░░░│             │░░ blur ░░│  SIDEBAR   │
+  │ ░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░│  carousel  │
+  ├─────────────────────┤             │░░░░░░░░░░│  + actions │
+  │      BOTTOM DOCK    │             │░░░░░░░░░░│            │
+  │  ←  [ card ]  →     │             └──────────┴────────────┘
+  │  select · copy-in   │
+  └─────────────────────┘
+```
+
+| Concern | Behavior |
+|---------|----------|
+| **Layout** | **Sidebar** — fixed to the right edge, ~min(22rem, 90vw) wide, full viewport height. **Dock** — fixed to the bottom, ~min(22rem, 55dvh) tall, full width. |
+| **Backdrop** | Full-viewport layer: semi-transparent dim + `backdrop-filter: blur(...)`. Covers Select, Edit, and Print. |
+| **Open** | Click/tap a platform row in the Print list. Only one browser open at a time; opening another platform switches content. |
+| **Dismiss** | Click/tap backdrop, **Escape**, or explicit **Close** control in the browser chrome. Returns focus to the platform row that opened the browser. |
+| **Focus** | Focus trap inside the browser while open; `aria-modal="true"`. |
+| **Header** | Platform icon + name; subtitle `M of N` (position in that platform’s carousel). Close button. |
+| **Carousel** | One card in focus at a time. **Previous** / **Next** controls; horizontal swipe on touch where supported. Wraps from last → first and first → last. Keyboard: Left/Right arrows move carousel; Space toggles selection on the focused card. |
+| **Card chrome** | Larger card preview (thumbnail or mini card frame), game name, artwork type label, optional “placeholder” badge if image failed. |
+| **Per-card actions** | **Select** toggle (`aria-pressed`) — same selection state as today. **Copy-in** — loads settings into Edit for a new add (unchanged semantics). No edit-in-place (✎). |
+| **Live updates** | Toggling selection updates the global selection meta immediately (visible after dismiss). Adding/removing cards while the browser is open refreshes the carousel; if the platform becomes empty, dismiss automatically. |
+| **Platform row badge** | Shows **total cards saved** on that platform (`12`), not how many are selected. Selection is communicated only via the global meta at the top of Print. |
+
+**Responsive note:** Uses the same **1100px** breakpoint as the designer grid (three columns vs stacked rows). Sidebar vs dock follows viewport width, not which column Print happens to sit in when stacked.
 
 ---
 
@@ -416,7 +450,7 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Artwork from libretro-thumbnails GitHub raw URLs (CORS-safe for canvas/PDF)
 - [x] Generated `game-catalog.json` for search (build-time; not in git)
 - [x] Retail / regional catalog filters with friendly display names (canonical `libretroName` kept for artwork)
-- [x] Collection grouped by platform; multi-select; PDF export
+- [x] Collection grouped by platform in Print; cards browsed via platform overlay carousel; multi-select; PDF export
 - [x] JSON export/import; localStorage persistence
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
@@ -446,3 +480,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
+| 2026-07-23 | Print collection UX: platform list + sidebar/dock carousel browser (#88) — design approved, pending implementation |

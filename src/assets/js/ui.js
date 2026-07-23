@@ -126,7 +126,7 @@ let previewFrameEl = null;
 /** @type {HTMLElement|null} */
 let previewSkeletonEl = null;
 /** @type {HTMLElement|null} */
-let previewMetaEl = null;
+let previewMetaGameEl = null;
 /** @type {HTMLInputElement|null} */
 let previewCalibrationInputEl = null;
 /** @type {HTMLElement|null} */
@@ -309,8 +309,8 @@ function syncEditColumnState() {
       previewImageEl.removeAttribute("src");
       previewImageEl.alt = "";
     }
-    if (previewMetaEl) {
-      previewMetaEl.textContent = "Select a game to start editing.";
+    if (previewMetaGameEl) {
+      previewMetaGameEl.textContent = "Select a game to start editing.";
     }
     renderPreviewTypeTabs();
     if (previewSkeletonEl && previewFrameEl) {
@@ -362,7 +362,7 @@ function logStatus(message, isError = false) {
  * @param {number} value
  */
 function clampPreviewCalibrationScale(value) {
-  return Math.min(1.3, Math.max(0.7, value));
+  return Math.min(2, Math.max(0.7, value));
 }
 
 function loadPreviewCalibrationScale() {
@@ -494,7 +494,7 @@ function syncPreviewArtworkControls() {
   const display = context?.display ?? getPreviewArtworkDisplayFallback();
 
   if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Artwork";
+    previewArtworkControlsTitleEl.textContent = "Alignment";
   }
 
   if (previewArtworkResetBtn) {
@@ -639,8 +639,8 @@ function syncBrowseActionButton() {
 async function copyCardSettingsToEditor(card) {
   const requestId = ++browseRequestId;
   browseLoading = true;
-  if (previewMetaEl) {
-    previewMetaEl.textContent = `Loading ${card.gameName}…`;
+  if (previewMetaGameEl) {
+    previewMetaGameEl.textContent = `Loading ${card.gameName}…`;
   }
   syncEditColumnState();
   showPreviewSkeletonImmediate();
@@ -1099,8 +1099,8 @@ function pickGameFromSearch() {
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
   browseLoading = true;
-  if (previewMetaEl) {
-    previewMetaEl.textContent = `Loading ${game.name}…`;
+  if (previewMetaGameEl) {
+    previewMetaGameEl.textContent = `Loading ${game.name}…`;
   }
   syncEditColumnState();
   showPreviewSkeletonImmediate();
@@ -1407,7 +1407,7 @@ async function refreshCollectionImageStatus() {
 }
 
 async function refreshPreview() {
-  if (!previewImageEl || !previewMetaEl) return;
+  if (!previewImageEl || !previewMetaGameEl) return;
 
   if (!browseState) {
     syncEditColumnState();
@@ -1421,7 +1421,6 @@ async function refreshPreview() {
   try {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
-    const platform = platformById[game.platformId];
     const cardForRender = {
       id: "browse",
       platformId: game.platformId,
@@ -1434,7 +1433,7 @@ async function refreshPreview() {
         ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
         : {}),
     };
-    previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
+    previewMetaGameEl.textContent = game.name;
 
     syncPreviewPlatformAccent();
 
@@ -1455,43 +1454,7 @@ async function refreshPreview() {
   }
 }
 
-function bindCollectionDrawer() {
-  const toggle = document.getElementById("collection-drawer-toggle");
-  const backdrop = document.getElementById("collection-drawer-backdrop");
-  const printPanel = document.getElementById("print-panel");
-  const storageKey = "nfc-card-designer-collection-drawer";
-
-  const setOpen = (open) => {
-    document.body.classList.toggle("collection-drawer-open", open);
-    document.body.style.overflow = open ? "hidden" : "";
-    toggle?.setAttribute("aria-expanded", open ? "true" : "false");
-    backdrop?.toggleAttribute("hidden", !open);
-    try {
-      localStorage.setItem(storageKey, open ? "1" : "0");
-    } catch {
-      // ignore storage failures
-    }
-  };
-
-  toggle?.addEventListener("click", () => {
-    setOpen(!document.body.classList.contains("collection-drawer-open"));
-  });
-
-  backdrop?.addEventListener("click", () => setOpen(false));
-
-  printPanel?.querySelector(".panel__title")?.addEventListener("click", () => {
-    setOpen(false);
-  });
-
-  globalThis.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && document.body.classList.contains("collection-drawer-open")) {
-      setOpen(false);
-    }
-  });
-}
-
 function bindEvents() {
-  bindCollectionDrawer();
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
     filterGames(gameSearchInput?.value ?? "");
@@ -1783,7 +1746,7 @@ export async function initUI() {
   }
   previewFrameEl = document.getElementById("preview-frame");
   previewSkeletonEl = document.getElementById("preview-skeleton");
-  previewMetaEl = document.getElementById("preview-meta");
+  previewMetaGameEl = document.getElementById("preview-meta-game");
   previewCalibrationInputEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-calibration-input")
   );

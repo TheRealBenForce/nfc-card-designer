@@ -279,7 +279,9 @@ There is **no separate “Collection” heading** — the **Print** section titl
 1. **Lead** — Acknowledgment of bundled third-party assets.
 2. **Platform logos** — Carbon EmulationStation theme (RetroPie), system SVG paths.
 3. **Game artwork** — [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) on GitHub, loaded at runtime via `raw.githubusercontent.com` (same on every host — GitHub Pages, local dev, or custom domain).
-4. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
+4. **3D-printed sticker applicator** — Credits [EntirelyTom](https://www.printables.com/@EntirelyTom) (TapTo Sticker Applicator on Printables); cross-link to Supplies.
+5. **Inspiration** — Project influenced by [Wizzo](https://zaparoo.org) / TapTo (Zaparoo) and the MiSTeR FPGA community.
+6. **Fonts & UI** — Note that only platform SVGs are used from Carbon.
 
 **Footer:** Back link to designer.
 

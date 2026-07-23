@@ -1236,12 +1236,6 @@ body {
   width: 100%;
 }
 
-.alignment-row .alignment-grid {
-  flex: 1 1 auto;
-  max-width: none;
-  width: 100%;
-}
-
 .preview-artwork-controls .alignment-grid__btn {
   transition:
     border-color var(--motion-fast) var(--ease-out),
@@ -2237,11 +2231,6 @@ body {
   align-self: center;
 }
 
-#preview-type-tabs {
-  grid-column: 2;
-  grid-row: 1;
-}
-
 .preview-artwork-controls .edit-control-group,
 .preview-layout__workspace .edit-control-group {
   grid-column: 2;
@@ -2382,15 +2371,14 @@ body {
 }
 
 .preview-artwork-controls .preview-type-tabs,
-#preview-type-tabs {
+.edit-control-group .preview-type-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: flex-end;
-  margin: 0;
+  margin: 0 0 0.75rem;
   width: 100%;
   min-height: 2rem;
-  align-self: center;
 }
 
 .preview-artwork-controls .edit-control-group .field {
@@ -2709,7 +2697,7 @@ body {
 
   .preview-layout__workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
   }
 
   .preview-meta-game {
@@ -2717,21 +2705,15 @@ body {
     grid-row: 1;
   }
 
-  #preview-type-tabs {
-    grid-column: 1;
-    grid-row: 2;
-    justify-content: flex-start;
-  }
-
   .preview-frame {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
     max-height: min(var(--preview-middle-height), 70vh);
   }
 
   .edit-control-group {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 3;
     height: auto;
     min-height: var(--preview-mat-min-height);
     max-height: min(var(--preview-middle-height), 70vh);
@@ -2739,12 +2721,12 @@ body {
 
   .preview-calibration-panel {
     grid-column: 1;
-    grid-row: 5;
+    grid-row: 4;
   }
 
   .preview-add-btn {
     grid-column: 1;
-    grid-row: 6;
+    grid-row: 5;
   }
 
   .preview-mat {

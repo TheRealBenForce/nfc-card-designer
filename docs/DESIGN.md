@@ -241,7 +241,7 @@ There is **no separate “Collection” heading** — the **Print** section titl
 | **Selection meta** | “No cards selected” / “N cards selected” — **global total only** (not per platform) |
 | **Selection actions** | Select All / Deselect All |
 | **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
-| **Platform list** | Flat, scrollable list of platforms that have at least one saved card. Each row: platform icon, name, **collection size** badge (total cards on that platform). Rows are buttons — not collapsible. No inline card rows. |
+| **Platform list** | Flat, scrollable list of platforms that have at least one saved card. Each row: platform icon, name, **selection badge** — `4 of 12 selected` when any cards on that platform are selected, otherwise `12` (total only). Rows are buttons — not collapsible. No inline card rows. |
 
 **Empty state:** “Add a game from Select to build your print sheet.”
 
@@ -257,11 +257,11 @@ Selecting a platform row opens a **card browser** over the designer. The Print t
 
   ┌─────────────────────┐             ┌──────────┬────────────┐
   │ ░░░ blurred page ░░░│             │░░ blur ░░│  SIDEBAR   │
-  │ ░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░│  carousel  │
-  ├─────────────────────┤             │░░░░░░░░░░│  + actions │
-  │      BOTTOM DOCK    │             │░░░░░░░░░░│            │
-  │  ←  [ card ]  →     │             └──────────┴────────────┘
-  │  select · copy-in   │
+  │ ░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░│  ↑ card ↓  │
+  ├─────────────────────┤             │░░░░░░░░░░│  scroll    │
+  │  ← [card][card] →   │             │░░░░░░░░░░│  snap      │
+  │   BOTTOM DOCK       │             └──────────┴────────────┘
+  │  horizontal snap    │
   └─────────────────────┘
 ```
 
@@ -273,11 +273,13 @@ Selecting a platform row opens a **card browser** over the designer. The Print t
 | **Dismiss** | Click/tap backdrop, **Escape**, or explicit **Close** control in the browser chrome. Returns focus to the platform row that opened the browser. |
 | **Focus** | Focus trap inside the browser while open; `aria-modal="true"`. |
 | **Header** | Platform icon + name; subtitle `M of N` (position in that platform’s carousel). Close button. |
-| **Carousel** | One card in focus at a time. **Previous** / **Next** controls; horizontal swipe on touch where supported. Wraps from last → first and first → last. Keyboard: Left/Right arrows move carousel; Space toggles selection on the focused card. |
+| **Carousel** | **Scroll-snap strip with peeking neighbors** — the focused card is centered (or primary); adjacent cards peek at the edges. **Sidebar (wide):** vertical scroll (up/down); wheel, touch drag, and prev/next step the snap points. **Dock (narrow):** horizontal scroll (left/right); swipe, drag, and prev/next step the snap points. Keyboard: **Up/Down** in sidebar, **Left/Right** in dock; **Space** toggles selection on the snapped card. |
 | **Card chrome** | Larger card preview (thumbnail or mini card frame), game name, artwork type label, optional “placeholder” badge if image failed. |
 | **Per-card actions** | **Select** toggle (`aria-pressed`) — same selection state as today. **Copy-in** — loads settings into Edit for a new add (unchanged semantics). No edit-in-place (✎). |
-| **Live updates** | Toggling selection updates the global selection meta immediately (visible after dismiss). Adding/removing cards while the browser is open refreshes the carousel; if the platform becomes empty, dismiss automatically. |
-| **Platform row badge** | Shows **total cards saved** on that platform (`12`), not how many are selected. Selection is communicated only via the global meta at the top of Print. |
+| **Live updates** | Toggling selection updates the global selection meta and the platform row badge immediately (visible after dismiss for the meta; badge updates in the list). Adding/removing cards while the browser is open refreshes the carousel; if the platform becomes empty, dismiss automatically. |
+| **Platform row badge** | When **zero** cards on that platform are selected: show total only (`12`). When **one or more** are selected: `4 of 12 selected`. Badge styling may emphasize the selected state (e.g. accent tint) when the ratio is non-zero. |
+
+**Ship as full replacement** — removes the current collapsible per-platform `<details>` card lists; no feature flag.
 
 **Responsive note:** Uses the same **1100px** breakpoint as the designer grid (three columns vs stacked rows). Sidebar vs dock follows viewport width, not which column Print happens to sit in when stacked.
 
@@ -480,4 +482,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
-| 2026-07-23 | Print collection UX: platform list + sidebar/dock carousel browser (#88) — design approved, pending implementation |
+| 2026-07-23 | Print collection UX: platform list + sidebar/dock scroll-snap browser (#88) — design approved, pending implementation |

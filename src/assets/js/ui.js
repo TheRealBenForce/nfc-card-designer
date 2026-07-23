@@ -77,6 +77,7 @@ import {
   initPlatformSettingsModal,
   openPlatformSettingsModal,
 } from "./platformSettingsModal.js";
+import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
 import {
   normalizePlatformIconTheme,
@@ -1838,14 +1839,15 @@ function bindEvents() {
     }
   });
 
-  document.getElementById("clear-project")?.addEventListener("click", () => {
-    if (
-      !confirm(
+  document.getElementById("clear-project")?.addEventListener("click", async () => {
+    const confirmed = await showConfirmModal({
+      title: "Clear project?",
+      message:
         "Clear your collection and reset all settings to defaults? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
+      confirmLabel: "Clear project",
+      cancelLabel: "Keep project",
+    });
+    if (!confirmed) return;
 
     const defaults = defaultSettings();
     updateSettings(defaults);
@@ -1860,14 +1862,20 @@ function bindEvents() {
     logStatus("Project cleared.");
   });
 
-  deleteSelectedBtn?.addEventListener("click", () => {
+  deleteSelectedBtn?.addEventListener("click", async () => {
     const selected = getSelectedCards();
     if (selected.length === 0) {
       logStatus("Select at least one card to delete.", true);
       return;
     }
     const noun = selected.length === 1 ? "1 card" : `${selected.length} cards`;
-    if (!confirm(`Delete ${noun} from your collection?`)) return;
+    const confirmed = await showConfirmModal({
+      title: "Delete cards?",
+      message: `Delete ${noun} from your collection? This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+    });
+    if (!confirmed) return;
     deleteCardsFromCollection(selected.map((card) => card.id));
     logStatus(`Deleted ${noun}.`);
   });
@@ -1977,6 +1985,7 @@ export async function initUI() {
     document.getElementById("preview-artwork-rotate")
   );
 
+  initConfirmModal();
   initPlatformSettingsModal({
     onChange: () => {
       void applyPlatformPriorityToBrowse();

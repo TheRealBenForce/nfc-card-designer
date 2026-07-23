@@ -61,8 +61,9 @@ async function main() {
       throw new Error("Delete Selected should enable after selecting a card");
     }
 
-    page.once("dialog", (dialog) => dialog.accept());
     await page.locator("#delete-selected").click();
+    await page.waitForSelector("#confirm-modal[open]");
+    await page.locator("#confirm-modal-confirm").click();
     await page.waitForTimeout(300);
     if ((await page.locator(".collection-card").count()) !== 0) {
       throw new Error("Delete Selected should remove the selected card");

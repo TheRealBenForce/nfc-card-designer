@@ -239,8 +239,9 @@ async function main() {
     }
     console.log("✓ Search hint updates after filtering");
 
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await page.waitForSelector("#confirm-modal[open]");
+    await page.locator("#confirm-modal-confirm").click();
     await page.waitForFunction(() => {
       const panel = document.getElementById("edit-panel");
       return panel?.getAttribute("aria-disabled") === "true";

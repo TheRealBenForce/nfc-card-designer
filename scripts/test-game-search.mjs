@@ -153,16 +153,21 @@ async function main() {
       const cardRect = card.getBoundingClientRect();
       return {
         max: Number(input.max),
-        matSmallest: Math.min(stageRect.width, stageRect.height),
-        cardSmallest: Math.min(cardRect.width, cardRect.height),
+        stageWidth: stageRect.width,
+        stageHeight: stageRect.height,
+        cardWidth: cardRect.width,
+        cardHeight: cardRect.height,
       };
     });
     if (!calibrationAtMax) {
       throw new Error("Expected preview calibration controls on narrow viewport");
     }
-    if (calibrationAtMax.cardSmallest > calibrationAtMax.matSmallest + 1) {
+    if (
+      calibrationAtMax.cardWidth > calibrationAtMax.stageWidth + 1 ||
+      calibrationAtMax.cardHeight > calibrationAtMax.stageHeight + 1
+    ) {
       throw new Error(
-        `Max card scale should stay inside the mat, got card=${calibrationAtMax.cardSmallest}px mat=${calibrationAtMax.matSmallest}px`,
+        `Max card scale should stay inside the mat, got card=${calibrationAtMax.cardWidth}x${calibrationAtMax.cardHeight}px stage=${calibrationAtMax.stageWidth}x${calibrationAtMax.stageHeight}px`,
       );
     }
     console.log("✓ Max card scale stays inside the preview mat on narrow viewports");

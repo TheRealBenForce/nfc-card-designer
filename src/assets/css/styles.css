@@ -1278,7 +1278,7 @@ body {
 
 .preview-artwork-controls .alignment-grid {
   margin-top: 0.15rem;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   max-width: none;
   width: 100%;
 }
@@ -2219,7 +2219,8 @@ body {
       calc(100cqh * var(--card-width-mm) / var(--card-height-mm))
     ) * var(--preview-calibration-scale, 1)
   );
-  max-height: calc(100cqh * var(--preview-calibration-scale, 1));
+  max-width: 100cqw;
+  max-height: 100cqh;
   height: auto;
   border-radius: 5px;
   background: var(--card-stock);
@@ -2356,12 +2357,13 @@ body {
 .preview-layout__workspace .edit-control-group {
   grid-column: 2;
   grid-row: 2;
-  height: var(--preview-middle-height);
-  min-height: var(--preview-mat-min-height);
-  max-height: var(--preview-middle-height);
+  align-self: start;
+  height: auto;
+  min-height: 0;
+  max-height: none;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: visible;
 }
 
 .preview-artwork-controls .preview-add-btn,

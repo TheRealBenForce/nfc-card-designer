@@ -131,10 +131,11 @@ export function computePreviewCalibrationMaxScale(
   const aspect = cardWidthMm / cardHeightMm;
   const fitWidth = Math.min(stageWidth, stageHeight * aspect);
   const fitHeight = fitWidth / aspect;
-  const cardSmallestAtFit = Math.min(fitWidth, fitHeight);
-  const matSmallest = Math.min(stageWidth, stageHeight);
 
-  if (!(cardSmallestAtFit > 0)) return 1;
+  if (!(fitWidth > 0 && fitHeight > 0)) return 1;
 
-  return (matSmallest / cardSmallestAtFit) * insetRatio;
+  const maxScale =
+    Math.min(stageWidth / fitWidth, stageHeight / fitHeight) * insetRatio;
+
+  return Math.max(PREVIEW_CALIBRATION_MIN_SCALE, maxScale);
 }

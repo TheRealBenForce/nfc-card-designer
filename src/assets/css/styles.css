@@ -44,8 +44,7 @@
   --card-height-mm: 84;
   --sticker-width-mm: 48;
   --sticker-height-mm: 80;
-  --preview-column-width: 17.5rem;
-  --preview-mat-height: 24rem;
+  --preview-mat-min-height: 14rem;
 }
 
 [data-theme="dark"] {
@@ -1231,6 +1230,15 @@ body {
 
 .preview-artwork-controls .alignment-grid {
   margin-top: 0.15rem;
+  flex: 1 1 auto;
+  max-width: none;
+  width: 100%;
+}
+
+.alignment-row .alignment-grid {
+  flex: 1 1 auto;
+  max-width: none;
+  width: 100%;
 }
 
 .preview-artwork-controls .alignment-grid__btn {
@@ -1994,7 +2002,14 @@ body {
 .panel--edit {
   align-items: stretch;
   justify-content: flex-start;
-  padding-top: 1.35rem;
+  padding-top: 1rem;
+  min-height: 0;
+}
+
+#edit-controls.preview-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0;
 }
 
 .panel--edit-off .preview-meta-game,
@@ -2029,11 +2044,12 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
-  flex: 1 1 auto;
+  grid-column: 1;
+  grid-row: 2;
   width: 100%;
   min-width: 0;
-  min-height: var(--preview-mat-height);
-  height: var(--preview-mat-height);
+  min-height: var(--preview-mat-min-height);
+  height: 100%;
   padding: 1rem;
   box-sizing: border-box;
   background: var(--surface-2);
@@ -2060,6 +2076,8 @@ body {
 }
 
 .preview-calibration-panel {
+  grid-column: 1;
+  grid-row: 3;
   width: 100%;
   margin-top: 0;
   padding: 0.95rem 1rem;
@@ -2068,13 +2086,6 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
-  flex: 0 0 auto;
-}
-
-.preview-artwork-controls .preview-add-btn {
-  margin-top: 0;
-  width: 100%;
-  flex: 0 0 auto;
 }
 
 .preview-mat {
@@ -2199,29 +2210,59 @@ body {
   gap: 1rem;
   width: 100%;
   max-width: none;
+  min-height: 0;
+}
+
+.preview-layout__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(var(--preview-mat-min-height), 1fr) auto;
+  gap: 0.65rem 1rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  align-items: stretch;
+}
+
+.preview-main,
+.preview-artwork-controls {
+  display: contents;
+}
+
+.preview-meta-game {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+
+#preview-type-tabs {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.preview-artwork-controls .edit-control-group,
+.preview-layout__workspace .edit-control-group {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.preview-artwork-controls .preview-add-btn,
+.preview-layout__workspace .preview-add-btn {
+  grid-column: 2;
+  grid-row: 3;
+  margin-top: 0;
+  width: 100%;
+  position: relative;
+  overflow: visible;
 }
 
 .preview-layout__tabs {
   width: 100%;
-}
-
-.preview-layout__workspace {
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 1rem;
-  width: 100%;
-}
-
-.preview-main {
-  flex: 0 0 var(--preview-column-width);
-  width: var(--preview-column-width);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.65rem;
-  min-width: 0;
-  position: relative;
 }
 
 .edit-control-group {
@@ -2232,12 +2273,6 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
-}
-
-.preview-artwork-controls .edit-control-group {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
 }
 
 .edit-control-group__title {
@@ -2277,11 +2312,6 @@ body {
 
 .preview-calibration__label {
   cursor: help;
-}
-
-.preview-add-btn {
-  position: relative;
-  overflow: visible;
 }
 
 .preview-add-btn--celebrate {
@@ -2345,26 +2375,19 @@ body {
 }
 
 .preview-artwork-controls {
-  flex: 0 0 var(--preview-column-width);
-  width: var(--preview-column-width);
-  max-width: var(--preview-column-width);
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-  align-self: stretch;
+  /* display: contents */
 }
 
-.preview-artwork-controls .preview-type-tabs {
+.preview-artwork-controls .preview-type-tabs,
+#preview-type-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   justify-content: flex-end;
-  margin: 0 0 0.15rem;
+  margin: 0;
   width: 100%;
   min-height: 2rem;
+  align-self: center;
 }
 
 .preview-artwork-controls .edit-control-group .field {
@@ -2607,13 +2630,6 @@ body {
   cursor: not-allowed;
 }
 
-.preview-add-btn {
-  margin-top: 0;
-  width: 100%;
-  align-self: stretch;
-  flex: 0 0 auto;
-}
-
 .deck-list,
 .collection-list {
   flex: 1;
@@ -2693,20 +2709,40 @@ body {
   }
 
   .preview-layout__workspace {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(16rem, 1fr) auto auto auto;
   }
 
-  .preview-main,
-  .preview-artwork-controls {
-    flex: 1 1 auto;
-    width: 100%;
-    max-width: none;
+  .preview-meta-game {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #preview-type-tabs {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
   }
 
   .preview-frame {
-    height: min(var(--preview-mat-height), 70vw);
-    min-height: 18rem;
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .edit-control-group {
+    grid-column: 1;
+    grid-row: 4;
+    height: auto;
+  }
+
+  .preview-calibration-panel {
+    grid-column: 1;
+    grid-row: 5;
+  }
+
+  .preview-add-btn {
+    grid-column: 1;
+    grid-row: 6;
   }
 
   .preview-mat {

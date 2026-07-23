@@ -1185,7 +1185,7 @@ function celebrateAddToCollection() {
   void addBrowsedGameBtn.offsetWidth;
   addBrowsedGameBtn.classList.add("preview-add-btn--celebrate");
 
-  const host = addBrowsedGameBtn.closest(".preview-main") ?? addBrowsedGameBtn.parentElement;
+  const host = addBrowsedGameBtn.closest(".preview-layout__workspace") ?? addBrowsedGameBtn.parentElement;
   if (!host) return;
 
   const burst = document.createElement("div");

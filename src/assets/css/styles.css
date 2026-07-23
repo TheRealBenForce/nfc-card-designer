@@ -2399,26 +2399,39 @@ body {
 .artwork-zoom-field--inline {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
+  width: auto;
   margin: 0;
   padding: 0;
   color: var(--text-muted);
+  grid-template-columns: unset;
 }
 
-.artwork-zoom-field--inline .artwork-zoom-field__range {
+.edit-control-group .artwork-zoom-field.artwork-zoom-field--inline {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.edit-control-group .artwork-zoom-field--inline .artwork-zoom-field__range {
+  flex: 1 1 auto;
   width: 100%;
+  min-width: 0;
   min-height: 0;
   margin: 0;
   writing-mode: horizontal-tb;
   direction: ltr;
+  display: block;
 }
 
 .alignment-rotate-btn--inline {
-  flex: 0 0 auto;
+  flex: 0 0 2.5rem;
   align-self: center;
   width: 2.5rem;
   height: 2.5rem;
+  min-width: 2.5rem;
   padding: 0.35rem;
   box-sizing: border-box;
 }
@@ -2475,7 +2488,7 @@ body {
   margin-top: 0;
 }
 
-.artwork-zoom-field {
+.artwork-zoom-field:not(.artwork-zoom-field--inline) {
   display: grid;
   grid-template-columns: auto minmax(120px, 1fr) auto;
   align-items: center;

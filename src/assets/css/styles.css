@@ -45,6 +45,7 @@
   --sticker-width-mm: 48;
   --sticker-height-mm: 80;
   --preview-mat-min-height: 14rem;
+  --preview-middle-height: calc(100dvh - 15.5rem);
 }
 
 [data-theme="dark"] {
@@ -2048,8 +2049,9 @@ body {
   grid-row: 2;
   width: 100%;
   min-width: 0;
+  height: var(--preview-middle-height);
   min-height: var(--preview-mat-min-height);
-  height: 100%;
+  max-height: var(--preview-middle-height);
   padding: 1rem;
   box-sizing: border-box;
   background: var(--surface-2);
@@ -2216,12 +2218,12 @@ body {
 .preview-layout__workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  grid-template-rows: auto minmax(var(--preview-mat-min-height), 1fr) auto;
+  grid-template-rows: auto auto auto;
   gap: 0.65rem 1rem;
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  align-items: stretch;
+  align-items: start;
 }
 
 .preview-main,
@@ -2244,8 +2246,9 @@ body {
 .preview-layout__workspace .edit-control-group {
   grid-column: 2;
   grid-row: 2;
-  min-height: 0;
-  height: 100%;
+  min-height: var(--preview-mat-min-height);
+  max-height: var(--preview-middle-height);
+  height: auto;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -2398,41 +2401,37 @@ body {
   margin-top: 0.65rem;
 }
 
-.alignment-row {
-  display: flex;
-  align-items: stretch;
-  gap: 0.55rem;
-}
-
-.alignment-row .alignment-grid {
-  flex: 0 0 auto;
-}
-
-.alignment-row .alignment-rotate-btn {
-  flex: 0 0 auto;
-  margin-left: 0.15rem;
-}
-
-.artwork-zoom-field--vertical {
+.artwork-actions-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
-  align-self: stretch;
-  margin: 0;
-  padding: 0.25rem 0.85rem;
-  min-width: 2.5rem;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
 }
 
-.artwork-zoom-field--vertical .artwork-zoom-field__range {
-  width: 1.25rem;
-  height: 100%;
-  min-height: 6.5rem;
+.artwork-zoom-field--inline {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   padding: 0;
-  writing-mode: vertical-lr;
-  direction: rtl;
-  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.artwork-zoom-field--inline .artwork-zoom-field__range {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  writing-mode: horizontal-tb;
+  direction: ltr;
+}
+
+.alignment-rotate-btn--inline {
+  flex: 0 0 auto;
+  align-self: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem;
 }
 
 .alignment-rotate-btn {
@@ -2710,7 +2709,7 @@ body {
 
   .preview-layout__workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto minmax(16rem, 1fr) auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
   }
 
   .preview-meta-game {
@@ -2727,12 +2726,15 @@ body {
   .preview-frame {
     grid-column: 1;
     grid-row: 3;
+    max-height: min(var(--preview-middle-height), 70vh);
   }
 
   .edit-control-group {
     grid-column: 1;
     grid-row: 4;
     height: auto;
+    min-height: var(--preview-mat-min-height);
+    max-height: min(var(--preview-middle-height), 70vh);
   }
 
   .preview-calibration-panel {

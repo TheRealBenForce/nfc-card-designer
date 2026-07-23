@@ -2068,6 +2068,13 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.preview-artwork-controls .preview-add-btn {
+  margin-top: 0;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 .preview-mat {
@@ -2371,7 +2378,7 @@ body {
 .alignment-row {
   display: flex;
   align-items: stretch;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .alignment-row .alignment-grid {
@@ -2380,6 +2387,7 @@ body {
 
 .alignment-row .alignment-rotate-btn {
   flex: 0 0 auto;
+  margin-left: 0.15rem;
 }
 
 .artwork-zoom-field--vertical {
@@ -2389,8 +2397,8 @@ body {
   flex: 1 1 auto;
   align-self: stretch;
   margin: 0;
-  padding: 0.2rem 0;
-  min-width: 1.5rem;
+  padding: 0.25rem 0.85rem;
+  min-width: 2.5rem;
 }
 
 .artwork-zoom-field--vertical .artwork-zoom-field__range {

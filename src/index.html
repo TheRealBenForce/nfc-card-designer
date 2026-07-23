@@ -182,9 +182,25 @@
                   </div>
                 </div>
               </div>
-              <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
-                Add to collection
-              </button>
+              <div class="preview-calibration-panel">
+                <label
+                  for="preview-calibration-input"
+                  class="preview-calibration"
+                  title="Hold up your NFC card and scale to size."
+                >
+                  <span class="preview-calibration__label">Card Scale</span>
+                  <input
+                    id="preview-calibration-input"
+                    class="preview-calibration__range"
+                    type="range"
+                    min="70"
+                    max="200"
+                    step="1"
+                    value="100"
+                  />
+                  <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+                </label>
+              </div>
             </div>
             <aside id="preview-artwork-controls" class="preview-artwork-controls">
             <div
@@ -265,25 +281,9 @@
                 Reset to Platform Defaults
               </button>
             </div>
-            <div class="preview-calibration-panel">
-              <label
-                for="preview-calibration-input"
-                class="preview-calibration"
-                title="Hold up your NFC card and scale to size."
-              >
-                <span class="preview-calibration__label">Card Scale</span>
-                <input
-                  id="preview-calibration-input"
-                  class="preview-calibration__range"
-                  type="range"
-                  min="70"
-                  max="200"
-                  step="1"
-                  value="100"
-                />
-                <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-              </label>
-            </div>
+            <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
+              Add to collection
+            </button>
             </aside>
           </div>
         </div>

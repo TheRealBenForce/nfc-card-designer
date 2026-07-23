@@ -2154,6 +2154,7 @@ body {
 }
 
 .preview-stage {
+  container-type: size;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2203,12 +2204,14 @@ body {
 
 .preview-card {
   position: relative;
-  width: min(
-    calc((var(--card-width-mm) * 1mm) * var(--preview-calibration-scale, 1)),
-    100%
-  );
-  max-height: 100%;
   aspect-ratio: var(--card-width-mm) / var(--card-height-mm);
+  width: calc(
+    min(
+      100cqw,
+      calc(100cqh * var(--card-width-mm) / var(--card-height-mm))
+    ) * var(--preview-calibration-scale, 1)
+  );
+  max-height: calc(100cqh * var(--preview-calibration-scale, 1));
   height: auto;
   border-radius: 5px;
   background: var(--card-stock);
@@ -2405,24 +2408,15 @@ body {
   color: var(--text-muted);
 }
 
+.edit-gated-region {
+  display: contents;
+}
+
 .preview-calibration {
-  display: grid;
-  grid-template-columns: auto minmax(90px, 1fr) auto;
-  align-items: center;
-  gap: 0.45rem;
+  display: block;
   margin-top: 0;
   width: 100%;
   color: var(--text-muted);
-}
-
-.preview-calibration__label,
-.preview-calibration__value {
-  font-size: 0.76rem;
-  font-weight: 600;
-}
-
-.preview-calibration__label {
-  cursor: help;
 }
 
 .preview-add-btn--celebrate {
@@ -2619,8 +2613,7 @@ body {
   font-weight: 600;
 }
 
-.artwork-zoom-field__value,
-.preview-calibration__value {
+.artwork-zoom-field__value {
   min-width: 4ch;
   text-align: right;
   font-variant-numeric: tabular-nums;

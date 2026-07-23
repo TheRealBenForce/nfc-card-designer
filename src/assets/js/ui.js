@@ -782,7 +782,7 @@ function artworkCountLabel(count) {
 function syncGameSearchHintVisibility() {
   if (!gameSearchHintEl || !gameResultsEl) return;
   const resultsOpen = !gameResultsEl.hidden;
-  gameSearchHintEl.hidden = resultsOpen;
+  gameSearchHintEl.classList.toggle("field-hint--suppressed", resultsOpen);
   gameSearchHintEl.setAttribute("aria-hidden", resultsOpen ? "true" : "false");
 }
 

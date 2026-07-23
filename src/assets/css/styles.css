@@ -2196,25 +2196,6 @@ body {
     width: 100%;
   }
 
-  .preview-layout__workspace {
-    grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
-  }
-
-  .preview-meta-game {
-    justify-self: start;
-    width: auto;
-    max-width: calc(100% - 15rem);
-    padding-right: 0.5rem;
-  }
-
-  .preview-layout__workspace .preview-type-tabs {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: end;
-    flex-wrap: nowrap;
-    width: auto;
-  }
-
   .preview-artwork-controls .alignment-grid {
     max-width: 9rem;
   }
@@ -2928,5 +2909,28 @@ body {
   .collection-list {
     max-height: none;
     flex: 1;
+  }
+}
+
+@media (min-width: 1101px) {
+  .preview-layout__workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
+  }
+
+  .panel--edit-off .preview-meta-game,
+  .panel--edit-on .preview-meta-game {
+    justify-self: start;
+    width: auto;
+    max-width: min(50%, calc(100% - 16rem));
+    padding-right: 0.5rem;
+  }
+
+  .preview-layout__workspace .preview-type-tabs {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    width: auto;
+    max-width: none;
   }
 }

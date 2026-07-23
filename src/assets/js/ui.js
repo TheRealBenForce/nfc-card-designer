@@ -1459,15 +1459,19 @@ async function refreshPreview() {
 
 function bindEvents() {
   document.addEventListener("pointerdown", (e) => {
-    const target = /** @type {Node|null} */ (e.target);
+    const target = e.target instanceof Element ? e.target : null;
     if (!target) return;
     const clickedSearchInput =
       gameSearchInput === target || gameSearchInput?.contains(target);
     const clickedGameResult = gameResultsEl?.contains(target);
     if (clickedSearchInput || clickedGameResult) return;
-    closeGameResults();
-    gameSearchFocused = false;
-    globalThis.setTimeout(() => gameSearchInput?.blur(), 0);
+    globalThis.requestAnimationFrame(() => {
+      closeGameResults();
+      if (document.activeElement === gameSearchInput) {
+        gameSearchFocused = false;
+        gameSearchInput?.blur();
+      }
+    });
   });
 
   gameSearchInput?.addEventListener("focus", () => {

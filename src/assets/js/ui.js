@@ -170,7 +170,6 @@ let previewArtworkZoomValueEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkResetBtn = null;
 /** @type {HTMLElement|null} */
-let previewArtworkControlsTitleEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkRotateBtn = null;
 /** @type {HTMLElement|null} */
@@ -494,10 +493,6 @@ function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
   const interactive = isEditInteractive();
   const display = context?.display ?? getPreviewArtworkDisplayFallback();
-
-  if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Alignment";
-  }
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
@@ -1812,7 +1807,6 @@ export async function initUI() {
   previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-reset")
   );
-  previewArtworkControlsTitleEl = document.getElementById("preview-artwork-controls-title");
   previewArtworkRotateBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-rotate")
   );

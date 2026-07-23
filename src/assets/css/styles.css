@@ -1260,12 +1260,14 @@ body {
 
 .preview-artwork-controls .alignment-grid {
   margin-top: 0.15rem;
-  flex: 1 1 auto;
-  max-width: none;
-  width: 100%;
+  flex: 0 0 auto;
+  gap: 0.28rem;
+  max-width: 80%;
+  width: 80%;
 }
 
 .preview-artwork-controls .alignment-grid__btn {
+  min-height: 1.6rem;
   transition:
     border-color var(--motion-fast) var(--ease-out),
     background var(--motion-fast) var(--ease-out),

@@ -1173,10 +1173,43 @@ async function addBrowsedGame() {
 
   addCard(card);
   setSelectedCardIds([]);
-  resetGameSearch({ focus: true });
   updateCollectionActions();
-  await refreshPreview();
+  celebrateAddToCollection();
   logStatus(`Added ${game.name} to collection.`);
+}
+
+function celebrateAddToCollection() {
+  if (!addBrowsedGameBtn) return;
+
+  addBrowsedGameBtn.classList.remove("preview-add-btn--celebrate");
+  void addBrowsedGameBtn.offsetWidth;
+  addBrowsedGameBtn.classList.add("preview-add-btn--celebrate");
+
+  const host = addBrowsedGameBtn.closest(".preview-main") ?? addBrowsedGameBtn.parentElement;
+  if (!host) return;
+
+  const burst = document.createElement("div");
+  burst.className = "party-favor";
+  burst.setAttribute("aria-hidden", "true");
+
+  const colors = ["var(--accent)", "#f4c95d", "#ff8b6a", "#7bc9a8", "#9b8cff"];
+  for (let i = 0; i < 14; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "party-favor__piece";
+    const angle = (i / 14) * Math.PI * 2;
+    piece.style.setProperty("--tx", `${Math.cos(angle) * 52}px`);
+    piece.style.setProperty("--ty", `${Math.sin(angle) * -42}px`);
+    piece.style.setProperty("--rot", `${i * 46}deg`);
+    piece.style.setProperty("--hue", colors[i % colors.length]);
+    piece.style.animationDelay = `${i * 18}ms`;
+    burst.appendChild(piece);
+  }
+
+  host.appendChild(burst);
+  globalThis.setTimeout(() => burst.remove(), 900);
+  globalThis.setTimeout(() => {
+    addBrowsedGameBtn?.classList.remove("preview-add-btn--celebrate");
+  }, 700);
 }
 
 function renderPreviewTypeTabs() {
@@ -1430,6 +1463,7 @@ function bindCollectionDrawer() {
 
   const setOpen = (open) => {
     document.body.classList.toggle("collection-drawer-open", open);
+    document.body.style.overflow = open ? "hidden" : "";
     toggle?.setAttribute("aria-expanded", open ? "true" : "false");
     backdrop?.toggleAttribute("hidden", !open);
     try {
@@ -1446,19 +1480,13 @@ function bindCollectionDrawer() {
   backdrop?.addEventListener("click", () => setOpen(false));
 
   printPanel?.querySelector(".panel__title")?.addEventListener("click", () => {
-    if (globalThis.matchMedia("(max-width: 1100px)").matches) {
-      setOpen(false);
-    }
+    setOpen(false);
   });
 
   globalThis.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && document.body.classList.contains("collection-drawer-open")) {
       setOpen(false);
     }
-  });
-
-  globalThis.matchMedia("(max-width: 1100px)").addEventListener("change", (e) => {
-    if (!e.matches) setOpen(false);
   });
 }
 

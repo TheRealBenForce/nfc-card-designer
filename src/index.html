@@ -132,6 +132,21 @@
 
         <section class="section section--game-search">
           <div class="search-field">
+            <svg
+              class="search-field__icon"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
             <input
               id="game-search"
               class="input search-field__input"
@@ -167,28 +182,29 @@
           <div class="preview-layout__workspace">
             <div class="preview-main">
               <div id="preview-frame" class="preview-frame preview-mat preview-frame--idle">
-                <div id="preview-card" class="preview-card">
-                  <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
-                  <div id="preview-skeleton" class="preview-skeleton" aria-hidden="false"></div>
-                  <img id="preview-image" class="preview-image" alt="" hidden />
+                <div class="preview-stage">
+                  <div id="preview-card" class="preview-card">
+                    <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
+                    <div id="preview-skeleton" class="preview-skeleton" aria-hidden="false"></div>
+                    <img id="preview-image" class="preview-image" alt="" hidden />
+                  </div>
                 </div>
-              </div>
-              <div class="edit-control-group edit-control-group--calibration">
-                <h3 class="edit-control-group__title">Size check</h3>
-                <label for="preview-calibration-input" class="preview-calibration">
-                  <span class="preview-calibration__label">Screen calibration</span>
-                  <input
-                    id="preview-calibration-input"
-                    class="preview-calibration__range"
-                    type="range"
-                    min="70"
-                    max="130"
-                    step="1"
-                    value="100"
-                  />
-                  <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-                </label>
-                <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+                <div class="preview-calibration-panel">
+                  <label for="preview-calibration-input" class="preview-calibration">
+                    <span class="preview-calibration__label">Card size</span>
+                    <input
+                      id="preview-calibration-input"
+                      class="preview-calibration__range"
+                      type="range"
+                      min="70"
+                      max="130"
+                      step="1"
+                      value="100"
+                    />
+                    <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+                  </label>
+                  <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+                </div>
               </div>
               <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
                 Add to collection

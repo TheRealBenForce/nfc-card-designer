@@ -2196,10 +2196,6 @@ body {
     width: 100%;
   }
 
-  .preview-artwork-controls .alignment-grid {
-    max-width: 9rem;
-  }
-
   .preview-mat {
     background-size: 14px 14px;
   }
@@ -2918,10 +2914,17 @@ body {
   }
 
   .panel--edit-off .preview-meta-game,
-  .panel--edit-on .preview-meta-game {
+  .preview-layout__workspace:not(:has(.preview-type-tabs:not([hidden]))) .preview-meta-game {
     justify-self: start;
     width: auto;
-    max-width: min(50%, calc(100% - 16rem));
+    max-width: none;
+    padding-right: 0;
+  }
+
+  .preview-layout__workspace:has(.preview-type-tabs:not([hidden])) .preview-meta-game {
+    justify-self: start;
+    width: auto;
+    max-width: 100%;
     padding-right: 0.5rem;
   }
 
@@ -2932,5 +2935,20 @@ body {
     flex-wrap: nowrap;
     width: auto;
     max-width: none;
+  }
+
+  .preview-artwork-controls .alignment-grid {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .preview-artwork-controls .alignment-grid__btn {
+    min-height: 0;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1;
   }
 }

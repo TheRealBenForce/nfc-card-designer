@@ -40,6 +40,8 @@
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   --content-width: 42rem;
+  --app-max-width: 80rem;
+  --edit-toolbox-max-width: 14rem;
   --card-width-mm: 52;
   --card-height-mm: 84;
   --sticker-width-mm: 48;
@@ -2188,6 +2190,12 @@ body {
 }
 
 @media (min-width: 1101px) {
+  .app {
+    max-width: var(--app-max-width);
+    margin-inline: auto;
+    width: 100%;
+  }
+
   .preview-mat {
     background-size: 14px 14px;
   }
@@ -2897,5 +2905,50 @@ body {
   .collection-list {
     max-height: none;
     flex: 1;
+  }
+}
+
+@media (min-width: 1101px) {
+  .preview-layout__workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
+  }
+
+  .panel--edit-off .preview-meta-game,
+  .preview-layout__workspace:not(:has(.preview-type-tabs:not([hidden]))) .preview-meta-game {
+    justify-self: start;
+    width: auto;
+    max-width: none;
+    padding-right: 0;
+  }
+
+  .preview-layout__workspace:has(.preview-type-tabs:not([hidden])) .preview-meta-game {
+    justify-self: start;
+    width: auto;
+    max-width: 100%;
+    padding-right: 0.5rem;
+  }
+
+  .preview-layout__workspace .preview-type-tabs {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    width: auto;
+    max-width: none;
+  }
+
+  .preview-artwork-controls .alignment-grid {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .preview-artwork-controls .alignment-grid__btn {
+    min-height: 0;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1;
   }
 }

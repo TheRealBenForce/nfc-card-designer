@@ -1175,6 +1175,9 @@ body {
 
 .collapsible[open] {
   box-shadow: var(--shadow);
+  overflow: visible;
+  position: relative;
+  z-index: 5;
 }
 
 .collapsible__summary {

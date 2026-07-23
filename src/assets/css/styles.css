@@ -2147,6 +2147,9 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
 }
 
 .preview-mat {
@@ -2294,6 +2297,21 @@ body {
   grid-column: 1;
   grid-row: 1;
   align-self: center;
+  min-width: 0;
+}
+
+.preview-layout__workspace .preview-type-tabs {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  align-self: center;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  min-height: 0;
 }
 
 .preview-artwork-controls .edit-control-group,
@@ -2313,13 +2331,21 @@ body {
   grid-column: 2;
   grid-row: 3;
   margin-top: 0;
+  margin-bottom: 0;
   width: 100%;
   position: relative;
   overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding-block: 0.95rem;
+  box-sizing: border-box;
 }
 
 .preview-layout__tabs {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
 }
 
 .edit-control-group {
@@ -2358,6 +2384,7 @@ body {
   align-items: center;
   gap: 0.45rem;
   margin-top: 0;
+  width: 100%;
   color: var(--text-muted);
 }
 
@@ -2433,17 +2460,6 @@ body {
 
 .preview-artwork-controls {
   /* display: contents */
-}
-
-.preview-artwork-controls .preview-type-tabs,
-.edit-control-group .preview-type-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  justify-content: flex-end;
-  margin: 0 0 0.75rem;
-  width: 100%;
-  min-height: 2rem;
 }
 
 .preview-artwork-controls .edit-control-group .field {
@@ -2797,7 +2813,7 @@ body {
 
   .preview-layout__workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
   }
 
   .preview-meta-game {
@@ -2805,28 +2821,35 @@ body {
     grid-row: 1;
   }
 
-  .preview-frame {
+  .preview-layout__workspace .preview-type-tabs {
     grid-column: 1;
     grid-row: 2;
-    height: auto;
-    max-height: min(var(--preview-middle-height), 55dvh);
+    justify-content: flex-start;
+    width: 100%;
   }
 
-  .edit-control-group {
+  .preview-frame {
     grid-column: 1;
     grid-row: 3;
     height: auto;
     max-height: min(var(--preview-middle-height), 55dvh);
   }
 
-  .preview-calibration-panel {
+  .edit-control-group {
     grid-column: 1;
     grid-row: 4;
+    height: auto;
+    max-height: min(var(--preview-middle-height), 55dvh);
+  }
+
+  .preview-calibration-panel {
+    grid-column: 1;
+    grid-row: 5;
   }
 
   .preview-add-btn {
     grid-column: 1;
-    grid-row: 5;
+    grid-row: 6;
   }
 
   .preview-mat {

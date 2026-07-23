@@ -102,3 +102,42 @@ export function mmToRenderPx(mm, dpi = 300) {
 export function getCardPreviewWidthPx(settings) {
   return mmToCssPx(resolveCardSizing(settings).cardWidthMm);
 }
+
+export const PREVIEW_CALIBRATION_MIN_SCALE = 0.5;
+export const PREVIEW_CALIBRATION_WIDE_DEFAULT_SCALE = 0.5;
+/** Keep the scaled card slightly inside the mat on the limiting edge. */
+export const PREVIEW_CALIBRATION_MAX_INSET_RATIO = 0.98;
+export const PREVIEW_LAYOUT_BREAKPOINT_PX = 1100;
+
+/**
+ * Max preview calibration scale so the card's smaller edge stays just inside
+ * the mat's smaller edge (matches container-query fit sizing at scale 1).
+ *
+ * @param {number} stageWidth
+ * @param {number} stageHeight
+ * @param {number} cardWidthMm
+ * @param {number} cardHeightMm
+ * @param {number} [insetRatio]
+ */
+export function computePreviewCalibrationMaxScale(
+  stageWidth,
+  stageHeight,
+  cardWidthMm,
+  cardHeightMm,
+  insetRatio = PREVIEW_CALIBRATION_MAX_INSET_RATIO,
+) {
+  if (!(stageWidth > 0 && stageHeight > 0 && cardWidthMm > 0 && cardHeightMm > 0)) {
+    return 1;
+  }
+
+  const aspect = cardWidthMm / cardHeightMm;
+  const fitWidth = Math.min(stageWidth, stageHeight * aspect);
+  const fitHeight = fitWidth / aspect;
+
+  if (!(fitWidth > 0 && fitHeight > 0)) return 1;
+
+  const maxScale =
+    Math.min(stageWidth / fitWidth, stageHeight / fitHeight) * insetRatio;
+
+  return Math.max(PREVIEW_CALIBRATION_MIN_SCALE, maxScale);
+}

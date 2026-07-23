@@ -122,6 +122,60 @@ async function main() {
     }
     console.log("✓ Selecting a game opens browse preview with artwork tabs");
 
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "networkidle", timeout: 15000 });
+    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "ecco");
+    await page.waitForTimeout(300);
+    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.waitForTimeout(500);
+
+    const previewCardSize = await page.locator("#preview-card").evaluate((el) => {
+      const { width, height } = el.getBoundingClientRect();
+      return { width, height };
+    });
+    if (previewCardSize.width < 10 || previewCardSize.height < 10) {
+      throw new Error(
+        `Preview card should be visible on narrow viewport, got: ${JSON.stringify(previewCardSize)}`,
+      );
+    }
+    console.log("✓ Narrow viewport shows a sized preview card after game selection");
+
+    const narrowPreview = await page.evaluate(() => {
+      const panel = document.querySelector(".preview-calibration-panel");
+      const stage = document.querySelector(".preview-stage");
+      const card = document.getElementById("preview-card");
+      if (!panel || !stage || !card) return null;
+      const panelStyle = getComputedStyle(panel);
+      const stageRect = stage.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      return {
+        panelDisplay: panelStyle.display,
+        stageWidth: stageRect.width,
+        stageHeight: stageRect.height,
+        cardWidth: cardRect.width,
+        cardHeight: cardRect.height,
+      };
+    });
+    if (!narrowPreview) {
+      throw new Error("Expected preview card and mat on narrow viewport");
+    }
+    if (narrowPreview.panelDisplay !== "none") {
+      throw new Error("Card scale slider should be hidden on narrow viewports");
+    }
+    const widthFill = narrowPreview.cardWidth / narrowPreview.stageWidth;
+    const heightFill = narrowPreview.cardHeight / narrowPreview.stageHeight;
+    if (Math.max(widthFill, heightFill) < 0.9) {
+      throw new Error(
+        `Narrow viewport should zoom the card to fill the mat, got fill=${Math.max(widthFill, heightFill).toFixed(2)}`,
+      );
+    }
+    console.log("✓ Narrow viewport hides card scale slider and zooms card to fill the mat");
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.reload({ waitUntil: "networkidle", timeout: 15000 });
+
     await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
     await page.waitForTimeout(150);
     await searchInput.focus();

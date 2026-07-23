@@ -134,6 +134,8 @@ let previewCalibrationValueEl = null;
 /** @type {HTMLInputElement|null} */
 let gameSearchInput = null;
 /** @type {HTMLElement|null} */
+let gameSearchAnchorEl = null;
+/** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
 let globalShowHeaderInput = null;
@@ -873,7 +875,7 @@ function renderGameResults() {
   }
 
   const query = gameSearchInput?.value.trim() ?? "";
-  const shouldShow = gameSearchFocused || query.length > 0;
+  const shouldShow = gameSearchFocused;
   if (!shouldShow) {
     gameResultsEl.hidden = true;
     syncGameSearchHintVisibility();
@@ -916,6 +918,7 @@ function renderGameResults() {
     btn.addEventListener("click", () => {
       if (gameSearchInput) gameSearchInput.value = game.name;
       closeGameResults();
+      gameSearchInput?.blur();
       void browseGameFromSearch(game);
     });
     gameResultsEl.appendChild(btn);
@@ -1455,6 +1458,14 @@ async function refreshPreview() {
 }
 
 function bindEvents() {
+  document.addEventListener("pointerdown", (e) => {
+    const target = /** @type {Node|null} */ (e.target);
+    if (!gameSearchAnchorEl || !target) return;
+    if (!gameSearchAnchorEl.contains(target)) {
+      closeGameResults();
+    }
+  });
+
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
     filterGames(gameSearchInput?.value ?? "");
@@ -1478,7 +1489,7 @@ function bindEvents() {
     const query = gameSearchInput?.value.trim() ?? "";
     const dropdownOpen =
       Boolean(getActivePlatformId()) &&
-      (gameSearchFocused || query.length > 0) &&
+      gameSearchFocused &&
       filteredGames.length > 0;
 
     if (dropdownOpen && e.key === "ArrowDown") {
@@ -1498,6 +1509,7 @@ function bindEvents() {
       const game = pickGameFromSearch();
       if (game) {
         closeGameResults();
+        gameSearchInput?.blur();
         void browseGameFromSearch(game);
       }
     }
@@ -1752,6 +1764,7 @@ export async function initUI() {
   );
   previewCalibrationValueEl = document.getElementById("preview-calibration-value");
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
+  gameSearchAnchorEl = document.querySelector(".game-search-anchor");
   gameSearchHintEl = document.getElementById("game-search-hint");
   globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
     document.getElementById("global-show-header")

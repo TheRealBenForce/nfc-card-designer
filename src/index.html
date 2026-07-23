@@ -130,34 +130,36 @@
         </section>
 
         <section class="section section--game-search">
-          <div class="search-field">
-            <svg
-              class="search-field__icon"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-            <input
-              id="game-search"
-              class="input search-field__input"
-              type="search"
-              placeholder="Search games..."
-              autocomplete="off"
-              aria-autocomplete="list"
-              aria-controls="game-results"
-            />
+          <div class="game-search-anchor">
+            <div class="search-field">
+              <svg
+                class="search-field__icon"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                id="game-search"
+                class="input search-field__input"
+                type="search"
+                placeholder="Search games..."
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="game-results"
+              />
+            </div>
+            <div id="game-results" class="list list--games game-search-dropdown" role="listbox" aria-label="Games" hidden></div>
           </div>
           <p id="game-search-hint" class="field-hint">Select a platform to search retail releases.</p>
-          <div id="game-results" class="list list--games" role="listbox" aria-label="Games" hidden></div>
         </section>
         <section class="section section--actions">
           <div class="button-row">

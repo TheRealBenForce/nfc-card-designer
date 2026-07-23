@@ -731,7 +731,7 @@ body {
 
 .panel--select {
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
 }
 
 .panel--edit {
@@ -748,6 +748,10 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.panel.panel--select {
+  overflow: visible;
 }
 
 .panel__title {
@@ -1490,6 +1494,36 @@ body {
 
 .section--game-search {
   margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.section--game-search:has(#game-results:not([hidden])) {
+  z-index: 20;
+}
+
+.game-search-anchor {
+  position: relative;
+}
+
+.game-search-dropdown,
+#game-results.game-search-dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 25;
+  margin-top: 0;
+  max-height: min(280px, 38dvh);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+#game-results[hidden] {
+  display: none;
 }
 
 .field-hint--ready {

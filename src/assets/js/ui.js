@@ -801,6 +801,40 @@ function filterGames(query) {
   updateGameSearchHint(q);
 }
 
+/**
+ * @param {import("./data/platforms.js").Platform} platform
+ * @param {string} iconTheme
+ * @param {{ iconClassName?: string, emojiClassName?: string }} [options]
+ * @returns {HTMLElement}
+ */
+function createPlatformIconElement(platform, iconTheme, options = {}) {
+  const { iconClassName = "platform-row__icon", emojiClassName = "platform-row__emoji" } =
+    options;
+  const normalizedTheme = normalizePlatformIconTheme(iconTheme);
+  const icon = document.createElement("img");
+  icon.className = iconClassName;
+  icon.alt = "";
+  icon.src = getPlatformIconPath(platform.id, normalizedTheme);
+  if (shouldInvertPlatformIconInLight(normalizedTheme)) {
+    icon.dataset.invertInLight = "true";
+  }
+  icon.addEventListener("error", () => {
+    icon.src = getBundledPlatformIconPath(platform.id);
+    icon.addEventListener(
+      "error",
+      () => {
+        const emoji = document.createElement("span");
+        emoji.className = emojiClassName;
+        emoji.textContent = platform.emoji;
+        emoji.setAttribute("aria-hidden", "true");
+        icon.replaceWith(emoji);
+      },
+      { once: true },
+    );
+  }, { once: true });
+  return icon;
+}
+
 function renderPlatformResults() {
   if (!platformResultsEl) return;
   const settings = getSettings();
@@ -821,28 +855,7 @@ function renderPlatformResults() {
     btn.type = "button";
     btn.className = "platform-row__select";
 
-    const iconTheme = normalizePlatformIconTheme(settings.platformIconTheme);
-    const icon = document.createElement("img");
-    icon.className = "platform-row__icon";
-    icon.alt = "";
-    icon.src = getPlatformIconPath(platform.id, iconTheme);
-    if (shouldInvertPlatformIconInLight(iconTheme)) {
-      icon.dataset.invertInLight = "true";
-    }
-    icon.addEventListener("error", () => {
-      icon.src = getBundledPlatformIconPath(platform.id);
-      icon.addEventListener(
-        "error",
-        () => {
-          const emoji = document.createElement("span");
-          emoji.className = "platform-row__emoji";
-          emoji.textContent = platform.emoji;
-          emoji.setAttribute("aria-hidden", "true");
-          icon.replaceWith(emoji);
-        },
-        { once: true },
-      );
-    }, { once: true });
+    const icon = createPlatformIconElement(platform, settings.platformIconTheme);
 
     const label = document.createElement("span");
     label.className = "platform-row__label";
@@ -1301,6 +1314,7 @@ function updateCollectionActions() {
 
 function renderCollection() {
   if (!collectionListEl) return;
+  const settings = getSettings();
   const collection = getCollection();
   const selectedIds = getSelectedCardIds();
   collectionListEl.innerHTML = "";
@@ -1328,16 +1342,16 @@ function renderCollection() {
     const platformLead = document.createElement("span");
     platformLead.className = "collection-platform__lead";
 
-    const platformEmoji = document.createElement("span");
-    platformEmoji.className = "collection-platform__emoji";
-    platformEmoji.textContent = platform.emoji;
-    platformEmoji.setAttribute("aria-hidden", "true");
+    const platformIcon = createPlatformIconElement(platform, settings.platformIconTheme, {
+      iconClassName: "collection-platform__icon",
+      emojiClassName: "collection-platform__emoji",
+    });
 
     const platformName = document.createElement("span");
     platformName.className = "collection-platform__name";
     platformName.textContent = platform.name;
 
-    platformLead.append(platformEmoji, platformName);
+    platformLead.append(platformIcon, platformName);
 
     const platformCount = document.createElement("span");
     platformCount.className = "collection-platform__count";
@@ -1649,6 +1663,7 @@ function bindEvents() {
     saveSettings(getSettings());
     syncGlobalSettingsControls();
     renderPlatformResults();
+    renderCollection();
     refreshPreview();
   });
 

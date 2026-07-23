@@ -202,6 +202,25 @@ async function main() {
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
     await page.waitForTimeout(200);
 
+    const previewHiddenAfterPlatformChange = await page.evaluate(() => {
+      const preview = document.getElementById("preview-image");
+      if (!preview) return { ok: false, reason: "missing preview-image" };
+      const style = globalThis.getComputedStyle(preview);
+      return {
+        ok: preview.hidden && style.display === "none" && preview.offsetWidth === 0,
+        hidden: preview.hidden,
+        display: style.display,
+        width: preview.offsetWidth,
+        src: preview.getAttribute("src"),
+      };
+    });
+    if (!previewHiddenAfterPlatformChange.ok) {
+      throw new Error(
+        `Preview image should be hidden after platform change, got: ${JSON.stringify(previewHiddenAfterPlatformChange)}`,
+      );
+    }
+    console.log("✓ Platform change hides stale preview image on skeleton card");
+
     const searchAfterPlatformChange = await page.locator("#game-search").inputValue();
     if (searchAfterPlatformChange !== "") {
       throw new Error(`Game search should clear on platform change, got: "${searchAfterPlatformChange}"`);

@@ -11,6 +11,7 @@ import {
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
 import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
 import { resolveCardSizing } from "./cardSizing.js";
+import { normalizePlatformIconTheme } from "./platformIconTheme.js";
 import { retailDisplayName } from "./retailFilter.js";
 
 /** @returns {import('./state.js').AppSettings} */
@@ -20,6 +21,7 @@ export function defaultSettings() {
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: "",
+    platformIconTheme: normalizePlatformIconTheme(),
     ...headerSettings,
     ...cardSizing,
     ...headerSettings,
@@ -99,6 +101,7 @@ export function saveSettings(settings) {
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    platformIconTheme: normalizePlatformIconTheme(settings.platformIconTheme),
     ...headerSettings,
     ...cardSizing,
     ...headerSettings,
@@ -126,6 +129,9 @@ export function loadSettings() {
         typeof parsed.selectedPlatformId === "string"
           ? parsed.selectedPlatformId
           : defaults.selectedPlatformId,
+      platformIconTheme: normalizePlatformIconTheme(
+        parsed.platformIconTheme ?? defaults.platformIconTheme,
+      ),
       ...cardSizing,
       ...headerSettings,
     };
@@ -179,6 +185,7 @@ export function buildProjectData(settings, collection) {
     version: 6,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
+    platformIconTheme: normalizePlatformIconTheme(settings.platformIconTheme),
     ...cardSizing,
     ...headerSettings,
     cards: collection.map(serializeCard),
@@ -236,6 +243,7 @@ export function importProjectFile() {
               parsed.artworkDisplay,
             ),
             selectedPlatformId: parsed.selectedPlatformId,
+            platformIconTheme: normalizePlatformIconTheme(parsed.platformIconTheme),
             ...resolveCardSizing(parsed),
             ...importedHeaderSettings,
           },

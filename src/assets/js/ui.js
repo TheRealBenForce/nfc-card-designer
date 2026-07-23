@@ -73,6 +73,8 @@ import {
   initPlatformSettingsModal,
   openPlatformSettingsModal,
 } from "./platformSettingsModal.js";
+import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
+import { normalizePlatformIconTheme } from "./platformIconTheme.js";
 
 const ARTWORK_ZOOM_BASE_PERCENT = 100;
 const MIN_ARTWORK_ZOOM_PERCENT = ARTWORK_ZOOM_BASE_PERCENT + MIN_ARTWORK_ZOOM;
@@ -149,6 +151,8 @@ let globalCardWidthInput = null;
 let globalCardHeightInput = null;
 /** @type {HTMLInputElement|null} */
 let globalStickerInsetInput = null;
+/** @type {HTMLSelectElement|null} */
+let globalPlatformIconThemeInput = null;
 /** @type {HTMLElement|null} */
 let previewTypeTabsEl = null;
 /** @type {HTMLButtonElement|null} */
@@ -828,16 +832,30 @@ function renderPlatformResults() {
     btn.type = "button";
     btn.className = "platform-row__select";
 
-    const emoji = document.createElement("span");
-    emoji.className = "platform-row__emoji";
-    emoji.textContent = platform.emoji;
-    emoji.setAttribute("aria-hidden", "true");
+    const icon = document.createElement("img");
+    icon.className = "platform-row__icon";
+    icon.alt = "";
+    icon.src = getPlatformIconPath(platform.id, settings.platformIconTheme);
+    icon.addEventListener("error", () => {
+      icon.src = getBundledPlatformIconPath(platform.id);
+      icon.addEventListener(
+        "error",
+        () => {
+          const emoji = document.createElement("span");
+          emoji.className = "platform-row__emoji";
+          emoji.textContent = platform.emoji;
+          emoji.setAttribute("aria-hidden", "true");
+          icon.replaceWith(emoji);
+        },
+        { once: true },
+      );
+    }, { once: true });
 
     const label = document.createElement("span");
     label.className = "platform-row__label";
     label.textContent = platform.name;
 
-    btn.append(emoji, label);
+    btn.append(icon, label);
     btn.addEventListener("click", () => selectPlatform(platform.id));
 
     const editBtn = document.createElement("button");
@@ -981,6 +999,9 @@ function syncGlobalSettingsControls() {
   if (globalStickerInsetInput) {
     globalStickerInsetInput.value = String(sizing.stickerInsetMm);
     globalStickerInsetInput.max = String(maxStickerInsetMm(sizing.cardWidthMm, sizing.cardHeightMm));
+  }
+  if (globalPlatformIconThemeInput) {
+    globalPlatformIconThemeInput.value = normalizePlatformIconTheme(settings.platformIconTheme);
   }
   applyCardSizingCssVariables(settings);
 }
@@ -1619,6 +1640,17 @@ function bindEvents() {
     refreshPreview();
   });
 
+  globalPlatformIconThemeInput?.addEventListener("change", (e) => {
+    const platformIconTheme = normalizePlatformIconTheme(
+      /** @type {HTMLSelectElement} */ (e.target).value,
+    );
+    updateSettings({ platformIconTheme });
+    saveSettings(getSettings());
+    syncGlobalSettingsControls();
+    renderPlatformResults();
+    refreshPreview();
+  });
+
   previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
     applyPreviewArtworkPatch({
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
@@ -1808,6 +1840,9 @@ export async function initUI() {
   );
   globalStickerInsetInput = /** @type {HTMLInputElement|null} */ (
     document.getElementById("global-sticker-inset")
+  );
+  globalPlatformIconThemeInput = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById("global-platform-icon-theme")
   );
   previewTypeTabsEl = document.getElementById("preview-type-tabs");
   addBrowsedGameBtn = /** @type {HTMLButtonElement|null} */ (

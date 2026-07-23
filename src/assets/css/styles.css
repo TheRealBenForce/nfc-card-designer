@@ -1670,12 +1670,19 @@ body {
   font-weight: 600;
 }
 
-.platform-row__emoji {
+.platform-row__emoji,
+.platform-row__icon {
   flex-shrink: 0;
   width: 1.5rem;
+  height: 1.5rem;
   text-align: center;
   font-size: 1.05rem;
   line-height: 1;
+}
+
+.platform-row__icon {
+  display: block;
+  object-fit: contain;
 }
 
 .platform-row__label {

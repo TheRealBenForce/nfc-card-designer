@@ -108,6 +108,9 @@ async function main() {
   console.log("→ Platform defaults…");
   await run("node", ["scripts/test-platform-defaults.mjs"]);
 
+  console.log("→ Platform icon theme…");
+  await run("node", ["scripts/test-platform-icon-theme.mjs"]);
+
   console.log("→ UI smoke test (platform search)…");
   const server = spawn("npx", ["--yes", "serve", "src", "-l", PORT], {
     cwd: root,

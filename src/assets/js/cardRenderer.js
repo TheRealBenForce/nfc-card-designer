@@ -3,7 +3,8 @@ import { computeCardLayout } from "./cardLayout.js";
 import { platformById } from "./data/platforms.js";
 import { loadImage, resolveCardImage, candidateImagePaths } from "./imageProvider.js";
 import { gameForCard } from "./gameCatalog.js";
-import { getPlatformIconPath } from "./platformIcons.js";
+import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
+import { normalizePlatformIconTheme } from "./platformIconTheme.js";
 import {
   DEFAULT_PLATFORM_COLOR,
   getImageRotation,
@@ -549,7 +550,13 @@ export async function renderCard(card, platformDefaults, layoutSettings) {
   drawContainImageAligned(ctx, img, art.x, art.y, art.w, art.h, rotation, align, zoom);
 
   if (showHeader) {
-    const icon = await loadImage(getPlatformIconPath(card.platformId));
+    const iconTheme = normalizePlatformIconTheme(layoutSettings?.platformIconTheme);
+    let icon;
+    try {
+      icon = await loadImage(getPlatformIconPath(card.platformId, iconTheme));
+    } catch {
+      icon = await loadImage(getBundledPlatformIconPath(card.platformId));
+    }
     drawPlatformLogo(ctx, icon, logo);
   }
 

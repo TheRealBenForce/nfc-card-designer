@@ -69,31 +69,6 @@ async function main() {
     }
     console.log("✓ Delete Selected works with game search focused");
 
-    await page.locator("#game-search").fill("");
-    await page.locator("#game-search").blur();
-    await page.waitForTimeout(200);
-
-    await browseEcco(page);
-    await page.locator("#add-browsed-game").click();
-    await page.waitForTimeout(300);
-    await page.locator("#add-browsed-game").click();
-    await page.waitForTimeout(300);
-    if ((await page.locator(".collection-card").count()) !== 2) {
-      throw new Error("Expected two cards after adding twice");
-    }
-
-    if (await page.locator("#delete-all").isDisabled()) {
-      throw new Error("Delete All should be enabled when the collection has cards");
-    }
-
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.locator("#delete-all").click();
-    await page.waitForTimeout(300);
-    if ((await page.locator(".collection-card").count()) !== 0) {
-      throw new Error("Delete All should clear the collection");
-    }
-    console.log("✓ Delete All clears the collection");
-
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);
     }

@@ -119,8 +119,6 @@ let collectionSelectionMetaEl = null;
 /** @type {HTMLButtonElement|null} */
 let deleteSelectedBtn = null;
 /** @type {HTMLButtonElement|null} */
-let deleteAllBtn = null;
-/** @type {HTMLButtonElement|null} */
 let printSelectedBtn = null;
 /** @type {HTMLButtonElement|null} */
 let selectAllBtn = null;
@@ -1296,7 +1294,6 @@ function updateCollectionActions() {
     collectionSelectionMetaEl.classList.toggle("collection-meta--active", selectedCount > 0);
   }
   if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedCount === 0;
-  if (deleteAllBtn) deleteAllBtn.disabled = totalCards === 0;
   if (printSelectedBtn) printSelectedBtn.disabled = selectedCount === 0;
   if (selectAllBtn) selectAllBtn.disabled = totalCards === 0 || selectedCount === totalCards;
   if (deselectAllBtn) deselectAllBtn.disabled = selectedCount === 0;
@@ -1789,15 +1786,6 @@ function bindEvents() {
     logStatus(`Deleted ${noun}.`);
   });
 
-  deleteAllBtn?.addEventListener("click", () => {
-    const collection = getCollection();
-    if (collection.length === 0) return;
-    const noun = collection.length === 1 ? "1 card" : `all ${collection.length} cards`;
-    if (!confirm(`Delete ${noun} from your collection?`)) return;
-    deleteCardsFromCollection(collection.map((card) => card.id));
-    logStatus(`Deleted ${noun}.`);
-  });
-
   selectAllBtn?.addEventListener("click", () => {
     const allCardIds = getCollection().map((card) => card.id);
     if (allCardIds.length === 0) return;
@@ -1835,7 +1823,6 @@ export async function initUI() {
   deleteSelectedBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("delete-selected")
   );
-  deleteAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("delete-all"));
   printSelectedBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("print-selected"));
   selectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("select-all"));
   deselectAllBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("deselect-all"));

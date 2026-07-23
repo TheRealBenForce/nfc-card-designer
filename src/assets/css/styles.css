@@ -2871,7 +2871,8 @@ body {
 
   .preview-frame {
     order: 3;
-    height: auto;
+    /* Definite height so container-query card sizing (100cqh) does not collapse to 0. */
+    height: min(22rem, 45dvh);
     min-height: var(--preview-mat-min-height);
     max-height: min(22rem, 45dvh);
   }

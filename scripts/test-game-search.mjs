@@ -122,6 +122,29 @@ async function main() {
     }
     console.log("✓ Selecting a game opens browse preview with artwork tabs");
 
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "networkidle", timeout: 15000 });
+    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
+    await page.waitForTimeout(150);
+    await page.fill("#game-search", "ecco");
+    await page.waitForTimeout(300);
+    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.waitForTimeout(500);
+
+    const previewCardSize = await page.locator("#preview-card").evaluate((el) => {
+      const { width, height } = el.getBoundingClientRect();
+      return { width, height };
+    });
+    if (previewCardSize.width < 10 || previewCardSize.height < 10) {
+      throw new Error(
+        `Preview card should be visible on narrow viewport, got: ${JSON.stringify(previewCardSize)}`,
+      );
+    }
+    console.log("✓ Narrow viewport shows a sized preview card after game selection");
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.reload({ waitUntil: "networkidle", timeout: 15000 });
+
     await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
     await page.waitForTimeout(150);
     await searchInput.focus();

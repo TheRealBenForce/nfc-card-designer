@@ -1461,9 +1461,11 @@ function bindEvents() {
   document.addEventListener("pointerdown", (e) => {
     const target = /** @type {Node|null} */ (e.target);
     if (!gameSearchAnchorEl || !target) return;
-    if (!gameSearchAnchorEl.contains(target)) {
-      closeGameResults();
-    }
+    const clickedSearchInput =
+      gameSearchInput === target || gameSearchInput?.contains(target);
+    const clickedGameResult = gameResultsEl?.contains(target);
+    if (clickedSearchInput || clickedGameResult) return;
+    closeGameResults();
   });
 
   gameSearchInput?.addEventListener("focus", () => {

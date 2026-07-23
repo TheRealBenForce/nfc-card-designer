@@ -1522,6 +1522,12 @@ body {
   box-shadow: var(--shadow);
 }
 
+.panel--select .game-search-dropdown,
+.panel--select #game-results.game-search-dropdown {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+}
+
 #game-results[hidden] {
   display: none;
 }

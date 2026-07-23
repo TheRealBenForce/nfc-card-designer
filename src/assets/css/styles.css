@@ -1500,10 +1500,11 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.35;
+  min-height: calc(0.78rem * 1.35);
 }
 
-.field-hint[hidden] {
-  display: none;
+.field-hint--suppressed {
+  visibility: hidden;
 }
 
 .section--platforms {

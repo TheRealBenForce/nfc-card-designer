@@ -1312,6 +1312,17 @@ function updateCollectionActions() {
   if (deselectAllBtn) deselectAllBtn.disabled = selectedCount === 0;
 }
 
+/**
+ * @param {string[]} cardIds
+ */
+function deleteCardsFromCollection(cardIds) {
+  if (cardIds.length === 0) return;
+  removeCards(cardIds);
+  saveCollection(getCollection());
+  renderCollection();
+  refreshPreview();
+}
+
 function renderCollection() {
   if (!collectionListEl) return;
   const settings = getSettings();
@@ -1509,6 +1520,9 @@ async function refreshPreview() {
   }
 }
 
+const INTERACTIVE_OUTSIDE_SEARCH_SELECTOR =
+  "button, a, input, select, textarea, label, summary, [role='button'], [role='option']";
+
 function bindEvents() {
   document.addEventListener("pointerdown", (e) => {
     const target = e.target instanceof Element ? e.target : null;
@@ -1517,8 +1531,11 @@ function bindEvents() {
       gameSearchInput === target || gameSearchInput?.contains(target);
     const clickedGameResult = gameResultsEl?.contains(target);
     if (clickedSearchInput || clickedGameResult) return;
+    const clickedInteractive = target.closest(INTERACTIVE_OUTSIDE_SEARCH_SELECTOR);
     globalThis.requestAnimationFrame(() => {
       closeGameResults();
+      // Blurring the search field before button clicks finish can swallow the click (iOS Safari).
+      if (clickedInteractive) return;
       if (document.activeElement === gameSearchInput) {
         gameSearchFocused = false;
         gameSearchInput?.blur();
@@ -1774,12 +1791,13 @@ function bindEvents() {
 
   deleteSelectedBtn?.addEventListener("click", () => {
     const selected = getSelectedCards();
-    if (selected.length === 0) return;
+    if (selected.length === 0) {
+      logStatus("Select at least one card to delete.", true);
+      return;
+    }
     const noun = selected.length === 1 ? "1 card" : `${selected.length} cards`;
     if (!confirm(`Delete ${noun} from your collection?`)) return;
-    removeCards(selected.map((card) => card.id));
-    renderCollection();
-    refreshPreview();
+    deleteCardsFromCollection(selected.map((card) => card.id));
     logStatus(`Deleted ${noun}.`);
   });
 
@@ -1787,10 +1805,12 @@ function bindEvents() {
     const allCardIds = getCollection().map((card) => card.id);
     if (allCardIds.length === 0) return;
     setSelectedCardIds(allCardIds);
+    updateCollectionActions();
   });
 
   deselectAllBtn?.addEventListener("click", () => {
     setSelectedCardIds([]);
+    updateCollectionActions();
   });
 
   printSelectedBtn?.addEventListener("click", async () => {
@@ -1911,17 +1931,6 @@ export async function initUI() {
 
   syncEditColumnState();
   syncGlobalSettingsControls();
-  bindEvents();
-  applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
-  syncPlatformControls();
-  renderPreviewTypeTabs();
-  if (gameResultsEl) gameResultsEl.hidden = true;
-  updateGameSearchHint();
-  renderCollection();
-  refreshCollectionImageStatus().then(() => {
-    renderCollection();
-    refreshPreview();
-  });
 
   subscribe((event) => {
     if (event === "settings") {
@@ -1936,5 +1945,17 @@ export async function initUI() {
       renderCollection();
       updateCollectionActions();
     }
+  });
+
+  bindEvents();
+  applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
+  syncPlatformControls();
+  renderPreviewTypeTabs();
+  if (gameResultsEl) gameResultsEl.hidden = true;
+  updateGameSearchHint();
+  renderCollection();
+  refreshCollectionImageStatus().then(() => {
+    renderCollection();
+    refreshPreview();
   });
 }

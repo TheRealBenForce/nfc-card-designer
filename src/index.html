@@ -126,13 +126,11 @@
           </div>
         </details>
 
-        <section class="section">
-          <h2 class="section__title">Platform</h2>
+        <section class="section section--platforms">
           <div id="platform-results" class="list list--platforms" role="listbox" aria-label="Platforms"></div>
         </section>
 
-        <section class="section">
-          <h2 class="section__title">Game</h2>
+        <section class="section section--game-search">
           <div class="search-field">
             <input
               id="game-search"
@@ -159,46 +157,44 @@
       <section class="panel panel--edit panel--edit-off" id="edit-panel" aria-disabled="true">
         <h2 class="panel__title">Edit</h2>
         <p id="preview-meta" class="preview-meta">Select a game to start editing.</p>
-        <div id="edit-idle" class="edit-idle">
-          <div class="preview-frame preview-frame--idle">
-            <div class="preview-card">
-              <div class="preview-sticker-base" aria-hidden="true"></div>
-              <div class="preview-skeleton preview-skeleton--idle" aria-hidden="false"></div>
-            </div>
-          </div>
-        </div>
-        <div id="edit-controls" class="preview-layout" hidden>
-          <div class="preview-main">
-            <div id="preview-type-tabs" class="preview-type-tabs" role="tablist" aria-label="Artwork type"></div>
-            <div id="preview-frame" class="preview-frame preview-mat">
-              <div id="preview-card" class="preview-card">
-                <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
-                <div id="preview-skeleton" class="preview-skeleton" hidden aria-hidden="true"></div>
-                <img id="preview-image" class="preview-image" alt="" hidden />
+        <div id="edit-controls" class="preview-layout edit-controls--idle">
+          <div
+            id="preview-type-tabs"
+            class="preview-type-tabs preview-layout__tabs"
+            role="tablist"
+            aria-label="Artwork type"
+          ></div>
+          <div class="preview-layout__workspace">
+            <div class="preview-main">
+              <div id="preview-frame" class="preview-frame preview-mat preview-frame--idle">
+                <div id="preview-card" class="preview-card">
+                  <div id="preview-sticker-base" class="preview-sticker-base" aria-hidden="true"></div>
+                  <div id="preview-skeleton" class="preview-skeleton" aria-hidden="false"></div>
+                  <img id="preview-image" class="preview-image" alt="" hidden />
+                </div>
               </div>
+              <div class="edit-control-group edit-control-group--calibration">
+                <h3 class="edit-control-group__title">Size check</h3>
+                <label for="preview-calibration-input" class="preview-calibration">
+                  <span class="preview-calibration__label">Screen calibration</span>
+                  <input
+                    id="preview-calibration-input"
+                    class="preview-calibration__range"
+                    type="range"
+                    min="70"
+                    max="130"
+                    step="1"
+                    value="100"
+                  />
+                  <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
+                </label>
+                <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
+              </div>
+              <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
+                Add to collection
+              </button>
             </div>
-            <div class="edit-control-group edit-control-group--calibration">
-              <h3 class="edit-control-group__title">Size check</h3>
-              <label for="preview-calibration-input" class="preview-calibration">
-                <span class="preview-calibration__label">Screen calibration</span>
-                <input
-                  id="preview-calibration-input"
-                  class="preview-calibration__range"
-                  type="range"
-                  min="70"
-                  max="130"
-                  step="1"
-                  value="100"
-                />
-                <span id="preview-calibration-value" class="preview-calibration__value">100%</span>
-              </label>
-              <p class="preview-calibration__hint">Hold up your NFC card and scale to size.</p>
-            </div>
-            <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
-              Add to collection
-            </button>
-          </div>
-          <aside id="preview-artwork-controls" class="preview-artwork-controls">
+            <aside id="preview-artwork-controls" class="preview-artwork-controls">
             <div class="edit-control-group">
               <h3 id="preview-artwork-controls-title" class="edit-control-group__title">Artwork</h3>
               <div
@@ -246,8 +242,8 @@
                 Reset to Platform Defaults
               </button>
             </div>
-            <div class="edit-control-group preview-card-customization" role="group" aria-label="Card customization controls">
-              <h3 class="edit-control-group__title">Card options</h3>
+            <div class="edit-control-group preview-card-customization" role="group" aria-label="Header design controls">
+              <h3 class="edit-control-group__title">Header design</h3>
               <label class="field field--checkbox">
                 <input id="global-show-header" type="checkbox" checked />
                 <span class="field__label field__label--inline">Show Header</span>
@@ -257,11 +253,23 @@
                 <span class="field__label field__label--inline">Show Platform Accents</span>
               </label>
             </div>
-          </aside>
+            </aside>
+          </div>
         </div>
       </section>
 
-      <aside class="panel panel--print">
+      <button
+        id="collection-drawer-toggle"
+        type="button"
+        class="collection-drawer-toggle"
+        aria-expanded="false"
+        aria-controls="print-panel"
+      >
+        Collection
+      </button>
+      <div id="collection-drawer-backdrop" class="collection-drawer-backdrop" hidden></div>
+
+      <aside class="panel panel--print" id="print-panel">
         <h2 class="panel__title">Print</h2>
         <p id="collection-selection-meta" class="collection-meta">No cards selected</p>
         <div class="print-toolbar">
@@ -280,10 +288,14 @@
 
     <dialog id="platform-settings-modal" class="platform-settings-modal" aria-labelledby="platform-settings-title">
       <form method="dialog" class="platform-settings-modal__panel">
+        <div class="platform-settings-modal__accent" aria-hidden="true"></div>
         <header class="platform-settings-modal__header">
-          <h2 id="platform-settings-title" class="platform-settings-modal__title">Platform defaults</h2>
+          <div class="platform-settings-modal__heading">
+            <p class="platform-settings-modal__eyebrow">Platform defaults</p>
+            <h2 id="platform-settings-title" class="platform-settings-modal__title">Edit platform</h2>
+          </div>
           <button id="platform-settings-close" type="button" class="platform-settings-modal__close" aria-label="Close">
-            ×
+            <span aria-hidden="true">×</span>
           </button>
         </header>
 

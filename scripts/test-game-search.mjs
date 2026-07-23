@@ -39,13 +39,13 @@ async function main() {
     if ((await editPanel.getAttribute("aria-disabled")) !== "true") {
       throw new Error("Edit panel should be disabled on initial load");
     }
-    if (!(await page.locator("#edit-idle").isVisible())) {
-      throw new Error("Edit idle skeleton should be visible on initial load");
+    if (!(await page.locator("#preview-skeleton").isVisible())) {
+      throw new Error("Edit preview skeleton should be visible on initial load");
     }
     if (!(await page.locator("#edit-panel").evaluate((el) => el.classList.contains("panel--edit-off")))) {
       throw new Error("Edit panel should have panel--edit-off on initial load");
     }
-    console.log("✓ Edit column is OFF with idle skeleton on load");
+    console.log("✓ Edit column is OFF with preview skeleton on load");
 
     await page.getByRole("button", { name: "Sega CD", exact: true }).click();
     await page.waitForTimeout(150);
@@ -191,8 +191,8 @@ async function main() {
       const panel = document.getElementById("edit-panel");
       return panel?.getAttribute("aria-disabled") === "true";
     });
-    if (!(await page.locator("#edit-idle").isVisible())) {
-      throw new Error("Edit idle skeleton should return after clearing project");
+    if (!(await page.locator("#preview-skeleton").isVisible())) {
+      throw new Error("Edit preview skeleton should return after clearing project");
     }
     console.log("✓ Clearing project returns Edit column to OFF");
 

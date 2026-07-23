@@ -2306,6 +2306,10 @@ body {
   transition: opacity 0.15s ease;
 }
 
+.preview-image[hidden] {
+  display: none !important;
+}
+
 .preview-layout {
   display: flex;
   flex-direction: column;

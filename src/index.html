@@ -132,6 +132,15 @@
 
         <section class="section section--game-search">
           <div class="search-field">
+            <input
+              id="game-search"
+              class="input search-field__input"
+              type="search"
+              placeholder="Search games..."
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="game-results"
+            />
             <svg
               class="search-field__icon"
               width="18"
@@ -147,15 +156,6 @@
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
-            <input
-              id="game-search"
-              class="input search-field__input"
-              type="search"
-              placeholder="Search games..."
-              autocomplete="off"
-              aria-autocomplete="list"
-              aria-controls="game-results"
-            />
           </div>
           <p id="game-search-hint" class="field-hint">Select a platform to search retail releases.</p>
           <div id="game-results" class="list list--games" role="listbox" aria-label="Games" hidden></div>

@@ -1166,7 +1166,7 @@ body {
 
 .search-field__icon {
   position: absolute;
-  left: 0.85rem;
+  right: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1.05rem;
@@ -1178,8 +1178,8 @@ body {
 .search-field__input {
   min-height: 2.75rem;
   width: 100%;
-  padding-left: 2.55rem;
-  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+  padding-right: 2.55rem;
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);

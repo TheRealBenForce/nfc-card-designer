@@ -94,6 +94,25 @@
       "zoom": 0
     }
   },
+  "game-boy-advance": {
+    "color": "#512da8",
+    "imageTypePriority": [
+      "boxArt",
+      "titleScreen",
+      "gamePicture"
+    ],
+    "imageRotation": {
+      "boxArt": 0,
+      "titleScreen": 0,
+      "gamePicture": 0
+    },
+    "artworkDisplay": {
+      "alignment": "top-center",
+      "backgroundMode": "consoleColor",
+      "backgroundColor": "#000000",
+      "zoom": 0
+    }
+  },
   "snes": {
     "color": "#d6262a",
     "imageTypePriority": [

@@ -17,6 +17,7 @@ export const platforms = [
   { id: "master-system", name: "Sega Master System", emoji: "📺", defaultColor: MASTER_SYSTEM_COLOR, libretroPlaylist: "Sega - Master System - Mark III", searchAliases: ["sms", "sega master"] },
   { id: "game-boy", name: "Game Boy", emoji: "🟩", defaultColor: "#8bac0f", libretroPlaylist: "Nintendo - Game Boy", searchAliases: ["gb", "gameboy"] },
   { id: "game-boy-color", name: "Game Boy Color", emoji: "🌈", defaultColor: "#e0459c", libretroPlaylist: "Nintendo - Game Boy Color", searchAliases: ["gbc", "gameboy color"] },
+  { id: "game-boy-advance", name: "Game Boy Advance", emoji: "🟪", defaultColor: "#512da8", libretroPlaylist: "Nintendo - Game Boy Advance", searchAliases: ["gba", "gameboy advance", "game boy advance"] },
   { id: "snes", name: "SNES", emoji: "🎯", defaultColor: "#d6262a", libretroPlaylist: "Nintendo - Super Nintendo Entertainment System", searchAliases: ["super nintendo", "super nes"] },
   { id: "genesis", name: "Sega Genesis", emoji: "⚡", defaultColor: "#2e6db4", libretroPlaylist: "Sega - Mega Drive - Genesis", searchAliases: ["megadrive", "mega drive", "md"] },
   { id: "sega-cd", name: "Sega CD", emoji: "💿", defaultColor: MASTER_SYSTEM_COLOR, libretroPlaylist: "Sega - Mega-CD - Sega CD", searchAliases: ["mega cd", "segacd"] },

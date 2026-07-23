@@ -22,9 +22,7 @@ let byPlatform = null;
 /** @type {Promise<void>|null} */
 let loadPromise = null;
 
-export const MIN_GAME_SEARCH_CHARS = 3;
-export const GAME_SEARCH_RESULT_LIMIT = 100;
-export const GAME_SEARCH_BROWSE_LIMIT = 10;
+export const GAME_SEARCH_PAGE_SIZE = 10;
 const GAME_CATALOG_URL = "assets/data/game-catalog.json";
 
 export async function loadGameCatalog() {
@@ -141,43 +139,42 @@ export function gameForCard(card) {
  * @returns {Game[]}
  */
 export function browseGamesWithArtwork(platformId, options = {}) {
-  const limit = options.limit ?? GAME_SEARCH_BROWSE_LIMIT;
+  const limit = options.limit ?? 0;
   const prefix = options.prefix?.trim().toLowerCase() ?? "";
 
-  return gamesForPlatform(platformId)
+  const games = gamesForPlatform(platformId)
     .filter((game) => !prefix || game.name.toLowerCase().includes(prefix))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
-    .slice(0, limit);
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+
+  return limit > 0 ? games.slice(0, limit) : games;
 }
 
 /**
  * @param {string} platformId
  * @param {string} query
- * @param {{ limit?: number, browseLimit?: number }} [options]
- * @returns {{ games: Game[], total: number, isBrowseSample: boolean }}
+ * @returns {{ games: Game[], total: number, isNoMatchFallback: boolean }}
  */
-export function searchGames(platformId, query, options = {}) {
-  const limit = options.limit ?? GAME_SEARCH_RESULT_LIMIT;
-  const browseLimit = options.browseLimit ?? GAME_SEARCH_BROWSE_LIMIT;
+export function searchGames(platformId, query) {
   const q = query.trim().toLowerCase();
+  const platformGames = gamesForPlatform(platformId);
 
-  if (q.length < MIN_GAME_SEARCH_CHARS) {
-    const games = browseGamesWithArtwork(platformId, { limit: browseLimit, prefix: q });
-    return { games, total: games.length, isBrowseSample: true };
+  if (q.length === 0) {
+    const games = [...platformGames].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
+    return { games, total: games.length, isNoMatchFallback: false };
   }
 
-  const matches = gamesForPlatform(platformId)
+  const matches = platformGames
     .filter((game) => game.name.toLowerCase().includes(q))
     .sort((a, b) => compareSearchResults(a.name, b.name, q));
 
   if (matches.length === 0) {
-    const games = browseGamesWithArtwork(platformId, { limit: browseLimit });
-    return { games, total: 0, isBrowseSample: true };
+    const games = browseGamesWithArtwork(platformId);
+    return { games, total: 0, isNoMatchFallback: true };
   }
 
-  const total = matches.length;
-  const games = limit > 0 ? matches.slice(0, limit) : matches;
-  return { games, total, isBrowseSample: false };
+  return { games: matches, total: matches.length, isNoMatchFallback: false };
 }
 
 /**
@@ -186,8 +183,8 @@ export function searchGames(platformId, query, options = {}) {
  * @param {number} [highlightedIndex]
  */
 export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
-  const { games } = searchGames(platformId, query, { limit: 0 });
-  if (games.length === 0) return null;
+  const { games, isNoMatchFallback } = searchGames(platformId, query);
+  if (games.length === 0 || isNoMatchFallback) return null;
 
   const lower = query.trim().toLowerCase();
   const exact = games.find((g) => g.name.toLowerCase() === lower);

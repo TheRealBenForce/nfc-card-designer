@@ -84,17 +84,28 @@
             <h2 class="static-card__title">Platform logos</h2>
           </div>
           <p>
-            Default platform logos on NFC card labels are adapted from the <strong>Carbon</strong>
-            EmulationStation theme by RetroPie.
+            Platform logos on NFC card labels and in the platform selector use artwork from
+            <strong>RetroArch XMB</strong> themes in the libretro assets repository. The default
+            theme is <strong>Dot Art</strong>; other themes are available in Global Settings.
+            Monochrome, Pixel, and Automatic icons are inverted in light mode so they stay visible on
+            pale UI backgrounds.
           </p>
           <ul>
+            <li>
+              <a href="https://github.com/libretro/retroarch-assets/tree/master/xmb" rel="noopener noreferrer"
+                >libretro/retroarch-assets</a
+              >
+              — XMB system icons (<code>xmb/*/png/*.png</code>) for each supported console
+            </li>
             <li>
               <a href="https://github.com/RetroPie/es-theme-carbon" rel="noopener noreferrer"
                 >RetroPie/es-theme-carbon</a
               >
-              — system artwork (<code>*/art/system.svg</code>) for each supported console
+              — bundled fallback system artwork when an XMB icon is unavailable
             </li>
           </ul>
+          <p>Supported platforms:</p>
+          <ul id="supported-platforms-list" class="static-card__platform-list"></ul>
         </section>
 
         <section class="static-card">
@@ -128,5 +139,20 @@
         <a class="static-page__back header__link" href="./">← Back to NFC Card Maker</a>
       </footer>
     </main>
+    <script type="module">
+      import { platforms } from "./assets/js/data/platforms.js";
+
+      const list = document.getElementById("supported-platforms-list");
+      if (list) {
+        const sorted = [...platforms].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        );
+        for (const platform of sorted) {
+          const item = document.createElement("li");
+          item.textContent = platform.name;
+          list.appendChild(item);
+        }
+      }
+    </script>
   </body>
 </html>

@@ -183,8 +183,8 @@ export function searchGames(platformId, query) {
  * @param {number} [highlightedIndex]
  */
 export function pickGameFromCatalog(platformId, query, highlightedIndex = 0) {
-  const { games } = searchGames(platformId, query);
-  if (games.length === 0) return null;
+  const { games, isNoMatchFallback } = searchGames(platformId, query);
+  if (games.length === 0 || isNoMatchFallback) return null;
 
   const lower = query.trim().toLowerCase();
   const exact = games.find((g) => g.name.toLowerCase() === lower);

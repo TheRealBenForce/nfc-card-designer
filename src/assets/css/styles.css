@@ -717,7 +717,26 @@ body {
   gap: 1rem;
   padding: 1rem;
   min-height: calc(100vh - 88px);
+  align-items: start;
   box-sizing: border-box;
+}
+
+.panel--select,
+.panel--edit,
+.panel--print {
+  align-self: start;
+  width: 100%;
+  max-height: calc(100dvh - 5.5rem);
+}
+
+.panel--select {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.panel--edit {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .panel {
@@ -747,6 +766,12 @@ body {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+}
+
+.panel--print .collection-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .edit-controls--loading .preview-artwork-controls,
@@ -2002,7 +2027,7 @@ body {
 }
 
 #edit-controls.preview-layout {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   gap: 0;
 }
@@ -2214,7 +2239,7 @@ body {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   grid-template-rows: auto auto auto;
   gap: 0.65rem 1rem;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   width: 100%;
   align-items: start;
@@ -2235,9 +2260,9 @@ body {
 .preview-layout__workspace .edit-control-group {
   grid-column: 2;
   grid-row: 2;
+  height: var(--preview-middle-height);
   min-height: var(--preview-mat-min-height);
   max-height: var(--preview-middle-height);
-  height: auto;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -2394,6 +2419,11 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
+}
+
+.edit-control-group .artwork-background-row {
+  width: 100%;
 }
 
 .artwork-zoom-field--inline {
@@ -2707,6 +2737,22 @@ body {
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
+    align-items: stretch;
+  }
+
+  .panel--select,
+  .panel--edit,
+  .panel--print {
+    max-height: none;
+  }
+
+  .panel--select,
+  .panel--edit {
+    overflow-y: visible;
+  }
+
+  .panel--print {
+    max-height: min(70dvh, 36rem);
   }
 
   .preview-layout__workspace {
@@ -2722,15 +2768,15 @@ body {
   .preview-frame {
     grid-column: 1;
     grid-row: 2;
-    max-height: min(var(--preview-middle-height), 70vh);
+    height: auto;
+    max-height: min(var(--preview-middle-height), 55dvh);
   }
 
   .edit-control-group {
     grid-column: 1;
     grid-row: 3;
     height: auto;
-    min-height: var(--preview-mat-min-height);
-    max-height: min(var(--preview-middle-height), 70vh);
+    max-height: min(var(--preview-middle-height), 55dvh);
   }
 
   .preview-calibration-panel {
@@ -2756,7 +2802,7 @@ body {
   }
 
   .collection-list {
-    max-height: 240px;
-    flex: none;
+    max-height: none;
+    flex: 1;
   }
 }

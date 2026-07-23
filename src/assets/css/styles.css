@@ -44,6 +44,8 @@
   --card-height-mm: 84;
   --sticker-width-mm: 48;
   --sticker-height-mm: 80;
+  --preview-column-width: 17.5rem;
+  --preview-mat-height: 24rem;
 }
 
 [data-theme="dark"] {
@@ -2025,14 +2027,15 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-  width: fit-content;
-  max-width: min(100%, calc(100vw - 3.5rem));
-  min-height: 0;
-  align-self: flex-start;
-  padding: clamp(0.85rem, 2.5vw, 1.35rem);
+  align-items: stretch;
+  justify-content: stretch;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--preview-mat-height);
+  height: var(--preview-mat-height);
+  padding: 1rem;
+  box-sizing: border-box;
   background: var(--surface-2);
   border: 1px solid color-mix(in srgb, var(--platform-color, var(--border)) 35%, var(--border));
   border-radius: var(--radius-lg);
@@ -2043,24 +2046,28 @@ body {
   transition:
     border-color var(--motion-base) var(--ease-out),
     box-shadow var(--motion-base) var(--ease-out);
+  overflow: hidden;
 }
 
 .preview-stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: calc((var(--card-width-mm) * 1mm) * var(--preview-calibration-scale, 1));
-  min-height: calc((var(--card-height-mm) * 1mm) * var(--preview-calibration-scale, 1));
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .preview-calibration-panel {
   width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.7rem 0.55rem;
+  margin-top: 0;
+  padding: 0.95rem 1rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
 }
 
 .preview-mat {
@@ -2087,9 +2094,13 @@ body {
 
 .preview-card {
   position: relative;
-  width: min(100%, calc((var(--card-width-mm) * 1mm) * var(--preview-calibration-scale, 1)));
+  width: min(
+    calc((var(--card-width-mm) * 1mm) * var(--preview-calibration-scale, 1)),
+    100%
+  );
+  max-height: 100%;
   aspect-ratio: var(--card-width-mm) / var(--card-height-mm);
-  max-height: calc((var(--card-height-mm) * 1mm) * var(--preview-calibration-scale, 1));
+  height: auto;
   border-radius: 5px;
   background: var(--card-stock);
   overflow: hidden;
@@ -2097,12 +2108,10 @@ body {
     0 12px 28px rgba(42, 32, 24, 0.2),
     inset 0 0 0 1px rgba(0, 0, 0, 0.1);
   transition:
-    transform var(--motion-base) var(--ease-spring),
     box-shadow var(--motion-base) var(--ease-out);
 }
 
 .panel--edit-on .preview-card:hover {
-  transform: translateY(-2px) scale(1.005);
   box-shadow:
     0 16px 34px rgba(42, 32, 24, 0.24),
     inset 0 0 0 1px rgba(0, 0, 0, 0.1);
@@ -2191,20 +2200,20 @@ body {
 
 .preview-layout__workspace {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
-  gap: 1.35rem;
+  gap: 1rem;
   width: 100%;
 }
 
 .preview-main {
-  flex: 0 0 auto;
+  flex: 0 0 var(--preview-column-width);
+  width: var(--preview-column-width);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.85rem;
+  gap: 0.65rem;
   min-width: 0;
-  width: min(100%, fit-content);
   position: relative;
 }
 
@@ -2215,6 +2224,13 @@ body {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.preview-artwork-controls .edit-control-group {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .edit-control-group__title {
@@ -2322,11 +2338,12 @@ body {
 }
 
 .preview-artwork-controls {
-  flex: 1 1 240px;
-  max-width: 280px;
+  flex: 0 0 var(--preview-column-width);
+  width: var(--preview-column-width);
+  max-width: var(--preview-column-width);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
   margin-top: 0;
   padding-top: 0;
   border-top: none;
@@ -2357,14 +2374,23 @@ body {
   gap: 0.45rem;
 }
 
+.alignment-row .alignment-grid {
+  flex: 0 0 auto;
+}
+
+.alignment-row .alignment-rotate-btn {
+  flex: 0 0 auto;
+}
+
 .artwork-zoom-field--vertical {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   align-self: stretch;
   margin: 0;
   padding: 0.2rem 0;
+  min-width: 1.5rem;
 }
 
 .artwork-zoom-field--vertical .artwork-zoom-field__range {
@@ -2574,9 +2600,10 @@ body {
 }
 
 .preview-add-btn {
-  margin-top: 0.15rem;
+  margin-top: 0;
   width: 100%;
   align-self: stretch;
+  flex: 0 0 auto;
 }
 
 .deck-list,
@@ -2659,17 +2686,19 @@ body {
 
   .preview-layout__workspace {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 
+  .preview-main,
   .preview-artwork-controls {
+    flex: 1 1 auto;
     width: 100%;
-    max-width: 360px;
+    max-width: none;
   }
 
   .preview-frame {
-    max-width: calc(100vw - 2.5rem);
-    padding: 0.75rem;
+    height: min(var(--preview-mat-height), 70vw);
+    min-height: 18rem;
   }
 
   .preview-mat {

@@ -2835,44 +2835,72 @@ body {
   }
 
   .preview-layout__workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .preview-meta-game,
+  .preview-layout__workspace .preview-type-tabs,
+  .preview-frame,
+  .preview-calibration-panel,
+  .edit-control-group,
+  .preview-add-btn {
+    grid-column: auto;
+    grid-row: auto;
+    width: 100%;
+    align-self: stretch;
   }
 
   .preview-meta-game {
-    grid-column: 1;
-    grid-row: 1;
+    order: 1;
   }
 
   .preview-layout__workspace .preview-type-tabs {
-    grid-column: 1;
-    grid-row: 2;
+    order: 2;
     justify-content: flex-start;
-    width: 100%;
   }
 
   .preview-frame {
-    grid-column: 1;
-    grid-row: 3;
+    order: 3;
     height: auto;
-    max-height: min(var(--preview-middle-height), 55dvh);
-  }
-
-  .edit-control-group {
-    grid-column: 1;
-    grid-row: 4;
-    height: auto;
-    max-height: min(var(--preview-middle-height), 55dvh);
+    min-height: var(--preview-mat-min-height);
+    max-height: min(22rem, 45dvh);
   }
 
   .preview-calibration-panel {
-    grid-column: 1;
-    grid-row: 5;
+    order: 4;
+  }
+
+  .edit-control-group {
+    order: 5;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: visible;
   }
 
   .preview-add-btn {
-    grid-column: 1;
-    grid-row: 6;
+    order: 6;
+    padding-block: 0.65rem;
+    min-height: 0;
+  }
+
+  .preview-artwork-controls .alignment-grid {
+    flex: 0 0 auto;
+    width: 9rem;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .preview-artwork-controls .alignment-grid__btn {
+    min-height: 2.25rem;
+    max-height: 2.25rem;
+    aspect-ratio: 1;
+  }
+
+  .preview-artwork-reset {
+    margin-bottom: 0;
   }
 
   .preview-mat {

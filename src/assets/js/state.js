@@ -38,6 +38,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {number} cardWidthMm
  * @property {number} cardHeightMm
  * @property {number} stickerInsetMm
+ * @property {string} platformIconTheme
  */
 
 /** @type {AppSettings} */

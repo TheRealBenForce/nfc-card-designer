@@ -3,136 +3,223 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Supplies · NFC Card Designer</title>
+    <title>Supplies · NFC Card Maker</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon-gamepad.svg" />
     <link rel="alternate icon" href="assets/images/favicon-gamepad.svg" />
     <link rel="shortcut icon" href="assets/images/favicon-gamepad.svg" />
+    <script src="assets/js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
     <header class="header">
       <nav class="header__nav" aria-label="Site">
         <h1 class="header__title">
-          <a class="header__brand" href="./">NFC Card Designer</a>
+          <a class="header__brand wordmark" href="./">NFC Card Maker</a>
         </h1>
-        <span class="header__link header__link--current" aria-current="page">Supplies</span>
-        <a class="header__link" href="recognition.html">Recognition</a>
+        <div class="header__links">
+          <span class="header__link header__link--current" aria-current="page">Supplies</span>
+          <a class="header__link" href="recognition.html">Recognition</a>
+        </div>
+        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Switch to dark mode">
+          <svg
+            class="theme-toggle__icon theme-toggle__icon--moon"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
+          <svg
+            class="theme-toggle__icon theme-toggle__icon--sun"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="M4.93 4.93l1.41 1.41" />
+            <path d="M17.66 17.66l1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="M4.93 19.07l1.41-1.41" />
+            <path d="M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
       </nav>
     </header>
 
     <main class="static-page site-container">
-      <h1>Supplies</h1>
-      <p class="static-page__lead">
-        This designer exports a letter-size PDF with nine labels per sheet. After you print, cut, and apply
-        them to blank NFC cards, write tags with your preferred NFC app — Home Assistant, Shortcuts, or any
-        writer that supports NTAG215. The items below are what most people use — search links point to Amazon
-        for convenience (not affiliate links).
-      </p>
-
-      <section>
-        <h2>Essentials</h2>
-
-        <h3>Blank NTAG215 NFC cards</h3>
-        <p>
-          <strong>NTAG215</strong> tags are widely used for NFC automations — they have enough memory for
-          typical payloads. Look for standard credit-card size blanks (about 54 × 85 mm). Avoid MIFARE Classic
-          tags; they are not recommended for new NFC card setups.
-          <a
-            href="https://www.amazon.com/s?k=NTAG215+NFC+cards+blank"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Search on Amazon</a
-          >
+      <header class="static-hero">
+        <p class="static-hero__eyebrow">Maker guide</p>
+        <h1>Supplies</h1>
+        <p class="static-page__lead">
+          This designer exports a letter-size PDF with nine labels per sheet. After you print, cut, and apply
+          them to blank NFC cards, write tags with your preferred NFC app — Home Assistant, Shortcuts, or any
+          writer that supports NTAG215. The items below are what most people use — search links point to Amazon
+          for convenience (not affiliate links).
         </p>
+      </header>
 
-        <h3>Matte vinyl sticker paper (US Letter)</h3>
-        <p>
-          This designer lays out labels on <strong>8.5 × 11″ (Letter)</strong> sheets. Matte vinyl is a popular
-          choice among makers: it prints cleanly on most inkjet printers, handles well, and takes lamination if
-          you want extra durability.
-          <a
-            href="https://www.amazon.com/s?k=matte+vinyl+sticker+paper+letter+inkjet"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Search on Amazon</a
-          >
-        </p>
-      </section>
+      <div class="static-grid">
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">📦</span>
+            <h2 class="static-card__title">Essentials</h2>
+          </div>
 
-      <section>
-        <h2>Cutting &amp; finishing</h2>
+          <article class="static-item">
+            <h3 class="static-item__title">Blank NTAG215 NFC cards</h3>
+            <p>
+              <strong>NTAG215</strong> tags are widely used for NFC automations — they have enough memory for
+              typical payloads. Look for standard credit-card size blanks (about 54 × 85 mm). Avoid MIFARE Classic
+              tags; they are not recommended for new NFC card setups.
+            </p>
+            <div class="static-item__links">
+              <a
+                class="static-link static-link--primary"
+                href="https://www.amazon.com/s?k=NTAG215+NFC+cards+blank"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Search on Amazon</a
+              >
+            </div>
+          </article>
 
-        <h3>Corner rounder (R3 / 3 mm)</h3>
-        <p>
-          NFC cards have rounded corners. A <strong>3 mm (R3)</strong> corner rounder is the closest match and
-          gives labels a finished look. Clean adhesive buildup from the punch every few cuts so it does not
-          jam.
-          <a
-            href="https://www.amazon.com/s?k=corner+rounder+R3+3mm"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Search on Amazon</a
-          >
-        </p>
+          <article class="static-item">
+            <h3 class="static-item__title">Matte vinyl sticker paper (US Letter)</h3>
+            <p>
+              This designer lays out labels on <strong>8.5 × 11″ (Letter)</strong> sheets. Matte vinyl is a popular
+              choice among makers: it prints cleanly on most inkjet printers, handles well, and takes lamination if
+              you want extra durability.
+            </p>
+            <div class="static-item__links">
+              <a
+                class="static-link static-link--primary"
+                href="https://www.amazon.com/s?k=matte+vinyl+sticker+paper+letter+inkjet"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Search on Amazon</a
+              >
+            </div>
+          </article>
+        </section>
 
-        <h3>Cutting mat, metal ruler &amp; craft knife</h3>
-        <p>
-          The PDF includes cut marks, but many people still trim labels with an X-Acto-style knife and a straight
-          edge. A self-healing mat protects your desk and keeps cuts accurate.
-          <a
-            href="https://www.amazon.com/s?k=craft+knife+cutting+mat+metal+ruler"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Search on Amazon</a
-          >
-        </p>
-      </section>
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">✂️</span>
+            <h2 class="static-card__title">Cutting &amp; finishing</h2>
+          </div>
 
-      <section>
-        <h2>3D-printed sticker applicator</h2>
-        <h3>TapTo Sticker Applicator</h3>
-        <p>
-          Applying full-size labels by hand can be fiddly — bubbles and crooked edges add up fast. This free
-          3D-printable jig by EntirelyTom helps hold an NFC card and sticker in alignment while you apply the
-          label edge-first, then push the card through to finish the rest.
-        </p>
-        <p>
-          The model ships as a single <strong>3MF file</strong> with separate parts. Load them into your slicer
-          as individual objects so you can rotate and arrange them for your bed. After printing, use
-          <strong>CA glue</strong> to attach the rounded applicator to the frame (and optionally the first
-          crossbar). It takes a little practice, but it beats freestyling on the table.
-        </p>
-        <ol>
-          <li>Slide the NFC card into the jig.</li>
-          <li>Apply the sticker to the first crossbar, leaving a little overhang.</li>
-          <li>Align the card below and press the sticker onto the top edge of the card.</li>
-          <li>Push the card through the jig to apply the rest of the label.</li>
-        </ol>
-        <p>
-          <a
-            href="https://www.printables.com/model/1022980-tapto-sticker-applicator"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Download on Printables</a
-          >
-          ·
-          <a
-            href="https://www.amazon.com/s?k=CA+glue+super+glue"
-            target="_blank"
-            rel="noopener noreferrer"
-            >CA glue on Amazon</a
-          >
-        </p>
-        <p>
-          Model by
-          <a href="https://www.printables.com/@EntirelyTom" target="_blank" rel="noopener noreferrer"
-            >EntirelyTom</a
-          >
-          · Free download · Updated September 2024
-        </p>
-      </section>
+          <article class="static-item">
+            <h3 class="static-item__title">Corner rounder (R3 / 3 mm)</h3>
+            <p>
+              NFC cards have rounded corners. A <strong>3 mm (R3)</strong> corner rounder is the closest match and
+              gives labels a finished look. Clean adhesive buildup from the punch every few cuts so it does not
+              jam.
+            </p>
+            <div class="static-item__links">
+              <a
+                class="static-link"
+                href="https://www.amazon.com/s?k=corner+rounder+R3+3mm"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Search on Amazon</a
+              >
+            </div>
+          </article>
 
-      <a class="static-page__back header__link" href="./">← Back to NFC Card Designer</a>
+          <article class="static-item">
+            <h3 class="static-item__title">Cutting mat, metal ruler &amp; craft knife</h3>
+            <p>
+              The PDF includes cut marks, but many people still trim labels with an X-Acto-style knife and a straight
+              edge. A self-healing mat protects your desk and keeps cuts accurate.
+            </p>
+            <div class="static-item__links">
+              <a
+                class="static-link"
+                href="https://www.amazon.com/s?k=craft+knife+cutting+mat+metal+ruler"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Search on Amazon</a
+              >
+            </div>
+          </article>
+        </section>
+
+        <section class="static-card">
+          <div class="static-card__header">
+            <span class="static-card__icon" aria-hidden="true">🖨️</span>
+            <h2 class="static-card__title">3D-printed sticker applicator</h2>
+          </div>
+
+          <article class="static-item">
+            <h3 class="static-item__title">TapTo Sticker Applicator</h3>
+            <p>
+              Applying full-size labels by hand can be fiddly — bubbles and crooked edges add up fast. This free
+              3D-printable jig by EntirelyTom helps hold an NFC card and sticker in alignment while you apply the
+              label edge-first, then push the card through to finish the rest.
+            </p>
+            <p>
+              The model ships as a single <strong>3MF file</strong> with separate parts. Load them into your slicer
+              as individual objects so you can rotate and arrange them for your bed. After printing, use
+              <strong>CA glue</strong> to attach the rounded applicator to the frame (and optionally the first
+              crossbar). It takes a little practice, but it beats freestyling on the table.
+            </p>
+            <ol class="static-steps">
+              <li>Slide the NFC card into the jig.</li>
+              <li>Apply the sticker to the first crossbar, leaving a little overhang.</li>
+              <li>Align the card below and press the sticker onto the top edge of the card.</li>
+              <li>Push the card through the jig to apply the rest of the label.</li>
+            </ol>
+            <div class="static-item__links">
+              <a
+                class="static-link static-link--primary"
+                href="https://www.printables.com/model/1022980-tapto-sticker-applicator"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Download on Printables</a
+              >
+              <a
+                class="static-link"
+                href="https://www.amazon.com/s?k=CA+glue+super+glue"
+                target="_blank"
+                rel="noopener noreferrer"
+                >CA glue on Amazon</a
+              >
+            </div>
+            <p class="static-note">
+              Model by
+              <a href="https://www.printables.com/@EntirelyTom" target="_blank" rel="noopener noreferrer"
+                >EntirelyTom</a
+              >
+              · Free download · Updated September 2024
+            </p>
+          </article>
+        </section>
+      </div>
+
+      <footer class="static-footer">
+        <a class="static-page__back header__link" href="./">← Back to NFC Card Maker</a>
+      </footer>
     </main>
   </body>
 </html>

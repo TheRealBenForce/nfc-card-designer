@@ -176,6 +176,9 @@ let editPanelEl = null;
 /** @type {HTMLElement|null} */
 let editControlsEl = null;
 
+/** True while resolving artwork types or rendering a browse preview. */
+let browseLoading = false;
+
 /**
  * @type {{
  *   game: import('./gameCatalog.js').Game,
@@ -210,6 +213,14 @@ function showPreviewSkeleton() {
   previewSkeletonEl.hidden = false;
   previewSkeletonEl.setAttribute("aria-hidden", "false");
   previewFrameEl.classList.add("preview-frame--loading");
+  previewFrameEl.classList.remove("preview-frame--idle");
+}
+
+function showPreviewSkeletonImmediate() {
+  if (!previewSkeletonEl || !previewFrameEl) return;
+  clearTimeout(previewSkeletonTimer);
+  previewSkeletonTimer = null;
+  showPreviewSkeleton();
 }
 
 function cancelPreviewSkeleton() {
@@ -219,28 +230,80 @@ function cancelPreviewSkeleton() {
   previewSkeletonEl.hidden = true;
   previewSkeletonEl.setAttribute("aria-hidden", "true");
   previewFrameEl.classList.remove("preview-frame--loading");
+  previewFrameEl.classList.remove("preview-frame--idle");
+}
+
+function isEditInteractive() {
+  return Boolean(browseState) && !browseLoading;
+}
+
+/**
+ * @returns {import("./artworkDisplay.js").ArtworkDisplaySettings}
+ */
+function getPreviewArtworkDisplayFallback() {
+  const platformId = getActivePlatformId();
+  if (!platformId) return normalizeArtworkDisplay({});
+  return getPlatformArtworkDisplay(getSettings().platformDefaults, platformId);
+}
+
+function setEditControlsDisabled(disabled) {
+  const controls = [
+    addBrowsedGameBtn,
+    previewArtworkRotateBtn,
+    previewArtworkResetBtn,
+    previewArtworkBackgroundModeEl,
+    previewArtworkBackgroundColorEl,
+    previewArtworkZoomEl,
+  ];
+
+  for (const control of controls) {
+    if (control) control.disabled = disabled;
+  }
+
+  if (previewArtworkAlignmentGridEl) {
+    for (const btn of previewArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
+      /** @type {HTMLButtonElement} */ (btn).disabled = disabled;
+    }
+  }
+
+  for (const tab of previewTypeTabsEl?.querySelectorAll(".preview-type-tab") ?? []) {
+    /** @type {HTMLButtonElement} */ (tab).disabled = disabled;
+  }
+}
+
+function syncPreviewPlatformAccent() {
+  const platformId = browseState?.game.platformId ?? getActivePlatformId();
+  const color = platformId ? platformById[platformId]?.defaultColor : null;
+  const targets = [editPanelEl, ...document.querySelectorAll(".preview-frame")].filter(Boolean);
+
+  targets.forEach((el) => {
+    if (color) el.style.setProperty("--platform-color", color);
+    else el.style.removeProperty("--platform-color");
+  });
 }
 
 function syncEditColumnState() {
-  const active = Boolean(browseState);
+  const interactive = isEditInteractive();
+  const active = Boolean(browseState) || browseLoading;
 
   if (editPanelEl) {
     editPanelEl.classList.toggle("panel--edit-on", active);
     editPanelEl.classList.toggle("panel--edit-off", !active);
-    editPanelEl.setAttribute("aria-disabled", active ? "false" : "true");
+    editPanelEl.setAttribute("aria-disabled", interactive ? "false" : "true");
   }
 
   if (editControlsEl) {
-    editControlsEl.hidden = !active;
-    if (!active) {
-      editControlsEl.setAttribute("inert", "");
-    } else {
+    editControlsEl.classList.toggle("edit-controls--idle", !active);
+    editControlsEl.classList.toggle("edit-controls--loading", browseLoading);
+    editControlsEl.classList.toggle("edit-controls--ready", interactive);
+    if (interactive) {
       editControlsEl.removeAttribute("inert");
+    } else {
+      editControlsEl.setAttribute("inert", "");
     }
   }
 
   if (!active) {
-    cancelPreviewSkeleton();
     if (previewImageEl) {
       previewImageEl.hidden = true;
       previewImageEl.removeAttribute("src");
@@ -250,8 +313,20 @@ function syncEditColumnState() {
       previewMetaEl.textContent = "Select a game to start editing.";
     }
     renderPreviewTypeTabs();
+    if (previewSkeletonEl && previewFrameEl) {
+      clearTimeout(previewSkeletonTimer);
+      previewSkeletonTimer = null;
+      previewSkeletonEl.hidden = false;
+      previewSkeletonEl.setAttribute("aria-hidden", "false");
+      previewFrameEl.classList.remove("preview-frame--loading");
+      previewFrameEl.classList.add("preview-frame--idle");
+    }
+  } else if (browseLoading) {
+    showPreviewSkeletonImmediate();
   }
 
+  setEditControlsDisabled(!interactive);
+  syncPreviewPlatformAccent();
   syncBrowseActionButton();
   syncPreviewArtworkControls();
 }
@@ -415,24 +490,25 @@ function mountArtworkBackgroundModeSelect(selectEl) {
 
 function syncPreviewArtworkControls() {
   const context = getPreviewArtworkControlContext();
-  if (!context) return;
-
-  const display = context.display;
+  const interactive = isEditInteractive();
+  const display = context?.display ?? getPreviewArtworkDisplayFallback();
 
   if (previewArtworkControlsTitleEl) {
-    previewArtworkControlsTitleEl.textContent = "Artwork Display";
+    previewArtworkControlsTitleEl.textContent = "Artwork";
   }
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
-    previewArtworkResetBtn.disabled = !context.hasOverride;
+    previewArtworkResetBtn.disabled = !interactive || !context?.hasOverride;
   }
 
   if (previewArtworkRotateBtn) {
-    const rotation = context.cardRotation ?? 0;
+    const rotation = context?.cardRotation ?? 0;
     previewArtworkRotateBtn.hidden = false;
-    previewArtworkRotateBtn.disabled = false;
-    previewArtworkRotateBtn.title = `Rotate artwork 90° (current ${rotation}°)`;
+    previewArtworkRotateBtn.disabled = !interactive;
+    previewArtworkRotateBtn.title = interactive
+      ? `Rotate artwork 90° (current ${rotation}°)`
+      : "Rotate artwork 90°";
   }
 
   if (previewArtworkControlsEl) {
@@ -449,14 +525,17 @@ function syncPreviewArtworkControls() {
 
   if (previewArtworkAlignmentGridEl) {
     for (const btn of previewArtworkAlignmentGridEl.querySelectorAll("[data-alignment]")) {
-      /** @type {HTMLButtonElement} */ (btn).disabled = false;
+      /** @type {HTMLButtonElement} */ (btn).disabled = !interactive;
     }
   }
   if (previewArtworkBackgroundModeEl) {
-    previewArtworkBackgroundModeEl.disabled = false;
+    previewArtworkBackgroundModeEl.disabled = !interactive;
   }
   if (previewArtworkZoomEl) {
-    previewArtworkZoomEl.disabled = false;
+    previewArtworkZoomEl.disabled = !interactive;
+  }
+  if (previewArtworkBackgroundColorEl && !interactive) {
+    previewArtworkBackgroundColorEl.disabled = true;
   }
 }
 
@@ -550,7 +629,7 @@ function browseStateUsesPlaceholder(state) {
 function syncBrowseActionButton() {
   if (!addBrowsedGameBtn) return;
   addBrowsedGameBtn.textContent = "Add to collection";
-  addBrowsedGameBtn.disabled = !browseState;
+  addBrowsedGameBtn.disabled = !isEditInteractive();
 }
 
 /**
@@ -558,7 +637,13 @@ function syncBrowseActionButton() {
  * @param {import("./state.js").Card} card
  */
 async function copyCardSettingsToEditor(card) {
-  schedulePreviewSkeleton();
+  const requestId = ++browseRequestId;
+  browseLoading = true;
+  if (previewMetaEl) {
+    previewMetaEl.textContent = `Loading ${card.gameName}…`;
+  }
+  syncEditColumnState();
+  showPreviewSkeletonImmediate();
 
   const header = normalizeHeaderSettings(card.headerSettings ?? getSettings());
   updateSettings({
@@ -578,7 +663,6 @@ async function copyCardSettingsToEditor(card) {
       name: card.gameName,
       images: {},
     };
-  const requestId = ++browseRequestId;
   const priority = getArtworkPriorityForPlatform(game.platformId);
   const resolvedTypes = await getAvailableImageTypes(game, priority);
   if (requestId !== browseRequestId) return;
@@ -600,6 +684,7 @@ async function copyCardSettingsToEditor(card) {
   }
   closeGameResults();
 
+  browseLoading = false;
   syncEditColumnState();
   renderPreviewTypeTabs();
   await refreshPreview();
@@ -615,12 +700,20 @@ function artworkCountLabel(count) {
   return `${count} game${count === 1 ? "" : "s"} with artwork`;
 }
 
+function syncGameSearchHintVisibility() {
+  if (!gameSearchHintEl || !gameResultsEl) return;
+  const resultsOpen = !gameResultsEl.hidden;
+  gameSearchHintEl.hidden = resultsOpen;
+  gameSearchHintEl.setAttribute("aria-hidden", resultsOpen ? "true" : "false");
+}
+
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
   const activePlatformId = getActivePlatformId();
   if (!activePlatformId) {
     gameSearchHintEl.textContent = "Select a platform to search retail releases.";
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
@@ -637,6 +730,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
       gameSearchHintEl.textContent = artworkCountLabel(gameCount);
     }
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
@@ -648,24 +742,28 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
         ? `Type 1 more character to search, or pick from the list (${countHint}).`
         : `Type ${remaining} more characters to search, or pick from the list (${countHint}).`;
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
   if (filteredGamesTotal === 0 && !filteredGamesBrowseMode) {
     gameSearchHintEl.textContent = `No games with artwork matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
   if (filteredGamesBrowseMode && filteredGamesTotal === 0) {
     gameSearchHintEl.textContent = `No matches for "${query}" — browse available games below`;
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
   if (filteredGamesBrowseMode) {
     gameSearchHintEl.textContent = "Browse games with artwork (A–Z)";
     gameSearchHintEl.classList.remove("field-hint--ready");
+    syncGameSearchHintVisibility();
     return;
   }
 
@@ -675,6 +773,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
     gameSearchHintEl.textContent = `${filteredGamesTotal} game${filteredGamesTotal === 1 ? "" : "s"} found`;
   }
   gameSearchHintEl.classList.add("field-hint--ready");
+  syncGameSearchHintVisibility();
 }
 
 function filterGames(query) {
@@ -720,6 +819,7 @@ function renderPlatformResults() {
   visiblePlatforms.forEach((platform) => {
     const row = document.createElement("div");
     row.className = "platform-row";
+    row.style.setProperty("--platform-color", platform.defaultColor);
     if (platform.id === settings.selectedPlatformId) {
       row.classList.add("platform-row--selected");
     }
@@ -727,7 +827,17 @@ function renderPlatformResults() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "platform-row__select";
-    btn.textContent = platform.name;
+
+    const emoji = document.createElement("span");
+    emoji.className = "platform-row__emoji";
+    emoji.textContent = platform.emoji;
+    emoji.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "platform-row__label";
+    label.textContent = platform.name;
+
+    btn.append(emoji, label);
     btn.addEventListener("click", () => selectPlatform(platform.id));
 
     const editBtn = document.createElement("button");
@@ -750,6 +860,7 @@ function renderPlatformResults() {
 function closeGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.hidden = true;
+  syncGameSearchHintVisibility();
 }
 
 function renderGameResults() {
@@ -765,10 +876,12 @@ function renderGameResults() {
   const shouldShow = gameSearchFocused || query.length > 0;
   if (!shouldShow) {
     gameResultsEl.hidden = true;
+    syncGameSearchHintVisibility();
     return;
   }
 
   gameResultsEl.hidden = false;
+  syncGameSearchHintVisibility();
 
   if (filteredGames.length === 0) {
     const empty = document.createElement("p");
@@ -786,10 +899,10 @@ function renderGameResults() {
     intro.className = "list-more-hint";
     intro.textContent = `No matches for "${query}" — browse available games:`;
     gameResultsEl.appendChild(intro);
-  } else if (filteredGamesBrowseMode && query.length < MIN_GAME_SEARCH_CHARS) {
+  } else if (filteredGamesBrowseMode && query.length < MIN_GAME_SEARCH_CHARS && query.length > 0) {
     const intro = document.createElement("p");
     intro.className = "list-more-hint";
-    intro.textContent = query.length === 0 ? "Browse games with artwork:" : "Matching games with artwork:";
+    intro.textContent = "Matching games with artwork:";
     gameResultsEl.appendChild(intro);
   }
 
@@ -827,6 +940,8 @@ function selectPlatform(platformId) {
   }
 
   syncPlatformControls();
+  syncPreviewPlatformAccent();
+  renderPreviewTypeTabs();
   logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
@@ -983,9 +1098,15 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
-  const priority = getArtworkPriorityForPlatform(game.platformId);
+  browseLoading = true;
+  if (previewMetaEl) {
+    previewMetaEl.textContent = `Loading ${game.name}…`;
+  }
+  syncEditColumnState();
+  showPreviewSkeletonImmediate();
   logStatus(`Loading preview for ${game.name}…`);
 
+  const priority = getArtworkPriorityForPlatform(game.platformId);
   const resolvedTypes = await getAvailableImageTypes(game, priority);
   if (requestId !== browseRequestId) return;
 
@@ -1000,8 +1121,8 @@ async function browseGameFromSearch(game) {
     imageRotation: 0,
   };
 
+  browseLoading = false;
   syncEditColumnState();
-  schedulePreviewSkeleton();
   renderPreviewTypeTabs();
   await refreshPreview();
   if (requestId !== browseRequestId) return;
@@ -1014,6 +1135,7 @@ async function browseGameFromSearch(game) {
 
 function clearBrowse() {
   browseRequestId += 1;
+  browseLoading = false;
   browseState = null;
   syncEditColumnState();
 }
@@ -1051,24 +1173,59 @@ async function addBrowsedGame() {
 
   addCard(card);
   setSelectedCardIds([]);
-  resetGameSearch({ focus: true });
   updateCollectionActions();
-  await refreshPreview();
+  celebrateAddToCollection();
   logStatus(`Added ${game.name} to collection.`);
+}
+
+function celebrateAddToCollection() {
+  if (!addBrowsedGameBtn) return;
+
+  addBrowsedGameBtn.classList.remove("preview-add-btn--celebrate");
+  void addBrowsedGameBtn.offsetWidth;
+  addBrowsedGameBtn.classList.add("preview-add-btn--celebrate");
+
+  const host = addBrowsedGameBtn.closest(".preview-main") ?? addBrowsedGameBtn.parentElement;
+  if (!host) return;
+
+  const burst = document.createElement("div");
+  burst.className = "party-favor";
+  burst.setAttribute("aria-hidden", "true");
+
+  const colors = ["var(--accent)", "#f4c95d", "#ff8b6a", "#7bc9a8", "#9b8cff"];
+  for (let i = 0; i < 14; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "party-favor__piece";
+    const angle = (i / 14) * Math.PI * 2;
+    piece.style.setProperty("--tx", `${Math.cos(angle) * 52}px`);
+    piece.style.setProperty("--ty", `${Math.sin(angle) * -42}px`);
+    piece.style.setProperty("--rot", `${i * 46}deg`);
+    piece.style.setProperty("--hue", colors[i % colors.length]);
+    piece.style.animationDelay = `${i * 18}ms`;
+    burst.appendChild(piece);
+  }
+
+  host.appendChild(burst);
+  globalThis.setTimeout(() => burst.remove(), 900);
+  globalThis.setTimeout(() => {
+    addBrowsedGameBtn?.classList.remove("preview-add-btn--celebrate");
+  }, 700);
 }
 
 function renderPreviewTypeTabs() {
   if (!previewTypeTabsEl) return;
 
   previewTypeTabsEl.innerHTML = "";
-  const types = browseState?.availableTypes ?? getArtworkPriorityForPlatform(getSettings().selectedPlatformId);
+  const platformId = browseState?.game.platformId ?? getActivePlatformId();
+  const types = browseState?.availableTypes ?? (platformId ? getArtworkPriorityForPlatform(platformId) : []);
   previewTypeTabsEl.hidden = types.length === 0;
+  const interactive = isEditInteractive();
 
   for (const type of types) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "preview-type-tab";
-    btn.disabled = !browseState;
+    btn.disabled = !interactive;
     if (type === browseState?.imageType) btn.classList.add("preview-type-tab--active");
     btn.textContent = IMAGE_TYPES[type]?.label ?? type;
     btn.addEventListener("click", async () => {
@@ -1091,7 +1248,10 @@ function updateCollectionActions() {
         ? "1 card selected"
         : `${selectedCount} cards selected`;
 
-  if (collectionSelectionMetaEl) collectionSelectionMetaEl.textContent = label;
+  if (collectionSelectionMetaEl) {
+    collectionSelectionMetaEl.textContent = label;
+    collectionSelectionMetaEl.classList.toggle("collection-meta--active", selectedCount > 0);
+  }
   if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedCount === 0;
   if (printSelectedBtn) printSelectedBtn.disabled = selectedCount === 0;
   if (selectAllBtn) selectAllBtn.disabled = totalCards === 0 || selectedCount === totalCards;
@@ -1107,7 +1267,7 @@ function renderCollection() {
   if (collection.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-hint";
-    empty.textContent = "Search for a game and press Enter to add cards.";
+    empty.textContent = "Add a game from Select to build your print sheet.";
     collectionListEl.appendChild(empty);
     updateCollectionActions();
     return;
@@ -1119,13 +1279,28 @@ function renderCollection() {
     const platformDetails = document.createElement("details");
     platformDetails.className = "collection-platform";
     platformDetails.open = true;
+    platformDetails.style.setProperty("--platform-color", platform.defaultColor);
 
     const platformSummary = document.createElement("summary");
     platformSummary.className = "collection-platform__summary";
 
+    const platformLead = document.createElement("span");
+    platformLead.className = "collection-platform__lead";
+
+    const platformEmoji = document.createElement("span");
+    platformEmoji.className = "collection-platform__emoji";
+    platformEmoji.textContent = platform.emoji;
+    platformEmoji.setAttribute("aria-hidden", "true");
+
     const platformName = document.createElement("span");
     platformName.className = "collection-platform__name";
     platformName.textContent = platform.name;
+
+    platformLead.append(platformEmoji, platformName);
+
+    const platformCount = document.createElement("span");
+    platformCount.className = "collection-platform__count";
+    platformCount.textContent = String(cards.length);
 
     const platformChevron = document.createElement("span");
     platformChevron.className = "collection-platform__chevron";
@@ -1133,8 +1308,7 @@ function renderCollection() {
     platformChevron.innerHTML =
       '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-    platformSummary.appendChild(platformName);
-    platformSummary.appendChild(platformChevron);
+    platformSummary.append(platformLead, platformCount, platformChevron);
     platformDetails.appendChild(platformSummary);
 
     const cardsEl = document.createElement("div");
@@ -1262,6 +1436,8 @@ async function refreshPreview() {
     };
     previewMetaEl.textContent = `${game.name} · ${platform?.name ?? ""} · ${IMAGE_TYPES[imageType]?.label ?? imageType}`;
 
+    syncPreviewPlatformAccent();
+
     const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
     if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
@@ -1279,7 +1455,43 @@ async function refreshPreview() {
   }
 }
 
+function bindCollectionDrawer() {
+  const toggle = document.getElementById("collection-drawer-toggle");
+  const backdrop = document.getElementById("collection-drawer-backdrop");
+  const printPanel = document.getElementById("print-panel");
+  const storageKey = "nfc-card-designer-collection-drawer";
+
+  const setOpen = (open) => {
+    document.body.classList.toggle("collection-drawer-open", open);
+    document.body.style.overflow = open ? "hidden" : "";
+    toggle?.setAttribute("aria-expanded", open ? "true" : "false");
+    backdrop?.toggleAttribute("hidden", !open);
+    try {
+      localStorage.setItem(storageKey, open ? "1" : "0");
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  toggle?.addEventListener("click", () => {
+    setOpen(!document.body.classList.contains("collection-drawer-open"));
+  });
+
+  backdrop?.addEventListener("click", () => setOpen(false));
+
+  printPanel?.querySelector(".panel__title")?.addEventListener("click", () => {
+    setOpen(false);
+  });
+
+  globalThis.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.body.classList.contains("collection-drawer-open")) {
+      setOpen(false);
+    }
+  });
+}
+
 function bindEvents() {
+  bindCollectionDrawer();
   gameSearchInput?.addEventListener("focus", () => {
     gameSearchFocused = true;
     filterGames(gameSearchInput?.value ?? "");
@@ -1651,6 +1863,7 @@ export async function initUI() {
   bindEvents();
   applyPreviewCalibrationScale(loadPreviewCalibrationScale(), { persist: false });
   syncPlatformControls();
+  renderPreviewTypeTabs();
   if (gameResultsEl) gameResultsEl.hidden = true;
   updateGameSearchHint();
   renderCollection();

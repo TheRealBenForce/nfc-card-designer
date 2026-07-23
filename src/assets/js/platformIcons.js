@@ -10,6 +10,7 @@ const PLATFORM_IDS = [
   "master-system",
   "game-boy",
   "game-boy-color",
+  "game-boy-advance",
   "snes",
   "genesis",
   "sega-cd",

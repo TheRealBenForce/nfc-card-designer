@@ -74,7 +74,10 @@ import {
   openPlatformSettingsModal,
 } from "./platformSettingsModal.js";
 import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
-import { normalizePlatformIconTheme } from "./platformIconTheme.js";
+import {
+  normalizePlatformIconTheme,
+  shouldInvertPlatformIconInLight,
+} from "./platformIconTheme.js";
 
 const ARTWORK_ZOOM_BASE_PERCENT = 100;
 const MIN_ARTWORK_ZOOM_PERCENT = ARTWORK_ZOOM_BASE_PERCENT + MIN_ARTWORK_ZOOM;
@@ -832,10 +835,14 @@ function renderPlatformResults() {
     btn.type = "button";
     btn.className = "platform-row__select";
 
+    const iconTheme = normalizePlatformIconTheme(settings.platformIconTheme);
     const icon = document.createElement("img");
     icon.className = "platform-row__icon";
     icon.alt = "";
-    icon.src = getPlatformIconPath(platform.id, settings.platformIconTheme);
+    icon.src = getPlatformIconPath(platform.id, iconTheme);
+    if (shouldInvertPlatformIconInLight(iconTheme)) {
+      icon.dataset.invertInLight = "true";
+    }
     icon.addEventListener("error", () => {
       icon.src = getBundledPlatformIconPath(platform.id);
       icon.addEventListener(

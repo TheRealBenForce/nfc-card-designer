@@ -21,6 +21,7 @@ const PLATFORM_CARBON_FOLDERS = {
   "master-system": "mastersystem",
   "game-boy": "gb",
   "game-boy-color": "gbc",
+  "game-boy-advance": "gba",
   snes: "snes",
   genesis: "genesis",
   "sega-cd": "segacd",

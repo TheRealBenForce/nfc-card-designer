@@ -4,18 +4,25 @@ import { platformById } from "./data/platforms.js";
 
 /** @type {readonly PlatformIconThemeOption[]} */
 export const PLATFORM_ICON_THEMES = [
+  { id: "dot-art", label: "Dot Art" },
   { id: "flatui", label: "FlatUI" },
   { id: "flatux", label: "FlatUX" },
   { id: "monochrome", label: "Monochrome" },
   { id: "pixel", label: "Pixel" },
   { id: "retrosystem", label: "RetroSystem" },
   { id: "systematic", label: "Systematic" },
-  { id: "dot-art", label: "Dot Art" },
   { id: "daite", label: "Daite" },
   { id: "automatic", label: "Automatic" },
 ];
 
-export const DEFAULT_PLATFORM_ICON_THEME = "flatui";
+export const DEFAULT_PLATFORM_ICON_THEME = "dot-art";
+
+/** Themes whose XMB icons are light-on-transparent and need inversion in light UI mode. */
+export const PLATFORM_ICON_THEMES_INVERT_IN_LIGHT = new Set([
+  "monochrome",
+  "pixel",
+  "automatic",
+]);
 
 const THEME_IDS = new Set(PLATFORM_ICON_THEMES.map((theme) => theme.id));
 
@@ -30,6 +37,14 @@ export function normalizePlatformIconTheme(value) {
   return typeof value === "string" && THEME_IDS.has(value)
     ? value
     : DEFAULT_PLATFORM_ICON_THEME;
+}
+
+/**
+ * @param {string} theme
+ * @returns {boolean}
+ */
+export function shouldInvertPlatformIconInLight(theme) {
+  return PLATFORM_ICON_THEMES_INVERT_IN_LIGHT.has(normalizePlatformIconTheme(theme));
 }
 
 /**

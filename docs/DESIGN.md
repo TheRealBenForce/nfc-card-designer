@@ -247,30 +247,35 @@ There is **no separate “Collection” heading** — the **Print** section titl
 
 **Print PDF:** Exports US Letter sheet, 3×3 cards per page, cut marks (see [Card layout](#card-layout-print)).
 
-##### Platform card browser (overlay)
+##### Platform card browser (screen overlay)
 
-Selecting a platform row opens a **card browser** over the designer. The Print toolbar and global selection meta stay visible in the column behind the backdrop (dimmed/blurred with the rest of the page).
+Selecting a platform row opens a **viewport-level card browser** — not a panel inside the Print column. The browser **slides in from the edge of the screen**; everything behind it (site header, Select, Edit, Print, and the full page) is **dimmed and blurred**.
 
 ```
   Narrow (≤1100px)                    Wide (≥1101px)
   ────────────────                    ──────────────
+  (dock rises from bottom)            (sidebar slides from right)
 
-  ┌─────────────────────┐             ┌──────────┬────────────┐
-  │ ░░░ blurred page ░░░│             │░░ blur ░░│  SIDEBAR   │
-  │ ░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░│  ↑ card ↓  │
-  ├─────────────────────┤             │░░░░░░░░░░│  scroll    │
-  │  ← [card][card] →   │             │░░░░░░░░░░│  snap      │
-  │   BOTTOM DOCK       │             └──────────┴────────────┘
-  │  horizontal snap    │
+  ┌─────────────────────┐             ┌──────────────────┬────────┐
+  │░░░░ BLURRED PAGE ░░░│             │░░░ BLURRED PAGE ░│SIDEBAR │
+  │░░ header + app ░░░░░│             │░░ header + app ░│↑ card ↓│
+  │░░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░░░░░░░░│ scroll │
+  ├─────────────────────┤             │░░░░░░░░░░░░░░░░░│ snap   │
+  │← [card] [card] [card]│             └──────────────────┴────────┘
+  │     BOTTOM DOCK      │
+  │   horizontal snap    │
   └─────────────────────┘
 ```
 
 | Concern | Behavior |
 |---------|----------|
-| **Layout** | **Sidebar** — fixed to the right edge, ~min(22rem, 90vw) wide, full viewport height. **Dock** — fixed to the bottom, ~min(22rem, 55dvh) tall, full width. |
-| **Backdrop** | Full-viewport layer: semi-transparent dim + `backdrop-filter: blur(...)`. Covers Select, Edit, and Print. |
+| **Mount point** | `position: fixed` on the **viewport** (`inset: 0` backdrop + edge-anchored sheet). Not nested inside `.panel--print` or the designer grid. |
+| **Enter animation** | **Sidebar:** slides in from the **right screen edge** (`translateX`). **Dock:** slides up from the **bottom screen edge** (`translateY`). Respect `prefers-reduced-motion` (fade or instant). |
+| **Layout** | **Sidebar** — flush to the right edge of the screen, ~min(22rem, 90vw) wide, full viewport height. **Dock** — flush to the bottom edge of the screen, ~min(22rem, 55dvh) tall, full viewport width. |
+| **Backdrop** | Full-screen layer behind the sheet: semi-transparent dim + `backdrop-filter: blur(...)` over **the entire page** (header, all three designer columns, and any scrollable content). The Print toolbar and selection meta are behind the blur like everything else — not kept sharp. |
+| **Z-index** | Above site header and all panels; below any future global toasts if added later. |
 | **Open** | Click/tap a platform row in the Print list. Only one browser open at a time; opening another platform switches content. |
-| **Dismiss** | Click/tap backdrop, **Escape**, or explicit **Close** control in the browser chrome. Returns focus to the platform row that opened the browser. |
+| **Dismiss** | Click/tap the blurred backdrop, **Escape**, or explicit **Close** control in the browser chrome. Sheet slides back off-screen; backdrop fades out. Returns focus to the platform row that opened the browser. |
 | **Focus** | Focus trap inside the browser while open; `aria-modal="true"`. |
 | **Header** | Platform icon + name; subtitle `M of N` (position in that platform’s carousel). Close button. |
 | **Carousel** | **Scroll-snap strip with peeking neighbors** — the focused card is centered (or primary); adjacent cards peek at the edges. **Sidebar (wide):** vertical scroll (up/down); wheel, touch drag, and prev/next step the snap points. **Dock (narrow):** horizontal scroll (left/right); swipe, drag, and prev/next step the snap points. Keyboard: **Up/Down** in sidebar, **Left/Right** in dock; **Space** toggles selection on the snapped card. |
@@ -281,7 +286,7 @@ Selecting a platform row opens a **card browser** over the designer. The Print t
 
 **Ship as full replacement** — removes the current collapsible per-platform `<details>` card lists; no feature flag.
 
-**Responsive note:** Uses the same **1100px** breakpoint as the designer grid (three columns vs stacked rows). Sidebar vs dock follows viewport width, not which column Print happens to sit in when stacked.
+**Responsive note:** Uses the same **1100px** breakpoint as the designer grid (three columns vs stacked rows). Sidebar vs dock follows **viewport width**, not which column Print happens to sit in when stacked.
 
 ---
 

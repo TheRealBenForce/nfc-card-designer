@@ -527,9 +527,9 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
 - [x] Deploy to GitHub Pages (static site only)
-- [ ] Platform defaults edited from Edit (Save / Reset card); no platform-row edit modal
-- [ ] Card `customization` state (`default` | `customized`) with carousel indicator
-- [ ] Header design per platform (moved out of global settings)
+- [x] Platform defaults edited from Edit (Save / Reset card); no platform-row edit modal
+- [x] Card `customization` state (`default` | `customized`) with carousel indicator
+- [x] Header design per platform (moved out of global settings)
 
 ---
 

@@ -162,7 +162,7 @@ function renderCollectionJson() {
   if (!collectionJsonEl) return;
 
   const settings = loadSettings();
-  const collection = loadCollection();
+  const collection = loadCollection(settings.platformDefaults);
   const payload = {
     version: 4,
     settingsStorageKey: STORAGE_KEY,

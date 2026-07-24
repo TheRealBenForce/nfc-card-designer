@@ -1075,6 +1075,21 @@ body {
   line-height: 1.25;
 }
 
+.collection-card__customization-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.2rem;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  background: transparent;
+}
+
+.collection-card__customization-dot--customized {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
 .collection-card__meta {
   font-size: 0.72rem;
   color: var(--text-muted);
@@ -2847,8 +2862,19 @@ body {
 
 .preview-artwork-reset {
   width: 100%;
-  margin-top: 0.65rem;
+  margin-top: 0;
   margin-bottom: 0;
+}
+
+.platform-default-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.platform-default-actions .btn {
+  width: 100%;
 }
 
 .header-design-fields {

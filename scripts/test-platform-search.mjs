@@ -59,16 +59,21 @@ async function main() {
     }
     console.log("✓ Selected platform is highlighted");
 
-    await page.getByRole("button", { name: "Edit Sega CD defaults" }).click();
-    await page.waitForSelector("#platform-settings-modal[open]");
-    const modalTitle = await page.locator("#platform-settings-title").textContent();
-    if (!modalTitle?.includes("Sega CD")) {
-      throw new Error(`Platform settings modal should show Sega CD, got: ${modalTitle}`);
+    const resetCardBtn = page.locator("#preview-artwork-reset");
+    if (await resetCardBtn.count() !== 1) {
+      throw new Error("Reset card button should exist in Edit controls");
     }
-    console.log("✓ Pencil icon opens platform settings modal");
+    const saveDefaultsBtn = page.locator("#save-platform-defaults");
+    if (await saveDefaultsBtn.count() !== 1) {
+      throw new Error("Save to platform defaults button should exist in Edit controls");
+    }
+    console.log("✓ Platform defaults actions are available in Edit");
 
-    await page.locator("#platform-settings-close").click();
-    await page.waitForFunction(() => !document.getElementById("platform-settings-modal")?.open);
+    const editButtons = page.locator("#platform-results .platform-row__edit-btn");
+    if (await editButtons.count() !== 0) {
+      throw new Error("Platform rows should not include edit-defaults buttons");
+    }
+    console.log("✓ Platform list is select-only (no edit icon)");
 
     const deleteBtn = page.locator("#delete-selected");
     const deleteClass = await deleteBtn.getAttribute("class");

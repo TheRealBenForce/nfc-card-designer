@@ -10,6 +10,7 @@ import {
   getPlatformColor,
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
+import { resolveCardHeaderSettings } from "./cardCustomization.js";
 import {
   BLURRED_BACKGROUND_IMAGE_TYPES,
   DEFAULT_ARTWORK_BACKGROUND_COLOR,
@@ -517,17 +518,14 @@ export async function renderCard(card, platformDefaults, layoutSettings) {
   const color = getPlatformColor(platformDefaults, card.platformId) ?? platform?.defaultColor ?? DEFAULT_PLATFORM_COLOR;
   const baseRotation = getImageRotation(platformDefaults, card.platformId, card.imageType);
   const rotation = normalizeRotationDegrees(baseRotation + (card.imageRotation ?? 0));
-  const cardHeaderSettings = card.headerSettings && typeof card.headerSettings === "object"
-    ? card.headerSettings
-    : null;
-  const effectiveLayoutSettings = cardHeaderSettings ?? layoutSettings ?? undefined;
+  const headerForLayout = resolveCardHeaderSettings(card, platformDefaults);
   const {
     art: stickerArtRect,
     logo: stickerLogoRect,
     color: stickerColorRect,
     showHeader,
     showPlatformColor,
-  } = computeCardLayout(stickerRect.w, stickerRect.h, effectiveLayoutSettings);
+  } = computeCardLayout(stickerRect.w, stickerRect.h, headerForLayout);
   const art = offsetRect(stickerArtRect, stickerRect.x, stickerRect.y);
   const logo = offsetRect(stickerLogoRect, stickerRect.x, stickerRect.y);
   const colorRect = offsetRect(stickerColorRect, stickerRect.x, stickerRect.y);

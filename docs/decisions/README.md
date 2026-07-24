@@ -8,6 +8,7 @@ Permanent records of **why** we chose an approach. These are not implementation 
 | [0002-github-pages-static-hosting.md](./0002-github-pages-static-hosting.md) | GitHub Pages as sole static-site host | Accepted |
 | [0003-select-edit-print-columns.md](./0003-select-edit-print-columns.md) | Select · Edit · Print columns + Edit gating | Accepted |
 | [0004-collection-platform-browser.md](./0004-collection-platform-browser.md) | Print platform list + viewport sheet carousel | Accepted |
+| [0005-platform-defaults-from-edit.md](./0005-platform-defaults-from-edit.md) | Platform defaults edited from Edit; card default/customized state | Accepted |
 
 ## When to add a decision doc
 

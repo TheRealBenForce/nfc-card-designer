@@ -1,6 +1,7 @@
-import { loadSettings, loadCollection } from "./storage.js";
+import { loadSettings, loadCollection, resetDefaultCardsOnPlatform } from "./storage.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
 import { normalizeArtworkDisplay, resolveArtworkDisplay } from "./artworkDisplay.js";
+import { normalizeHeaderSettings } from "./headerSettings.js";
 import { normalizeRotationDegrees } from "./platformDefaults.js";
 
 /**
@@ -18,6 +19,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @property {ArtworkDisplaySettings} [artworkDisplay]
  * @property {number} [imageRotation]
  * @property {HeaderSettings} [headerSettings]
+ * @property {"default" | "customized"} [customization]
  */
 
 /**
@@ -32,9 +34,6 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
  * @typedef {Object} AppSettings
  * @property {Record<string, PlatformDefaults>} platformDefaults
  * @property {string} selectedPlatformId
- * @property {boolean} showHeader
- * @property {boolean} showPlatformColor
- * @property {number} headerHeightPercent
  * @property {number} cardWidthMm
  * @property {number} cardHeightMm
  * @property {number} stickerInsetMm
@@ -45,7 +44,7 @@ import { normalizeRotationDegrees } from "./platformDefaults.js";
 export let settings = loadSettings();
 
 /** @type {Card[]} */
-export let collection = loadCollection();
+export let collection = loadCollection(settings.platformDefaults);
 
 /** @type {Set<string>} */
 export let selectedCardIds = new Set();
@@ -71,7 +70,9 @@ export function getSettings() {
 
 export function reloadSettingsFromStorage() {
   settings = loadSettings();
+  collection = loadCollection(settings.platformDefaults);
   emit("settings");
+  emit("collection");
 }
 
 /** @deprecated Use getCollection */
@@ -192,6 +193,67 @@ export function setPlatformArtworkDisplay(platformId, patch) {
     },
   };
   emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ * @param {import('./headerSettings.js').HeaderSettings} headerSettings
+ */
+export function setPlatformHeaderSettings(platformId, headerSettings) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
+  settings = {
+    ...settings,
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: {
+        ...current,
+        headerSettings: normalizeHeaderSettings(headerSettings),
+      },
+    },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ * @param {Partial<PlatformDefaults>} entry
+ */
+export function updatePlatformDefaultsEntry(platformId, entry) {
+  const current = settings.platformDefaults[platformId];
+  if (!current) return;
+
+  const next = { ...current, ...entry };
+  if (entry.artworkDisplay) {
+    next.artworkDisplay = normalizeArtworkDisplay({
+      ...current.artworkDisplay,
+      ...entry.artworkDisplay,
+    });
+  }
+  if (entry.headerSettings) {
+    next.headerSettings = normalizeHeaderSettings(entry.headerSettings);
+  }
+  if (entry.imageRotation) {
+    next.imageRotation = { ...current.imageRotation, ...entry.imageRotation };
+  }
+
+  settings = {
+    ...settings,
+    platformDefaults: {
+      ...settings.platformDefaults,
+      [platformId]: next,
+    },
+  };
+  emit("settings");
+}
+
+/**
+ * @param {string} platformId
+ */
+export function applyPlatformDefaultsToDefaultCards(platformId) {
+  collection = resetDefaultCardsOnPlatform(collection, platformId, settings.platformDefaults);
+  emit("collection");
 }
 
 /**

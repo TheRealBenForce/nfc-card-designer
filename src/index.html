@@ -85,19 +85,6 @@
                 <option value="automatic">Automatic</option>
               </select>
             </label>
-            <label for="global-header-height" class="artwork-zoom-field">
-              <span class="artwork-zoom-field__label">Header Height</span>
-              <input
-                id="global-header-height"
-                class="artwork-zoom-field__range"
-                type="range"
-                min="5"
-                max="40"
-                step="1"
-                value="15"
-              />
-              <span id="global-header-height-value" class="artwork-zoom-field__value">15%</span>
-            </label>
             <div class="dimension-grid" role="group" aria-label="Card and sticker sizing">
               <label class="field dimension-field">
                 <span class="field__label">Card Width (mm)</span>
@@ -208,6 +195,10 @@
               </div>
               <aside id="preview-artwork-controls" class="preview-artwork-controls">
             <div class="edit-control-group">
+              <label class="field field--compact">
+                <span class="field__label">Accent color</span>
+                <input id="preview-platform-color" class="input input--color" type="color" value="#000000" aria-label="Platform accent color" />
+              </label>
               <div
                 id="preview-artwork-alignment-grid"
                 class="alignment-grid"
@@ -268,17 +259,36 @@
               </div>
               <div class="header-design-fields" role="group" aria-label="Header design controls">
                 <label class="field field--checkbox">
-                  <input id="global-show-header" type="checkbox" checked />
+                  <input id="preview-show-header" type="checkbox" checked />
                   <span class="field__label field__label--inline">Show Header</span>
                 </label>
                 <label class="field field--checkbox">
-                  <input id="global-show-platform-color" type="checkbox" checked />
+                  <input id="preview-show-platform-color" type="checkbox" checked />
                   <span class="field__label field__label--inline">Show Platform Accents</span>
                 </label>
+                <label for="preview-header-height" class="artwork-zoom-field artwork-zoom-field--compact">
+                  <span class="artwork-zoom-field__label">Header Height</span>
+                  <input
+                    id="preview-header-height"
+                    class="artwork-zoom-field__range"
+                    type="range"
+                    min="5"
+                    max="40"
+                    step="1"
+                    value="15"
+                    aria-label="Header height percent"
+                  />
+                  <span id="preview-header-height-value" class="artwork-zoom-field__value">15%</span>
+                </label>
               </div>
-              <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
-                Reset to Platform Defaults
-              </button>
+              <div class="platform-default-actions">
+                <button id="preview-artwork-reset" type="button" class="btn btn--secondary preview-artwork-reset">
+                  Reset card
+                </button>
+                <button id="save-platform-defaults" type="button" class="btn btn--secondary">
+                  Save to platform defaults
+                </button>
+              </div>
             </div>
             <button id="add-browsed-game" type="button" class="btn btn--primary preview-add-btn" disabled>
               Add to collection
@@ -390,92 +400,6 @@
           <button id="confirm-modal-confirm" type="button" class="btn btn--danger">Confirm</button>
         </footer>
       </div>
-    </dialog>
-
-    <dialog id="platform-settings-modal" class="platform-settings-modal" aria-labelledby="platform-settings-title">
-      <form method="dialog" class="platform-settings-modal__panel">
-        <div class="platform-settings-modal__accent" aria-hidden="true"></div>
-        <header class="platform-settings-modal__header">
-          <div class="platform-settings-modal__heading">
-            <p class="platform-settings-modal__eyebrow">Platform defaults</p>
-            <h2 id="platform-settings-title" class="platform-settings-modal__title">Edit platform</h2>
-          </div>
-          <button id="platform-settings-close" type="button" class="platform-settings-modal__close" aria-label="Close">
-            <span aria-hidden="true">×</span>
-          </button>
-        </header>
-
-        <div class="platform-settings-modal__body">
-          <label class="field field--compact">
-            <span class="field__label">Accent color</span>
-            <input id="platform-settings-color" class="input input--color" type="color" />
-          </label>
-
-          <div class="platform-settings-artwork-row">
-            <section class="platform-settings-artwork-section">
-              <p class="field__label">Artwork priority</p>
-              <ol
-                id="platform-settings-priority-list"
-                class="priority-list"
-                aria-label="Platform artwork type priority"
-              ></ol>
-            </section>
-
-            <section class="platform-settings-artwork-section">
-              <p class="field__label">Artwork rotation</p>
-              <div
-                id="platform-settings-rotation-fields"
-                class="rotation-fields"
-                aria-label="Artwork rotation defaults"
-              ></div>
-            </section>
-
-            <section class="platform-settings-artwork-section">
-              <p class="field__label">Artwork alignment</p>
-              <div
-                id="platform-settings-alignment-grid"
-                class="alignment-grid"
-                role="radiogroup"
-                aria-label="Platform artwork alignment"
-              ></div>
-            </section>
-          </div>
-
-          <label for="platform-settings-zoom" class="artwork-zoom-field artwork-zoom-field--compact">
-            <span class="artwork-zoom-field__label">Artwork zoom</span>
-            <input
-              id="platform-settings-zoom"
-              class="artwork-zoom-field__range"
-              type="range"
-              min="50"
-              max="200"
-              step="1"
-              value="100"
-            />
-            <span id="platform-settings-zoom-value" class="artwork-zoom-field__value">100%</span>
-          </label>
-
-          <div class="field field--compact artwork-background-field">
-            <span class="field__label">Artwork background</span>
-            <div class="artwork-background-row">
-              <select id="platform-settings-background-mode" class="input artwork-background-row__mode"></select>
-              <input
-                id="platform-settings-background-color"
-                class="input input--color artwork-background-row__color"
-                type="color"
-                value="#000000"
-                aria-label="Background color"
-              />
-            </div>
-          </div>
-        </div>
-
-        <footer class="platform-settings-modal__footer">
-          <button id="platform-settings-reset" type="button" class="btn btn--secondary">
-            Reset to system defaults
-          </button>
-        </footer>
-      </form>
     </dialog>
 
     <script type="module" src="assets/js/main.js"></script>

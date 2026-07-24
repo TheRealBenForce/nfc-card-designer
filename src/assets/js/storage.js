@@ -9,50 +9,72 @@ import {
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
 import { normalizeArtworkDisplay } from "./artworkDisplay.js";
-import { legacyHeaderSettings, normalizeHeaderSettings } from "./headerSettings.js";
+import { normalizeHeaderSettings } from "./headerSettings.js";
 import { resolveCardSizing } from "./cardSizing.js";
 import { normalizePlatformIconTheme } from "./platformIconTheme.js";
 import { retailDisplayName } from "./retailFilter.js";
+import {
+  CUSTOMIZATION_CUSTOMIZED,
+  CUSTOMIZATION_DEFAULT,
+  inferCardCustomization,
+  normalizeCardCustomization,
+  toDefaultCardShape,
+} from "./cardCustomization.js";
+
+export const PROJECT_VERSION = 7;
 
 /** @returns {import('./state.js').AppSettings} */
 export function defaultSettings() {
-  const headerSettings = normalizeHeaderSettings();
   const cardSizing = resolveCardSizing();
   return {
     platformDefaults: defaultPlatformDefaults(),
     selectedPlatformId: "",
     platformIconTheme: normalizePlatformIconTheme(),
-    ...headerSettings,
     ...cardSizing,
-    ...headerSettings,
   };
 }
 
 /** @param {import('./state.js').Card} card */
 function serializeCard(card) {
-  const normalizedHeaderSettings = normalizeHeaderSettings(card.headerSettings);
+  const customization = card.customization === CUSTOMIZATION_CUSTOMIZED
+    ? CUSTOMIZATION_CUSTOMIZED
+    : CUSTOMIZATION_DEFAULT;
+
+  if (customization === CUSTOMIZATION_DEFAULT) {
+    return {
+      id: card.id,
+      platformId: card.platformId,
+      gameName: retailDisplayName(card.libretroName),
+      libretroName: card.libretroName,
+      imageType: card.imageType,
+      customization: CUSTOMIZATION_DEFAULT,
+      ...(card.imageFailed ? { imageFailed: true } : {}),
+    };
+  }
+
+  const normalizedHeaderSettings = card.headerSettings
+    ? normalizeHeaderSettings(card.headerSettings)
+    : undefined;
+
   return {
     id: card.id,
     platformId: card.platformId,
     gameName: retailDisplayName(card.libretroName),
     libretroName: card.libretroName,
     imageType: card.imageType,
+    customization: CUSTOMIZATION_CUSTOMIZED,
     ...(card.imageFailed ? { imageFailed: true } : {}),
     ...(card.artworkDisplay ? { artworkDisplay: card.artworkDisplay } : {}),
     ...(card.imageRotation ? { imageRotation: normalizeRotationDegrees(card.imageRotation) } : {}),
-    headerSettings: normalizedHeaderSettings,
+    ...(normalizedHeaderSettings ? { headerSettings: normalizedHeaderSettings } : {}),
   };
 }
 
 /**
- * Normalize a saved/imported card.
- * `libretroName` is the canonical libretro filename stem used for GitHub artwork URLs.
- * `gameName` is always derived for display and may change as title cleanup rules evolve.
- *
  * @param {unknown} card
- * @param {{ showHeader?: unknown, showPlatformColor?: unknown, headerHeightPercent?: unknown } | null | undefined} [fallbackHeaderSettings]
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
  */
-export function normalizeCollectionCard(card, fallbackHeaderSettings) {
+export function normalizeCollectionCard(card, platformDefaults = defaultPlatformDefaults()) {
   if (!card || typeof card !== "object") return null;
   const entry = /** @type {Record<string, unknown>} */ (card);
   if (
@@ -66,13 +88,8 @@ export function normalizeCollectionCard(card, fallbackHeaderSettings) {
 
   const libretroName = entry.libretroName;
   const normalizedRotation = normalizeRotationDegrees(entry.imageRotation);
-  const normalizedCardHeaderSettings = normalizeHeaderSettings(
-    (entry.headerSettings && typeof entry.headerSettings === "object")
-      ? entry.headerSettings
-      : fallbackHeaderSettings ?? legacyHeaderSettings(),
-  );
 
-  return {
+  const base = {
     id: entry.id,
     platformId: entry.platformId,
     gameName: retailDisplayName(libretroName),
@@ -83,28 +100,28 @@ export function normalizeCollectionCard(card, fallbackHeaderSettings) {
       ? { artworkDisplay: normalizeArtworkDisplay(entry.artworkDisplay) }
       : {}),
     ...(normalizedRotation ? { imageRotation: normalizedRotation } : {}),
-    headerSettings: normalizedCardHeaderSettings,
+    ...(entry.headerSettings && typeof entry.headerSettings === "object"
+      ? { headerSettings: normalizeHeaderSettings(entry.headerSettings) }
+      : {}),
+    ...(entry.customization === CUSTOMIZATION_CUSTOMIZED ||
+    entry.customization === CUSTOMIZATION_DEFAULT
+      ? { customization: entry.customization }
+      : {}),
   };
-}
 
-/** @param {unknown} card @param {Parameters<typeof normalizeCollectionCard>[1]} [fallbackHeaderSettings] */
-function normalizeCard(card, fallbackHeaderSettings) {
-  return normalizeCollectionCard(card, fallbackHeaderSettings);
+  return normalizeCardCustomization(/** @type {import('./state.js').Card} */ (base), platformDefaults);
 }
 
 /**
  * @param {import('./state.js').AppSettings} settings
  */
 export function saveSettings(settings) {
-  const headerSettings = normalizeHeaderSettings(settings);
   const cardSizing = resolveCardSizing(settings);
   const exportable = {
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     platformIconTheme: normalizePlatformIconTheme(settings.platformIconTheme),
-    ...headerSettings,
     ...cardSizing,
-    ...headerSettings,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(exportable));
 }
@@ -116,7 +133,7 @@ export function loadSettings() {
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw);
     const defaults = defaultSettings();
-    const headerSettings = normalizeHeaderSettings(parsed);
+    const legacyHeader = normalizeHeaderSettings(parsed);
     const cardSizing = resolveCardSizing(parsed);
 
     return {
@@ -124,6 +141,7 @@ export function loadSettings() {
         parsed.platformDefaults,
         parsed.platformColors,
         parsed.artworkDisplay,
+        legacyHeader,
       ),
       selectedPlatformId:
         typeof parsed.selectedPlatformId === "string"
@@ -133,10 +151,31 @@ export function loadSettings() {
         parsed.platformIconTheme ?? defaults.platformIconTheme,
       ),
       ...cardSizing,
-      ...headerSettings,
     };
   } catch {
     return defaultSettings();
+  }
+}
+
+/**
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} [platformDefaults]
+ * @returns {import('./state.js').Card[]}
+ */
+export function loadCollection(platformDefaults = defaultPlatformDefaults()) {
+  try {
+    const raw =
+      localStorage.getItem(COLLECTION_STORAGE_KEY) ?? localStorage.getItem(DECK_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((card) => {
+        const { imageUrl: _removed, ...rest } = card;
+        return normalizeCollectionCard(rest, platformDefaults);
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
   }
 }
 
@@ -147,23 +186,6 @@ export function saveCollection(collection) {
   localStorage.setItem(COLLECTION_STORAGE_KEY, JSON.stringify(collection.map(serializeCard)));
 }
 
-/** @returns {import('./state.js').Card[]} */
-export function loadCollection() {
-  try {
-    const raw =
-      localStorage.getItem(COLLECTION_STORAGE_KEY) ?? localStorage.getItem(DECK_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((card) => {
-      const { imageUrl: _removed, ...rest } = card;
-      return normalizeCard(rest) ?? rest;
-    }).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
 /** @deprecated */
 export function saveDeck(deck) {
   saveCollection(deck);
@@ -171,7 +193,24 @@ export function saveDeck(deck) {
 
 /** @deprecated */
 export function loadDeck() {
-  return loadCollection();
+  return loadCollection(getSettingsPlatformDefaultsForMigration());
+}
+
+/** @returns {Record<string, import('./platformDefaults.js').PlatformDefaults>} */
+function getSettingsPlatformDefaultsForMigration() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultPlatformDefaults();
+    const parsed = JSON.parse(raw);
+    return normalizePlatformDefaults(
+      parsed.platformDefaults,
+      parsed.platformColors,
+      parsed.artworkDisplay,
+      normalizeHeaderSettings(parsed),
+    );
+  } catch {
+    return defaultPlatformDefaults();
+  }
 }
 
 /**
@@ -179,15 +218,13 @@ export function loadDeck() {
  * @param {import('./state.js').Card[]} collection
  */
 export function buildProjectData(settings, collection) {
-  const headerSettings = normalizeHeaderSettings(settings);
   const cardSizing = resolveCardSizing(settings);
   return {
-    version: 6,
+    version: PROJECT_VERSION,
     platformDefaults: settings.platformDefaults,
     selectedPlatformId: settings.selectedPlatformId,
     platformIconTheme: normalizePlatformIconTheme(settings.platformIconTheme),
     ...cardSizing,
-    ...headerSettings,
     cards: collection.map(serializeCard),
   };
 }
@@ -229,7 +266,13 @@ export function importProjectFile() {
       }
       try {
         const parsed = JSON.parse(await file.text());
-        const importedHeaderSettings = normalizeHeaderSettings(parsed);
+        const legacyHeader = normalizeHeaderSettings(parsed);
+        const platformDefaults = normalizePlatformDefaults(
+          parsed.platformDefaults,
+          parsed.platformColors,
+          parsed.artworkDisplay,
+          legacyHeader,
+        );
         const cards = Array.isArray(parsed.cards)
           ? parsed.cards
           : Array.isArray(parsed.collection)
@@ -237,17 +280,14 @@ export function importProjectFile() {
             : [];
         resolve({
           settings: {
-            platformDefaults: normalizePlatformDefaults(
-              parsed.platformDefaults,
-              parsed.platformColors,
-              parsed.artworkDisplay,
-            ),
+            platformDefaults,
             selectedPlatformId: parsed.selectedPlatformId,
             platformIconTheme: normalizePlatformIconTheme(parsed.platformIconTheme),
             ...resolveCardSizing(parsed),
-            ...importedHeaderSettings,
           },
-          cards: cards.map((card) => normalizeCard(card, importedHeaderSettings)).filter(Boolean),
+          cards: cards
+            .map((card) => normalizeCollectionCard(card, platformDefaults))
+            .filter(Boolean),
         });
       } catch (err) {
         reject(err);
@@ -260,4 +300,17 @@ export function importProjectFile() {
 /** @deprecated */
 export function importSettingsFile() {
   return importProjectFile().then((project) => project.settings);
+}
+
+/**
+ * @param {import('./state.js').Card[]} collection
+ * @param {string} platformId
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
+ */
+export function resetDefaultCardsOnPlatform(collection, platformId, platformDefaults) {
+  return collection.map((card) => {
+    if (card.platformId !== platformId) return card;
+    if (inferCardCustomization(card, platformDefaults) !== CUSTOMIZATION_DEFAULT) return card;
+    return toDefaultCardShape(card);
+  });
 }

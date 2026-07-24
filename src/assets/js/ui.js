@@ -31,8 +31,18 @@ import {
 import {
   getEffectiveImageTypePriority,
   getPlatformArtworkDisplay,
+  getPlatformColor,
+  getPlatformHeaderSettings,
   normalizeRotationDegrees,
 } from "./platformDefaults.js";
+import {
+  browseSessionIsCustomized,
+  browseSessionMatchesPlatformDefaults,
+  countDefaultCardsOnPlatform,
+  CUSTOMIZATION_CUSTOMIZED,
+  CUSTOMIZATION_DEFAULT,
+  getBrowseSessionEffectiveValues,
+} from "./cardCustomization.js";
 import {
   ARTWORK_ALIGNMENT_ORDER,
   ARTWORK_ALIGNMENTS,
@@ -68,6 +78,8 @@ import {
   replaceCollection,
   clearCollection,
   createCardId,
+  applyPlatformDefaultsToDefaultCards,
+  updatePlatformDefaultsEntry,
 } from "./state.js";
 import {
   saveSettings,
@@ -79,10 +91,6 @@ import {
 import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
-import {
-  initPlatformSettingsModal,
-  openPlatformSettingsModal,
-} from "./platformSettingsModal.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
 import {
@@ -156,13 +164,15 @@ let gameSearchAnchorEl = null;
 /** @type {HTMLElement|null} */
 let gameSearchHintEl = null;
 /** @type {HTMLInputElement|null} */
-let globalShowHeaderInput = null;
+let previewShowHeaderInput = null;
 /** @type {HTMLInputElement|null} */
-let globalShowPlatformColorInput = null;
+let previewShowPlatformColorInput = null;
 /** @type {HTMLInputElement|null} */
-let globalHeaderHeightInput = null;
+let previewHeaderHeightInput = null;
 /** @type {HTMLElement|null} */
-let globalHeaderHeightValueEl = null;
+let previewHeaderHeightValueEl = null;
+/** @type {HTMLInputElement|null} */
+let previewPlatformColorInput = null;
 /** @type {HTMLInputElement|null} */
 let globalCardWidthInput = null;
 /** @type {HTMLInputElement|null} */
@@ -189,7 +199,8 @@ let previewArtworkZoomEl = null;
 let previewArtworkZoomValueEl = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkResetBtn = null;
-/** @type {HTMLElement|null} */
+/** @type {HTMLButtonElement|null} */
+let savePlatformDefaultsBtn = null;
 /** @type {HTMLButtonElement|null} */
 let previewArtworkRotateBtn = null;
 /** @type {HTMLElement|null} */
@@ -208,6 +219,8 @@ let browseLoading = false;
  *   resolvedTypes: string[],
  *   artworkDisplayOverride?: import("./artworkDisplay.js").ArtworkDisplaySettings | null,
  *   imageRotation?: number,
+ *   colorOverride?: string | null,
+ *   headerSettingsOverride?: import("./headerSettings.js").HeaderSettings | null,
  * } | null}
  */
 let browseState = null;
@@ -272,6 +285,11 @@ function setEditControlsDisabled(disabled) {
     addBrowsedGameBtn,
     previewArtworkRotateBtn,
     previewArtworkResetBtn,
+    savePlatformDefaultsBtn,
+    previewPlatformColorInput,
+    previewShowHeaderInput,
+    previewShowPlatformColorInput,
+    previewHeaderHeightInput,
     previewArtworkBackgroundModeEl,
     previewArtworkBackgroundColorEl,
     previewArtworkZoomEl,
@@ -294,13 +312,40 @@ function setEditControlsDisabled(disabled) {
 
 function syncPreviewPlatformAccent() {
   const platformId = browseState?.game.platformId ?? getActivePlatformId();
-  const color = platformId ? platformById[platformId]?.defaultColor : null;
+  const settings = getSettings();
+  const color = platformId
+    ? (browseState
+      ? getBrowseSessionEffectiveValues(browseState, settings.platformDefaults).color
+      : getPlatformColor(settings.platformDefaults, platformId))
+    : null;
   const targets = [editPanelEl, ...document.querySelectorAll(".preview-frame")].filter(Boolean);
 
   targets.forEach((el) => {
     if (color) el.style.setProperty("--platform-color", color);
     else el.style.removeProperty("--platform-color");
   });
+}
+
+function syncPreviewHeaderControls() {
+  if (!browseState) return;
+  const header = getBrowseSessionEffectiveValues(browseState, getSettings().platformDefaults).headerSettings;
+  if (previewShowHeaderInput) previewShowHeaderInput.checked = header.showHeader;
+  if (previewShowPlatformColorInput) {
+    previewShowPlatformColorInput.checked = header.showPlatformColor;
+    previewShowPlatformColorInput.disabled = !header.showHeader;
+  }
+  if (previewHeaderHeightInput) {
+    previewHeaderHeightInput.value = String(header.headerHeightPercent);
+  }
+  if (previewHeaderHeightValueEl) {
+    previewHeaderHeightValueEl.textContent = `${header.headerHeightPercent}%`;
+  }
+}
+
+function syncPreviewAccentColorControl() {
+  if (!browseState || !previewPlatformColorInput) return;
+  const color = getBrowseSessionEffectiveValues(browseState, getSettings().platformDefaults).color;
+  previewPlatformColorInput.value = color;
 }
 
 function syncEditColumnState() {
@@ -351,6 +396,8 @@ function syncEditColumnState() {
 
   setEditControlsDisabled(!interactive);
   syncPreviewPlatformAccent();
+  syncPreviewHeaderControls();
+  syncPreviewAccentColorControl();
   syncBrowseActionButton();
   syncPreviewArtworkControls();
 }
@@ -584,7 +631,15 @@ function syncPreviewArtworkControls() {
 
   if (previewArtworkResetBtn) {
     previewArtworkResetBtn.hidden = false;
-    previewArtworkResetBtn.disabled = !interactive || !context?.hasOverride;
+    previewArtworkResetBtn.disabled =
+      !interactive ||
+      !browseState ||
+      browseSessionMatchesPlatformDefaults(browseState, getSettings().platformDefaults);
+  }
+
+  if (savePlatformDefaultsBtn) {
+    savePlatformDefaultsBtn.hidden = false;
+    savePlatformDefaultsBtn.disabled = !interactive;
   }
 
   if (previewArtworkRotateBtn) {
@@ -649,9 +704,7 @@ function getPreviewArtworkControlContext() {
     isBrowseCard: true,
     cardRotation: normalizeRotationDegrees(browseState.imageRotation ?? 0),
     display,
-    hasOverride:
-      Boolean(browseState.artworkDisplayOverride) ||
-      normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0,
+    hasOverride: browseSessionIsCustomized(browseState, getSettings().platformDefaults),
   };
 }
 
@@ -730,16 +783,13 @@ async function copyCardSettingsToEditor(card) {
   syncEditColumnState();
   showPreviewSkeletonImmediate();
 
-  const header = normalizeHeaderSettings(card.headerSettings ?? getSettings());
-  updateSettings({
-    selectedPlatformId: card.platformId,
-    showHeader: header.showHeader,
-    showPlatformColor: header.showPlatformColor,
-    headerHeightPercent: header.headerHeightPercent,
-  });
+  updateSettings({ selectedPlatformId: card.platformId });
   saveSettings(getSettings());
-  syncGlobalSettingsControls();
   syncPlatformControls();
+
+  const settings = getSettings();
+  const platformDefaults = settings.platformDefaults;
+  const isCustomized = card.customization === CUSTOMIZATION_CUSTOMIZED;
 
   const game =
     gameForCard(card) ?? {
@@ -758,10 +808,14 @@ async function copyCardSettingsToEditor(card) {
     imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, card.imageType),
     availableTypes,
     resolvedTypes,
-    artworkDisplayOverride: card.artworkDisplay
+    colorOverride: null,
+    artworkDisplayOverride: isCustomized && card.artworkDisplay
       ? normalizeArtworkDisplay(card.artworkDisplay)
       : null,
-    imageRotation: normalizeRotationDegrees(card.imageRotation ?? 0),
+    imageRotation: isCustomized ? normalizeRotationDegrees(card.imageRotation ?? 0) : 0,
+    headerSettingsOverride: isCustomized && card.headerSettings
+      ? normalizeHeaderSettings(card.headerSettings)
+      : null,
   };
 
   if (gameSearchInput) {
@@ -941,19 +995,7 @@ function renderPlatformResults() {
     btn.append(icon, label);
     btn.addEventListener("click", () => selectPlatform(platform.id));
 
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.className = "platform-row__edit-btn";
-    editBtn.textContent = "✎";
-    editBtn.title = `Edit ${platform.name} defaults`;
-    editBtn.setAttribute("aria-label", `Edit ${platform.name} defaults`);
-    editBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openPlatformSettingsModal(platform.id);
-    });
-
     row.appendChild(btn);
-    row.appendChild(editBtn);
     platformResultsEl.appendChild(row);
   });
 }
@@ -1088,19 +1130,6 @@ function applyCardSizingCssVariables(settings) {
 function syncGlobalSettingsControls() {
   const settings = getSettings();
   const sizing = resolveCardSizing(settings);
-  if (globalShowHeaderInput) {
-    globalShowHeaderInput.checked = settings.showHeader;
-  }
-  if (globalShowPlatformColorInput) {
-    globalShowPlatformColorInput.checked = settings.showPlatformColor;
-    globalShowPlatformColorInput.disabled = !settings.showHeader;
-  }
-  if (globalHeaderHeightInput) {
-    globalHeaderHeightInput.value = String(settings.headerHeightPercent);
-  }
-  if (globalHeaderHeightValueEl) {
-    globalHeaderHeightValueEl.textContent = `${settings.headerHeightPercent}%`;
-  }
   if (globalCardWidthInput) {
     globalCardWidthInput.value = String(sizing.cardWidthMm);
   }
@@ -1150,12 +1179,54 @@ function stickerCanvasToDataUrl(cardCanvas, settings) {
   return canvasToDataUrl(stickerCanvas, stickerPreviewWidthPx);
 }
 
-function currentHeaderSettingsSnapshot() {
-  const settings = getSettings();
+/**
+ * @param {Partial<import("./headerSettings.js").HeaderSettings>} patch
+ */
+function applyPreviewHeaderPatch(patch) {
+  if (!browseState) return;
+  const platformHeader = getPlatformHeaderSettings(
+    getSettings().platformDefaults,
+    browseState.game.platformId,
+  );
+  const current = browseState.headerSettingsOverride
+    ? normalizeHeaderSettings({ ...platformHeader, ...browseState.headerSettingsOverride })
+    : platformHeader;
+  browseState = {
+    ...browseState,
+    headerSettingsOverride: normalizeHeaderSettings({ ...current, ...patch }),
+  };
+  syncPreviewHeaderControls();
+  syncPreviewArtworkControls();
+  refreshPreview();
+}
+
+/**
+ * @param {import('./state.js').Card} card
+ * @param {Record<string, import('./platformDefaults.js').PlatformDefaults>} platformDefaults
+ * @returns {import('./state.js').Card}
+ */
+function buildPreviewPlatformDefaultsForSession(platformDefaults) {
+  if (!browseState) return platformDefaults;
+  const { game, imageType } = browseState;
+  const platformId = game.platformId;
+  const platformEntry = platformDefaults[platformId];
+  if (!platformEntry) return platformDefaults;
+
+  const effective = getBrowseSessionEffectiveValues(browseState, platformDefaults);
   return {
-    showHeader: settings.showHeader,
-    showPlatformColor: settings.showPlatformColor,
-    headerHeightPercent: settings.headerHeightPercent,
+    ...platformDefaults,
+    [platformId]: {
+      ...platformEntry,
+      color: effective.color,
+      artworkDisplay: effective.artworkDisplay,
+      headerSettings: effective.headerSettings,
+      imageRotation: {
+        ...platformEntry.imageRotation,
+        [imageType]: normalizeRotationDegrees(
+          effective.platformImageRotation + effective.imageRotation,
+        ),
+      },
+    },
   };
 }
 
@@ -1249,8 +1320,10 @@ async function browseGameFromSearch(game) {
     imageType: pickInitialBrowseImageType(availableTypes, resolvedTypes, null),
     availableTypes,
     resolvedTypes,
+    colorOverride: null,
     artworkDisplayOverride: null,
     imageRotation: 0,
+    headerSettingsOverride: null,
   };
 
   browseLoading = false;
@@ -1285,8 +1358,10 @@ function resetGameSearch({ focus = false } = {}) {
 async function addBrowsedGame() {
   if (!browseState) return;
 
+  const settings = getSettings();
   const { game, imageType } = browseState;
-  const headerSettings = currentHeaderSettingsSnapshot();
+  const customized = browseSessionIsCustomized(browseState, settings.platformDefaults);
+  const effective = getBrowseSessionEffectiveValues(browseState, settings.platformDefaults);
   const imageFailed = browseStateUsesPlaceholder(browseState);
 
   const card = {
@@ -1295,12 +1370,13 @@ async function addBrowsedGame() {
     gameName: game.name,
     libretroName: game.libretroName,
     imageType,
-    headerSettings,
+    customization: customized ? CUSTOMIZATION_CUSTOMIZED : CUSTOMIZATION_DEFAULT,
     ...(imageFailed ? { imageFailed: true } : {}),
-    ...(browseState.artworkDisplayOverride ? { artworkDisplay: browseState.artworkDisplayOverride } : {}),
-    ...((normalizeRotationDegrees(browseState.imageRotation ?? 0) !== 0)
-      ? { imageRotation: normalizeRotationDegrees(browseState.imageRotation ?? 0) }
+    ...(customized ? { artworkDisplay: effective.artworkDisplay } : {}),
+    ...(customized && effective.imageRotation
+      ? { imageRotation: effective.imageRotation }
       : {}),
+    ...(customized ? { headerSettings: effective.headerSettings } : {}),
   };
 
   addCard(card);
@@ -1501,23 +1577,20 @@ async function refreshPreview() {
   try {
     const snapshot = browseState;
     const { game, imageType } = snapshot;
+    const previewPlatformDefaults = buildPreviewPlatformDefaultsForSession(settings.platformDefaults);
     const cardForRender = {
       id: "browse",
       platformId: game.platformId,
       gameName: game.name,
       libretroName: game.libretroName,
       imageType,
-      headerSettings: currentHeaderSettingsSnapshot(),
-      ...(snapshot.artworkDisplayOverride ? { artworkDisplay: snapshot.artworkDisplayOverride } : {}),
-      ...((normalizeRotationDegrees(snapshot.imageRotation ?? 0) !== 0)
-        ? { imageRotation: normalizeRotationDegrees(snapshot.imageRotation ?? 0) }
-        : {}),
+      customization: CUSTOMIZATION_DEFAULT,
     };
     previewMetaGameEl.textContent = game.name;
 
     syncPreviewPlatformAccent();
 
-    const canvas = await renderCard(cardForRender, settings.platformDefaults, settings);
+    const canvas = await renderCard(cardForRender, previewPlatformDefaults, settings);
     if (requestId !== previewRequestId) return;
     if (browseState !== snapshot) return;
 
@@ -1607,32 +1680,6 @@ function bindEvents() {
     }
   });
 
-  globalShowHeaderInput?.addEventListener("change", (e) => {
-    updateSettings({ showHeader: /** @type {HTMLInputElement} */ (e.target).checked });
-    saveSettings(getSettings());
-    syncGlobalSettingsControls();
-    refreshPreview();
-  });
-
-  globalShowPlatformColorInput?.addEventListener("change", (e) => {
-    updateSettings({
-      showPlatformColor: /** @type {HTMLInputElement} */ (e.target).checked,
-    });
-    saveSettings(getSettings());
-    syncGlobalSettingsControls();
-    refreshPreview();
-  });
-
-  globalHeaderHeightInput?.addEventListener("input", (e) => {
-    const headerHeightPercent = normalizeHeaderHeightPercent(
-      Number(/** @type {HTMLInputElement} */ (e.target).value),
-    );
-    updateSettings({ headerHeightPercent });
-    saveSettings(getSettings());
-    syncGlobalSettingsControls();
-    refreshPreview();
-  });
-
   globalCardWidthInput?.addEventListener("change", (e) => {
     const settings = getSettings();
     const rawWidth = Number(/** @type {HTMLInputElement} */ (e.target).value);
@@ -1698,6 +1745,36 @@ function bindEvents() {
     refreshPreview();
   });
 
+  previewPlatformColorInput?.addEventListener("input", (e) => {
+    if (!browseState) return;
+    browseState = {
+      ...browseState,
+      colorOverride: /** @type {HTMLInputElement} */ (e.target).value,
+    };
+    syncPreviewPlatformAccent();
+    syncPreviewAccentColorControl();
+    syncPreviewArtworkControls();
+    refreshPreview();
+  });
+
+  previewShowHeaderInput?.addEventListener("change", (e) => {
+    applyPreviewHeaderPatch({ showHeader: /** @type {HTMLInputElement} */ (e.target).checked });
+  });
+
+  previewShowPlatformColorInput?.addEventListener("change", (e) => {
+    applyPreviewHeaderPatch({
+      showPlatformColor: /** @type {HTMLInputElement} */ (e.target).checked,
+    });
+  });
+
+  previewHeaderHeightInput?.addEventListener("input", (e) => {
+    applyPreviewHeaderPatch({
+      headerHeightPercent: normalizeHeaderHeightPercent(
+        Number(/** @type {HTMLInputElement} */ (e.target).value),
+      ),
+    });
+  });
+
   previewArtworkBackgroundModeEl?.addEventListener("change", (e) => {
     applyPreviewArtworkPatch({
       backgroundMode: /** @type {HTMLSelectElement} */ (e.target).value,
@@ -1713,11 +1790,65 @@ function bindEvents() {
     if (!browseState) return;
     browseState = {
       ...browseState,
+      colorOverride: null,
       artworkDisplayOverride: null,
       imageRotation: 0,
+      headerSettingsOverride: null,
     };
+    syncPreviewHeaderControls();
+    syncPreviewAccentColorControl();
     syncPreviewArtworkControls();
     refreshPreview();
+  });
+
+  savePlatformDefaultsBtn?.addEventListener("click", async () => {
+    if (!browseState) return;
+    const settings = getSettings();
+    const platformId = browseState.game.platformId;
+    const platform = platformById[platformId];
+    const defaultCount = countDefaultCardsOnPlatform(getCollection(), platformId, settings.platformDefaults);
+    const confirmed = await showConfirmModal({
+      title: "Save to platform defaults?",
+      message: `This will overwrite ${platform?.name ?? platformId} defaults and update ${defaultCount} default card${defaultCount === 1 ? "" : "s"} in your collection. Customized cards will not change.`,
+      confirmLabel: "Save",
+      cancelLabel: "Cancel",
+      confirmVariant: "primary",
+    });
+    if (!confirmed) return;
+
+    const effective = getBrowseSessionEffectiveValues(browseState, settings.platformDefaults);
+    const imageType = browseState.imageType;
+    const current = settings.platformDefaults[platformId];
+    updatePlatformDefaultsEntry(platformId, {
+      color: effective.color,
+      artworkDisplay: effective.artworkDisplay,
+      headerSettings: effective.headerSettings,
+      imageRotation: {
+        ...current.imageRotation,
+        [imageType]: normalizeRotationDegrees(
+          effective.platformImageRotation + effective.imageRotation,
+        ),
+      },
+    });
+    applyPlatformDefaultsToDefaultCards(platformId);
+    saveSettings(getSettings());
+    saveCollection(getCollection());
+    browseState = {
+      ...browseState,
+      colorOverride: null,
+      artworkDisplayOverride: null,
+      imageRotation: 0,
+      headerSettingsOverride: null,
+    };
+    syncPreviewHeaderControls();
+    syncPreviewAccentColorControl();
+    syncPreviewArtworkControls();
+    renderCollection();
+    if (isCollectionBrowserOpen()) {
+      syncCollectionBrowser(getCollection(), getSelectedCardIds(), settings);
+    }
+    await refreshPreview();
+    logStatus(`Saved ${platform?.name ?? platformId} platform defaults.`);
   });
 
   previewArtworkRotateBtn?.addEventListener("click", () => {
@@ -1760,9 +1891,7 @@ function bindEvents() {
         cardWidthMm: imported.settings.cardWidthMm ?? defaults.cardWidthMm,
         cardHeightMm: imported.settings.cardHeightMm ?? defaults.cardHeightMm,
         stickerInsetMm: imported.settings.stickerInsetMm ?? defaults.stickerInsetMm,
-        showHeader: imported.settings.showHeader ?? defaults.showHeader,
-        showPlatformColor: imported.settings.showPlatformColor ?? defaults.showPlatformColor,
-        headerHeightPercent: imported.settings.headerHeightPercent ?? defaults.headerHeightPercent,
+        platformIconTheme: imported.settings.platformIconTheme ?? defaults.platformIconTheme,
       });
       saveSettings(getSettings());
       replaceCollection(imported.cards);
@@ -1882,16 +2011,19 @@ export async function initUI() {
   gameSearchInput = /** @type {HTMLInputElement|null} */ (document.getElementById("game-search"));
   gameSearchAnchorEl = document.querySelector(".game-search-anchor");
   gameSearchHintEl = document.getElementById("game-search-hint");
-  globalShowHeaderInput = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("global-show-header")
+  previewShowHeaderInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-show-header")
   );
-  globalShowPlatformColorInput = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("global-show-platform-color")
+  previewShowPlatformColorInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-show-platform-color")
   );
-  globalHeaderHeightInput = /** @type {HTMLInputElement|null} */ (
-    document.getElementById("global-header-height")
+  previewHeaderHeightInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-header-height")
   );
-  globalHeaderHeightValueEl = document.getElementById("global-header-height-value");
+  previewHeaderHeightValueEl = document.getElementById("preview-header-height-value");
+  previewPlatformColorInput = /** @type {HTMLInputElement|null} */ (
+    document.getElementById("preview-platform-color")
+  );
   globalCardWidthInput = /** @type {HTMLInputElement|null} */ (
     document.getElementById("global-card-width")
   );
@@ -1923,17 +2055,14 @@ export async function initUI() {
   previewArtworkResetBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-reset")
   );
+  savePlatformDefaultsBtn = /** @type {HTMLButtonElement|null} */ (
+    document.getElementById("save-platform-defaults")
+  );
   previewArtworkRotateBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("preview-artwork-rotate")
   );
 
   initConfirmModal();
-  initPlatformSettingsModal({
-    onChange: () => {
-      void applyPlatformPriorityToBrowse();
-      refreshPreview();
-    },
-  });
 
   initCollectionBrowser({
     onCopyCard: (card) => copyCardSettingsToEditor(card),

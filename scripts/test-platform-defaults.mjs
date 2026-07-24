@@ -106,6 +106,20 @@ if (defaults.nes.artworkDisplay.zoom !== 0) {
   throw new Error("Default artwork zoom should be 0");
 }
 
+if (!defaults.nes.headerSettings || defaults.nes.headerSettings.headerHeightPercent !== 15) {
+  throw new Error("Platform defaults should include normalized headerSettings");
+}
+
+const headerMigrated = normalizePlatformDefaults(
+  undefined,
+  undefined,
+  undefined,
+  { showHeader: false, showPlatformColor: true, headerHeightPercent: 25 },
+);
+if (headerMigrated.nes.headerSettings.showHeader !== false) {
+  throw new Error("Legacy global header settings should migrate into platform defaults");
+}
+
 const zoomNormalized = normalizeArtworkDisplay({ zoom: 150 });
 if (zoomNormalized.zoom !== 100) {
   throw new Error("Artwork zoom should clamp to 100");

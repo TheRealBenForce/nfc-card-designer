@@ -1,6 +1,7 @@
 import { DEFAULT_IMAGE_TYPE_PRIORITY } from "./config.js";
 import { normalizeImageTypePriority } from "./imageSettings.js";
 import { defaultArtworkDisplay, normalizeArtworkDisplay } from "./artworkDisplay.js";
+import { normalizeHeaderSettings } from "./headerSettings.js";
 import { platformById, platforms } from "./data/platforms.js";
 
 export const DEFAULT_PLATFORM_COLOR = "#000000";
@@ -16,6 +17,7 @@ const PLATFORM_DEFAULTS_URL = "assets/data/platform-defaults.json";
  * @property {string[]} imageTypePriority
  * @property {Record<string, number>} imageRotation
  * @property {import('./artworkDisplay.js').ArtworkDisplaySettings} artworkDisplay
+ * @property {import('./headerSettings.js').HeaderSettings} headerSettings
  */
 
 /** @type {Record<string, Partial<PlatformDefaults>> | null} */
@@ -35,6 +37,7 @@ function buildBarePlatformDefaultEntry(platformId, color = DEFAULT_PLATFORM_COLO
     imageTypePriority: [...DEFAULT_IMAGE_TYPE_PRIORITY],
     imageRotation: defaultImageRotation(),
     artworkDisplay: defaultArtworkDisplay(),
+    headerSettings: normalizeHeaderSettings(),
   };
 }
 
@@ -66,6 +69,10 @@ function applySeedToEntry(seed, platformId) {
 
   if (seed.artworkDisplay) {
     normalized.artworkDisplay = normalizeArtworkDisplay(seed.artworkDisplay);
+  }
+
+  if (seed.headerSettings) {
+    normalized.headerSettings = normalizeHeaderSettings(seed.headerSettings);
   }
 
   return normalized;
@@ -174,9 +181,10 @@ export function normalizeRotationDegrees(degrees) {
  * @param {Record<string, PlatformDefaults> | undefined} parsed
  * @param {Record<string, string> | undefined} legacyColors
  * @param {unknown} [legacyArtworkDisplay]
+ * @param {{ showHeader?: unknown, showPlatformColor?: unknown, headerHeightPercent?: unknown } | null | undefined} [legacyGlobalHeader]
  * @returns {Record<string, PlatformDefaults>}
  */
-export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDisplay) {
+export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDisplay, legacyGlobalHeader) {
   const defaults = defaultPlatformDefaults();
   const legacyDisplay = legacyArtworkDisplay
     ? normalizeArtworkDisplay(legacyArtworkDisplay)
@@ -214,6 +222,12 @@ export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDis
         normalized.artworkDisplay = legacyDisplay;
       }
 
+      if (entry.headerSettings) {
+        normalized.headerSettings = normalizeHeaderSettings(entry.headerSettings);
+      } else if (legacyGlobalHeader) {
+        normalized.headerSettings = normalizeHeaderSettings(legacyGlobalHeader);
+      }
+
       defaults[platformId] = normalized;
     }
   } else if (legacyDisplay) {
@@ -230,7 +244,27 @@ export function normalizePlatformDefaults(parsed, legacyColors, legacyArtworkDis
     }
   }
 
+  if (legacyGlobalHeader) {
+    const migratedHeader = normalizeHeaderSettings(legacyGlobalHeader);
+    for (const platformId of Object.keys(defaults)) {
+      if (!parsed?.[platformId]?.headerSettings) {
+        defaults[platformId] = {
+          ...defaults[platformId],
+          headerSettings: migratedHeader,
+        };
+      }
+    }
+  }
+
   return defaults;
+}
+
+/**
+ * @param {Record<string, PlatformDefaults>} platformDefaults
+ * @param {string} platformId
+ */
+export function getPlatformHeaderSettings(platformDefaults, platformId) {
+  return normalizeHeaderSettings(platformDefaults[platformId]?.headerSettings);
 }
 
 /**

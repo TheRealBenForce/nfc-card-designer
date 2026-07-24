@@ -111,6 +111,9 @@ async function main() {
   console.log("→ Platform defaults…");
   await run("node", ["scripts/test-platform-defaults.mjs"]);
 
+  console.log("→ Card customization…");
+  await run("node", ["scripts/test-card-customization.mjs"]);
+
   console.log("→ Platform icon theme…");
   await run("node", ["scripts/test-platform-icon-theme.mjs"]);
 

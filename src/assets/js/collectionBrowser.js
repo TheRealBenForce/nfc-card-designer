@@ -6,6 +6,7 @@ import {
   normalizePlatformIconTheme,
   shouldInvertPlatformIconInLight,
 } from "./platformIconTheme.js";
+import { CUSTOMIZATION_CUSTOMIZED } from "./cardCustomization.js";
 import { toggleCardSelection } from "./state.js";
 
 export const COLLECTION_BROWSER_BREAKPOINT_PX = 1100;
@@ -242,6 +243,17 @@ function renderCarouselSlides(cards, selectedIds) {
     nameEl.className = "collection-card__name";
     nameEl.textContent = card.gameName;
     info.appendChild(nameEl);
+
+    const customizationDot = document.createElement("span");
+    const isCustomized = card.customization === CUSTOMIZATION_CUSTOMIZED;
+    customizationDot.className = `collection-card__customization-dot${
+      isCustomized ? " collection-card__customization-dot--customized" : ""
+    }`;
+    customizationDot.title = isCustomized
+      ? "Customized — won't change when defaults update"
+      : "Uses platform defaults";
+    customizationDot.setAttribute("aria-label", customizationDot.title);
+    info.appendChild(customizationDot);
 
     const artTypeEl = document.createElement("span");
     artTypeEl.className = "collection-card__meta";

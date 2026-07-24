@@ -127,6 +127,51 @@ async function main() {
     }
     console.log("✓ Card border renders as white card stock");
 
+    const bleedPortrait = await page.evaluate(async () => {
+      const { renderCard } = await import("/assets/js/cardRenderer.js");
+      const { resolveCardSizing, mmToRenderPx } = await import("/assets/js/cardSizing.js");
+      const canvas = await renderCard(
+        {
+          id: "test-bleed",
+          platformId: "nes",
+          gameName: "Super Mario Bros. (USA)",
+          libretroName: "Super Mario Bros. (USA)",
+          imageType: "boxArt",
+        },
+        {
+          nes: {
+            color: "#b4000c",
+            imageRotation: { boxArt: 0, titleScreen: 0, gamePicture: 0 },
+          },
+        },
+        undefined,
+        { bleedToCard: true },
+      );
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("No canvas context");
+
+      const sizing = resolveCardSizing();
+      const stickerInsetPx = mmToRenderPx(sizing.stickerInsetMm);
+      const sample = (x, y) => {
+        const px = ctx.getImageData(x, y, 1, 1).data;
+        return [px[0], px[1], px[2]];
+      };
+
+      return {
+        cardCorner: sample(3, 3),
+        stickerEdge: sample(stickerInsetPx, stickerInsetPx),
+      };
+    });
+
+    if (hex(...bleedPortrait.cardCorner) === "#ffffff") {
+      throw new Error("Print bleed should fill the card-stock margin with sticker edge colors");
+    }
+    if (hex(...bleedPortrait.cardCorner) !== hex(...bleedPortrait.stickerEdge)) {
+      throw new Error("Print bleed should extend the nearest sticker edge color into the margin");
+    }
+    console.log("✓ Print bleed extends sticker edge colors to card size");
+
     if (portrait.insetLayout.logo.x !== portrait.insetLayout.platform.x) {
       throw new Error("Logo should stay within the platform strip");
     }

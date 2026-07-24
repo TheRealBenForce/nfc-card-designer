@@ -1,6 +1,6 @@
-# 0004 — Platform defaults edited from Edit, not Select
+# 0005 — Platform defaults edited from Edit, not Select
 
-**Status:** Accepted  
+**Status:** Proposed  
 **Date:** 2026-07-24
 
 ## Context

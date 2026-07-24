@@ -258,18 +258,59 @@ Artwork **priority order** (box / title / in-game) remains seeded from bundled s
 
 **Purpose:** Manage the saved card list and export a print-ready PDF.
 
-There is **no separate “Collection” heading** — the **Print** section title is the only panel header. The collection is the list of saved games/cards in this column.
+There is **no separate “Collection” heading** — the **Print** section title is the only panel header. The collection is organized by platform; individual cards are browsed in an overlay carousel, not inline in the column.
 
 | Block | Contents |
 |-------|----------|
-| **Selection meta** | “No cards selected” / “N cards selected” |
+| **Selection meta** | “No cards selected” / “N cards selected” — **global total only** (not per platform) |
 | **Selection actions** | Select All / Deselect All |
 | **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
-| **Card list** | Platform browser + carousel per [#88](https://github.com/TheRealBenForce/nfc-card-designer/issues/88): flat platform rows in Print; tap a platform to open a sidebar/dock overlay with a card carousel. Each card shows a **default vs customized** indicator (see [Card customization state](#card-customization-state)). Row actions: **copy-in**, select toggle. No in-place edit (✎) control. |
+| **Platform list** | Flat, scrollable list of platforms that have at least one saved card. Each row: platform icon, name, **selection badge** — `4 of 12 selected` when any cards on that platform are selected, otherwise `12` (total only). Rows are buttons — not collapsible. No inline card rows. |
 
-**Empty state:** “Search for a game and press Enter to add cards.”
+**Empty state:** “Add a game from Select to build your print sheet.”
 
 **Print PDF:** Exports US Letter sheet, 3×3 cards per page, cut marks (see [Card layout](#card-layout-print)).
+
+##### Platform card browser (screen overlay)
+
+Selecting a platform row opens a **viewport-level card browser** — not a panel inside the Print column. The browser **slides in from the edge of the screen**; everything behind it (site header, Select, Edit, Print, and the full page) is **dimmed and blurred**.
+
+```
+  Narrow (≤1100px)                    Wide (≥1101px)
+  ────────────────                    ──────────────
+  (dock rises from bottom)            (sidebar slides from right)
+
+  ┌─────────────────────┐             ┌──────────────────┬────────┐
+  │░░░░ BLURRED PAGE ░░░│             │░░░ BLURRED PAGE ░│SIDEBAR │
+  │░░ header + app ░░░░░│             │░░ header + app ░│↑ card ↓│
+  │░░░░░░░░░░░░░░░░░░░░░│             │░░░░░░░░░░░░░░░░░│ scroll │
+  ├─────────────────────┤             │░░░░░░░░░░░░░░░░░│ snap   │
+  │← [card] [card] [card]│             └──────────────────┴────────┘
+  │     BOTTOM DOCK      │
+  │   horizontal snap    │
+  └─────────────────────┘
+```
+
+| Concern | Behavior |
+|---------|----------|
+| **Mount point** | `position: fixed` on the **viewport** (`inset: 0` backdrop + edge-anchored sheet). Not nested inside `.panel--print` or the designer grid. |
+| **Enter animation** | **Sidebar:** slides in from the **right screen edge** (`translateX`). **Dock:** slides up from the **bottom screen edge** (`translateY`). Respect `prefers-reduced-motion` (fade or instant). |
+| **Layout** | **Sidebar** — flush to the right edge of the screen, ~min(22rem, 90vw) wide, full viewport height. **Dock** — flush to the bottom edge of the screen, ~min(22rem, 55dvh) tall, full viewport width. |
+| **Backdrop** | Full-screen layer behind the sheet: semi-transparent dim + `backdrop-filter: blur(...)` over **the entire page** (header, all three designer columns, and any scrollable content). The Print toolbar and selection meta are behind the blur like everything else — not kept sharp. |
+| **Z-index** | Above site header and all panels; below any future global toasts if added later. |
+| **Open** | Click/tap a platform row in the Print list. Only one browser open at a time; opening another platform switches content. |
+| **Dismiss** | Click/tap the blurred backdrop, **Escape**, or explicit **Close** control in the browser chrome. Sheet slides back off-screen; backdrop fades out. Returns focus to the platform row that opened the browser. |
+| **Focus** | Focus trap inside the browser while open; `aria-modal="true"`. |
+| **Header** | Platform icon + name; subtitle `M of N` (position in that platform’s carousel). Close button. |
+| **Carousel** | **Scroll-snap strip with peeking neighbors** — the focused card is centered (or primary); adjacent cards peek at the edges. **Sidebar (wide):** vertical scroll (up/down); wheel, touch drag, and prev/next step the snap points. **Dock (narrow):** horizontal scroll (left/right); swipe, drag, and prev/next step the snap points. Keyboard: **Up/Down** in sidebar, **Left/Right** in dock; **Space** toggles selection on the snapped card. |
+| **Card chrome** | Larger card preview (thumbnail or mini card frame), game name, artwork type label, **default vs customized** indicator (see [Card customization state](#card-customization-state)), optional “placeholder” badge if image failed. |
+| **Per-card actions** | **Select** toggle (`aria-pressed`) — same selection state as today. **Copy-in** — loads settings into Edit for a new add (unchanged semantics). No edit-in-place (✎). |
+| **Live updates** | Toggling selection updates the global selection meta and the platform row badge immediately (visible after dismiss for the meta; badge updates in the list). Adding/removing cards while the browser is open refreshes the carousel; if the platform becomes empty, dismiss automatically. |
+| **Platform row badge** | When **zero** cards on that platform are selected: show total only (`12`). When **one or more** are selected: `4 of 12 selected`. Badge styling may emphasize the selected state (e.g. accent tint) when the ratio is non-zero. |
+
+**Ship as full replacement** — removes the current collapsible per-platform `<details>` card lists; no feature flag.
+
+**Responsive note:** Uses the same **1100px** breakpoint as the designer grid (three columns vs stacked rows). Sidebar vs dock follows **viewport width**, not which column Print happens to sit in when stacked.
 
 ---
 
@@ -481,13 +522,13 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Artwork from libretro-thumbnails GitHub raw URLs (CORS-safe for canvas/PDF)
 - [x] Generated `game-catalog.json` for search (build-time; not in git)
 - [x] Retail / regional catalog filters with friendly display names (canonical `libretroName` kept for artwork)
-- [x] Collection grouped by platform; multi-select; PDF export
+- [x] Collection grouped by platform in Print; cards browsed via platform overlay carousel; multi-select; PDF export
 - [x] JSON export/import; localStorage persistence
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
 - [x] Deploy to GitHub Pages (static site only)
 - [ ] Platform defaults edited from Edit (Save / Reset card); no platform-row edit modal
-- [ ] Card `customization` state (`default` | `customized`) with carousel indicator (#88)
+- [ ] Card `customization` state (`default` | `customized`) with carousel indicator
 - [ ] Header design per platform (moved out of global settings)
 
 ---
@@ -514,4 +555,5 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
+| 2026-07-23 | Print collection UX: platform list + viewport-edge scroll-snap browser (#88); ADR 0004 |
 | 2026-07-24 | Platform defaults redesign: Edit-centric Save/Reset card, card default/customized state, remove platform modal |

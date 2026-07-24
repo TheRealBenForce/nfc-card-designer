@@ -78,6 +78,9 @@ async function main() {
   console.log("→ Collection tree…");
   await run("node", ["scripts/test-collection-tree.mjs"]);
 
+  console.log("→ Collection browser badge…");
+  await run("node", ["scripts/test-collection-browser-badge.mjs"]);
+
   console.log("→ Image lookup…");
   await run("node", ["scripts/test-image-lookup.mjs"]);
 
@@ -149,6 +152,10 @@ async function main() {
     });
 
     await run("node", ["scripts/test-collection-delete.mjs"], {
+      env: { ...process.env, TEST_BASE_URL: BASE },
+    });
+
+    await run("node", ["scripts/test-collection-browser.mjs"], {
       env: { ...process.env, TEST_BASE_URL: BASE },
     });
 

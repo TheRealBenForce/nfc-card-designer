@@ -323,6 +323,49 @@
       </aside>
     </div>
 
+    <dialog
+      id="collection-browser"
+      class="collection-browser"
+      aria-labelledby="collection-browser-title"
+    >
+      <div class="collection-browser__sheet">
+        <header class="collection-browser__header">
+          <div class="collection-browser__heading">
+            <span id="collection-browser-icon" class="collection-browser__icon-slot" aria-hidden="true"></span>
+            <div class="collection-browser__titles">
+              <h2 id="collection-browser-title" class="collection-browser__title">Platform</h2>
+              <p id="collection-browser-position" class="collection-browser__position">1 of 1</p>
+            </div>
+          </div>
+          <button
+            id="collection-browser-close"
+            type="button"
+            class="collection-browser__close"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+
+        <div
+          id="collection-browser-carousel"
+          class="collection-browser__carousel"
+          tabindex="0"
+          role="region"
+          aria-label="Collection cards"
+        ></div>
+
+        <footer class="collection-browser__footer">
+          <button id="collection-browser-prev" type="button" class="collection-browser__nav-btn" aria-label="Previous card">
+            <span class="collection-browser__nav-label collection-browser__nav-label--prev">Previous</span>
+          </button>
+          <button id="collection-browser-next" type="button" class="collection-browser__nav-btn" aria-label="Next card">
+            <span class="collection-browser__nav-label collection-browser__nav-label--next">Next</span>
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
     <dialog id="platform-settings-modal" class="platform-settings-modal" aria-labelledby="platform-settings-title">
       <form method="dialog" class="platform-settings-modal__panel">
         <div class="platform-settings-modal__accent" aria-hidden="true"></div>

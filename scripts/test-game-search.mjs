@@ -219,11 +219,20 @@ async function main() {
     await addBtn.click();
     await page.waitForTimeout(300);
 
-    const collectionCards = await page.locator(".collection-card").count();
+    const platformRows = await page.locator("#print-panel .collection-platform-row").count();
+    if (platformRows < 1) {
+      throw new Error("Add to collection should create a platform row in Print");
+    }
+    await page.locator("#print-panel .collection-platform-row").first().click();
+    await page.waitForSelector("#collection-browser[open]");
+    const collectionCards = await page.locator("#collection-browser .collection-card").count();
     if (collectionCards < 1) {
-      throw new Error("Add to collection should create a collection card");
+      throw new Error("Add to collection should create a collection card in the browser");
     }
     console.log("✓ Add to collection creates a card");
+
+    await page.keyboard.press("Escape");
+    await page.waitForSelector("#collection-browser[open]", { state: "hidden" });
 
     await page.fill("#game-search", "ecc");
     await page.waitForTimeout(100);

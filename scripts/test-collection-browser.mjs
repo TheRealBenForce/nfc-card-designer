@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser smoke test for Print panel delete actions.
+ * Browser smoke test for collection platform browser overlay.
  * Requires: local server on TEST_BASE_URL
  */
 
@@ -46,39 +46,41 @@ async function main() {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
     await addEccoCard(page);
-    await page.locator("#print-panel .collection-platform-row").filter({ hasText: "Sega CD" }).click();
-    await page.waitForSelector("#collection-browser[open]");
-    if ((await page.locator("#collection-browser .collection-card").count()) !== 1) {
-      throw new Error("Expected one collection card in browser after add");
-    }
-    console.log("✓ Added card to collection");
 
-    await page.locator("#collection-browser .collection-card__select-btn").first().click();
-    await page.waitForTimeout(100);
-    if (await page.locator("#delete-selected").isDisabled()) {
-      throw new Error("Delete Selected should enable after selecting a card");
+    const platformRow = page.locator("#print-panel .collection-platform-row").filter({ hasText: "Sega CD" });
+    if ((await platformRow.count()) !== 1) {
+      throw new Error("Expected one Sega CD platform row in Print panel");
     }
+    console.log("✓ Added card shows platform row in Print");
+
+    await platformRow.click();
+    const browserDialog = page.locator("#collection-browser[open]");
+    await browserDialog.waitFor({ state: "visible", timeout: 5000 });
+    if ((await page.locator("#collection-browser .collection-card").count()) !== 1) {
+      throw new Error("Expected one card in collection browser carousel");
+    }
+    console.log("✓ Platform row opens collection browser");
+
+    await page.locator("#collection-browser .collection-card__select-btn").click();
+    await page.waitForTimeout(150);
+    if (await page.locator("#delete-selected").isDisabled()) {
+      throw new Error("Delete Selected should enable after selecting a card in browser");
+    }
+    const badgeText = await platformRow.locator(".collection-platform-row__count").textContent();
+    if (!badgeText?.includes("1 of 1 selected")) {
+      throw new Error(`Expected platform badge '1 of 1 selected', got: ${badgeText}`);
+    }
+    console.log("✓ Selection updates toolbar and platform badge");
 
     await page.keyboard.press("Escape");
-    await page.waitForSelector("#collection-browser[open]", { state: "hidden" });
-
-    await page.locator("#game-search").focus();
-    await page.fill("#game-search", "e");
-    await page.waitForTimeout(200);
-
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.locator("#delete-selected").click();
-    await page.waitForTimeout(300);
-    if ((await page.locator("#print-panel .collection-platform-row").count()) !== 0) {
-      throw new Error("Print platform list should be empty after deleting the only card");
-    }
-    console.log("✓ Delete Selected works with game search focused");
+    await browserDialog.waitFor({ state: "hidden", timeout: 5000 });
+    console.log("✓ Escape dismisses collection browser");
 
     if (errors.length > 0) {
       throw new Error(`Page errors:\n${errors.join("\n")}`);
     }
 
-    console.log("\nAll collection delete tests passed.");
+    console.log("\nAll collection browser tests passed.");
   } finally {
     await browser.close();
   }

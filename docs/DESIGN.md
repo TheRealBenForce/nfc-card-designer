@@ -487,4 +487,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
-| 2026-07-23 | Print collection UX: platform list + viewport-edge scroll-snap browser (#88); ADR 0004 — design approved, pending implementation |
+| 2026-07-23 | Print collection UX: platform list + viewport-edge scroll-snap browser (#88); ADR 0004 |

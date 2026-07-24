@@ -13,7 +13,6 @@ import {
 import { platformById } from "./data/platforms.js";
 import {
   IMAGE_TYPES,
-  PLACEHOLDER_SVG,
   PREVIEW_CALIBRATION_STORAGE_KEY,
 } from "./config.js";
 import {
@@ -45,6 +44,15 @@ import {
 } from "./artworkDisplay.js";
 import { getAvailableImageTypes } from "./imageAvailability.js";
 import { buildCollectionTree } from "./collectionTree.js";
+import {
+  closeCollectionBrowser,
+  formatPlatformSelectionBadge,
+  getOpenPlatformId,
+  initCollectionBrowser,
+  isCollectionBrowserOpen,
+  openCollectionBrowser,
+  syncCollectionBrowser,
+} from "./collectionBrowser.js";
 import { normalizeHeaderHeightPercent, normalizeHeaderSettings } from "./headerSettings.js";
 import {
   subscribe,
@@ -60,7 +68,6 @@ import {
   replaceCollection,
   clearCollection,
   createCardId,
-  toggleCardSelection,
 } from "./state.js";
 import {
   saveSettings,
@@ -69,8 +76,7 @@ import {
   importProjectFile,
   defaultSettings,
 } from "./storage.js";
-import { buildGameImageUrl, resolveGameImage } from "./imageProvider.js";
-import { extractLibretroMetadata } from "./libretroTitle.js";
+import { resolveGameImage } from "./imageProvider.js";
 import { renderCard, canvasToDataUrl } from "./cardRenderer.js";
 import { exportLetterPdf } from "./pdfExport.js";
 import {
@@ -1402,6 +1408,7 @@ function renderCollection() {
   collectionListEl.innerHTML = "";
 
   if (collection.length === 0) {
+    if (isCollectionBrowserOpen()) closeCollectionBrowser();
     const empty = document.createElement("p");
     empty.className = "empty-hint";
     empty.textContent = "Add a game from Select to build your print sheet.";
@@ -1411,120 +1418,55 @@ function renderCollection() {
   }
 
   const tree = buildCollectionTree(collection);
+  const openPlatformId = getOpenPlatformId();
 
   for (const { platform, cards } of tree) {
-    const platformDetails = document.createElement("details");
-    platformDetails.className = "collection-platform";
-    platformDetails.open = true;
-    platformDetails.style.setProperty("--platform-color", platform.defaultColor);
+    const selectedOnPlatform = cards.filter((card) => selectedIds.has(card.id)).length;
 
-    const platformSummary = document.createElement("summary");
-    platformSummary.className = "collection-platform__summary";
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "collection-platform-row";
+    row.style.setProperty("--platform-color", platform.defaultColor);
+    row.dataset.platformId = platform.id;
+    row.setAttribute("aria-haspopup", "dialog");
 
-    const platformLead = document.createElement("span");
-    platformLead.className = "collection-platform__lead";
+    const lead = document.createElement("span");
+    lead.className = "collection-platform-row__lead";
 
     const platformIcon = createPlatformIconElement(platform, settings.platformIconTheme, {
-      iconClassName: "collection-platform__icon",
-      emojiClassName: "collection-platform__emoji",
+      iconClassName: "collection-platform-row__icon",
+      emojiClassName: "collection-platform-row__emoji",
     });
 
     const platformName = document.createElement("span");
-    platformName.className = "collection-platform__name";
+    platformName.className = "collection-platform-row__name";
     platformName.textContent = platform.name;
 
-    platformLead.append(platformIcon, platformName);
+    lead.append(platformIcon, platformName);
 
     const platformCount = document.createElement("span");
-    platformCount.className = "collection-platform__count";
-    platformCount.textContent = String(cards.length);
+    platformCount.className = "collection-platform-row__count";
+    platformCount.textContent = formatPlatformSelectionBadge(selectedOnPlatform, cards.length);
+    platformCount.classList.toggle("collection-platform-row__count--active", selectedOnPlatform > 0);
 
-    const platformChevron = document.createElement("span");
-    platformChevron.className = "collection-platform__chevron";
-    platformChevron.setAttribute("aria-hidden", "true");
-    platformChevron.innerHTML =
-      '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-    platformSummary.append(platformLead, platformCount, platformChevron);
-    platformDetails.appendChild(platformSummary);
-
-    const cardsEl = document.createElement("div");
-    cardsEl.className = "collection-cards";
-
-    for (const card of cards) {
-      const row = document.createElement("div");
-      row.className = "collection-card";
-      if (selectedIds.has(card.id)) row.classList.add("collection-card--selected");
-
-      const copyBtn = document.createElement("button");
-      copyBtn.type = "button";
-      copyBtn.className = "collection-card__copy-btn";
-      copyBtn.title = `Copy ${card.gameName} settings to editor`;
-      copyBtn.setAttribute("aria-label", `Copy ${card.gameName} settings to editor`);
-      copyBtn.innerHTML =
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/></svg>';
-      copyBtn.addEventListener("click", () => {
-        void copyCardSettingsToEditor(card);
+    row.append(lead, platformCount);
+    row.addEventListener("click", () => {
+      openCollectionBrowser(platform, cards, {
+        selectedIds,
+        settings,
+        triggerEl: row,
       });
+    });
 
-      const selectBtn = document.createElement("button");
-      selectBtn.type = "button";
-      selectBtn.className = "collection-card__select-btn";
-      selectBtn.setAttribute("aria-pressed", selectedIds.has(card.id) ? "true" : "false");
+    collectionListEl.appendChild(row);
 
-      const thumb = document.createElement("img");
-      thumb.className = "collection-card__thumb";
-      thumb.alt = "";
-      thumb.loading = "lazy";
-      const artworkUrl = buildGameImageUrl(card.platformId, card.libretroName, card.imageType);
-      thumb.src = card.imageFailed ? PLACEHOLDER_SVG : artworkUrl ?? PLACEHOLDER_SVG;
-      thumb.addEventListener("error", () => {
-        thumb.src = PLACEHOLDER_SVG;
-      });
-
-      const content = document.createElement("span");
-      content.className = "collection-card__content";
-
-      const info = document.createElement("span");
-      info.className = "collection-card__info";
-
-      const nameEl = document.createElement("span");
-      nameEl.className = "collection-card__name";
-      nameEl.textContent = card.gameName;
-      info.appendChild(nameEl);
-
-      const { year, publisher } = extractLibretroMetadata(card.libretroName);
-      const metaParts = [year, publisher].filter(Boolean);
-      if (metaParts.length > 0) {
-        const metaEl = document.createElement("span");
-        metaEl.className = "collection-card__meta";
-        metaEl.textContent = metaParts.join(" - ");
-        info.appendChild(metaEl);
-      }
-
-      content.appendChild(info);
-      content.appendChild(thumb);
-
-      selectBtn.addEventListener("click", () => {
-        toggleCardSelection(card.id);
-      });
-
-      selectBtn.appendChild(content);
-
-      if (card.imageFailed) {
-        const badge = document.createElement("span");
-        badge.className = "collection-card__badge";
-        badge.textContent = "placeholder";
-        selectBtn.appendChild(badge);
-      }
-
-      row.appendChild(selectBtn);
-      row.appendChild(copyBtn);
-      cardsEl.appendChild(row);
+    if (openPlatformId === platform.id) {
+      syncCollectionBrowser(platform, cards, { selectedIds, settings });
     }
+  }
 
-    platformDetails.appendChild(cardsEl);
-    collectionListEl.appendChild(platformDetails);
+  if (openPlatformId && !tree.some(({ platform }) => platform.id === openPlatformId)) {
+    closeCollectionBrowser();
   }
 
   updateCollectionActions();
@@ -1982,6 +1924,10 @@ export async function initUI() {
       void applyPlatformPriorityToBrowse();
       refreshPreview();
     },
+  });
+
+  initCollectionBrowser({
+    onCopyCard: (card) => copyCardSettingsToEditor(card),
   });
 
   if (previewArtworkAlignmentGridEl) {

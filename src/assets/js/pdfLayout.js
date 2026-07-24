@@ -68,7 +68,7 @@ export function stickerRectMm(col, row, layoutSettings) {
   };
 }
 
-/** Cut-mark bounds aligned to the outer sticker edges of the 3×3 grid. */
+/** Outer bounds of the 3×3 sticker trim grid. */
 export function computeStickerCutLayout(layoutSettings) {
   const { gridW, gridH, marginX, marginY } = computePdfGridLayout(layoutSettings);
   const { stickerInsetMm } = resolveCardSizing(layoutSettings);
@@ -110,39 +110,41 @@ export function stickerHorizontalCutYs(layoutSettings) {
 }
 
 /**
- * Perimeter crop marks around the full 3×3 sticker grid.
+ * Continuous cut-line segments for tests / drawing.
+ * Each sticker edge is one straight line through the sticker grid, extended
+ * into the page margin by the crop-mark offset + length.
  *
- * @param {import("jspdf").jsPDF} pdf
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
+ * @returns {{ x1: number, y1: number, x2: number, y2: number }[]}
  */
-export function drawPerimeterCutMarks(pdf, x, y, w, h) {
-  const m = PDF_CUT_MARK_LENGTH_MM;
-  const o = PDF_CUT_MARK_OFFSET_MM;
-  pdf.setDrawColor(120);
-  pdf.setLineWidth(0.15);
+export function stickerCutLineSegments(layoutSettings) {
+  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
+  const extend = PDF_CUT_MARK_OFFSET_MM + PDF_CUT_MARK_LENGTH_MM;
+  /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */
+  const segments = [];
 
-  const corners = [
-    [x - o, y, x - o - m, y],
-    [x + w + o, y, x + w + o + m, y],
-    [x - o, y + h, x - o - m, y + h],
-    [x + w + o, y + h, x + w + o + m, y + h],
-    [x, y - o, x, y - o - m],
-    [x + w, y - o, x + w, y - o - m],
-    [x, y + h + o, x, y + h + o + m],
-    [x + w, y + h + o, x + w, y + h + o + m],
-  ];
-
-  for (const [x1, y1, x2, y2] of corners) {
-    pdf.line(x1, y1, x2, y2);
+  for (const cutX of stickerVerticalCutXs(layoutSettings)) {
+    segments.push({
+      x1: cutX,
+      y1: marginY - extend,
+      x2: cutX,
+      y2: marginY + gridH + extend,
+    });
   }
+
+  for (const cutY of stickerHorizontalCutYs(layoutSettings)) {
+    segments.push({
+      x1: marginX - extend,
+      y1: cutY,
+      x2: marginX + gridW + extend,
+      y2: cutY,
+    });
+  }
+
+  return segments;
 }
 
 /**
  * X coordinate at the center of the vertical gutter between two columns.
- * Used as a safe mark placement (white paper), not as a cut line.
  * @param {number} col Left column index (0 or 1 for a 3-column grid).
  */
 export function verticalGutterCenterX(col, layoutSettings) {
@@ -152,7 +154,6 @@ export function verticalGutterCenterX(col, layoutSettings) {
 
 /**
  * Y coordinate at the center of the horizontal gutter between two rows.
- * Used as a safe mark placement (white paper), not as a cut line.
  * @param {number} row Top row index (0 or 1 for a 3-row grid).
  */
 export function horizontalGutterCenterY(row, layoutSettings) {
@@ -161,106 +162,19 @@ export function horizontalGutterCenterY(row, layoutSettings) {
 }
 
 /**
- * @param {import("jspdf").jsPDF} pdf
- * @param {number} cx
- * @param {number} cy
- * @param {number} m
- */
-function drawHorizontalTick(pdf, cx, cy, m) {
-  pdf.line(cx - m / 2, cy, cx + m / 2, cy);
-}
-
-/**
- * @param {import("jspdf").jsPDF} pdf
- * @param {number} cx
- * @param {number} cy
- * @param {number} m
- */
-function drawVerticalTick(pdf, cx, cy, m) {
-  pdf.line(cx, cy - m / 2, cx, cy + m / 2);
-}
-
-/**
- * Cut marks on every sticker edge (not card-gutter centers).
- *
- * Vertical sticker edges get a horizontal tick at:
- * - top and bottom of the outer sticker grid
- * - the center of each horizontal gutter between card rows
- *
- * Horizontal sticker edges get a vertical tick at:
- * - left and right of the outer sticker grid
- * - the center of each vertical gutter between card columns
+ * Draw continuous trim lines on every sticker edge.
+ * Lines run straight through bleed zones, artwork borders, and card gaps,
+ * and extend slightly into the page margin for alignment.
  *
  * @param {import("jspdf").jsPDF} pdf
  */
-export function drawInternalCutMarks(pdf, layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
-  const m = PDF_CUT_MARK_LENGTH_MM;
-  const o = PDF_CUT_MARK_OFFSET_MM;
-  const cutXs = stickerVerticalCutXs(layoutSettings);
-  const cutYs = stickerHorizontalCutYs(layoutSettings);
-
+export function drawSheetCutMarks(pdf, layoutSettings) {
   pdf.setDrawColor(120);
   pdf.setLineWidth(0.15);
 
-  for (const cutX of cutXs) {
-    drawHorizontalTick(pdf, cutX, marginY - o, m);
-    drawHorizontalTick(pdf, cutX, marginY + gridH + o, m);
-    for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-      drawHorizontalTick(pdf, cutX, horizontalGutterCenterY(row, layoutSettings), m);
-    }
+  for (const { x1, y1, x2, y2 } of stickerCutLineSegments(layoutSettings)) {
+    pdf.line(x1, y1, x2, y2);
   }
-
-  for (const cutY of cutYs) {
-    drawVerticalTick(pdf, marginX - o, cutY, m);
-    drawVerticalTick(pdf, marginX + gridW + o, cutY, m);
-    for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-      drawVerticalTick(pdf, verticalGutterCenterX(col, layoutSettings), cutY, m);
-    }
-  }
-}
-
-/** @param {import("jspdf").jsPDF} pdf */
-export function drawSheetCutMarks(pdf, layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
-  drawPerimeterCutMarks(pdf, marginX, marginY, gridW, gridH);
-  drawInternalCutMarks(pdf, layoutSettings);
-}
-
-/**
- * Internal cut mark endpoints for tests.
- * @returns {{ x1: number, y1: number, x2: number, y2: number }[]}
- */
-export function internalCutMarkSegments(layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
-  const m = PDF_CUT_MARK_LENGTH_MM;
-  const o = PDF_CUT_MARK_OFFSET_MM;
-  const cutXs = stickerVerticalCutXs(layoutSettings);
-  const cutYs = stickerHorizontalCutYs(layoutSettings);
-  /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */
-  const segments = [];
-
-  for (const cutX of cutXs) {
-    for (const cy of [marginY - o, marginY + gridH + o]) {
-      segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
-    }
-    for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-      const cy = horizontalGutterCenterY(row, layoutSettings);
-      segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
-    }
-  }
-
-  for (const cutY of cutYs) {
-    for (const cx of [marginX - o, marginX + gridW + o]) {
-      segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
-    }
-    for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-      const cx = verticalGutterCenterX(col, layoutSettings);
-      segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
-    }
-  }
-
-  return segments;
 }
 
 /**

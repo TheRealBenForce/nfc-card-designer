@@ -1,7 +1,7 @@
 # NFC Card Designer — Design Document
 
 **Status:** Living document (current product state)  
-**Last updated:** 2026-07-22  
+**Last updated:** 2026-07-24  
 **Audience:** Product owner + AI assistant collaboration
 
 This document describes **what the app is today**. Planned work lives in **[GitHub Issues](https://github.com/TheRealBenForce/nfc-card-designer/issues)**.
@@ -149,15 +149,15 @@ Each column opens with a **centered, pronounced section title** (`Select`, `Edit
 Top to bottom:
 
 1. **Global Settings** (collapsible `<details>`, collapsed by default)
-   - Header Height — range 5–40%, default 15%
    - Card Width (mm) — default 52
    - Card Height (mm) — default 84
    - Sticker Inset (mm) — default 2
+   - Platform Icons theme (unchanged)
 
 2. **Platform** (subsection)
    - Scrollable list of platforms with games in the catalog
    - Selecting a platform filters game search to that platform
-   - Per-platform defaults open in the **Platform Settings** modal (accent color, artwork priority, rotation, alignment, zoom, background)
+   - **No per-platform edit affordance** — platform defaults are edited from the **Edit** column (see [Platform defaults](#platform-defaults))
 
 3. **Game** (subsection)
    - Search input (`Search games…`)
@@ -211,7 +211,7 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 | **Preview meta** | Status while loading / previewing |
 | **Preview layout** | Flex row: main preview + artwork controls sidebar |
 | **Preview main** | Image-type tabs → card frame → screen calibration slider → **Add to collection** (primary) |
-| **Artwork controls** | Alignment grid, zoom, rotation, background mode/color, reset to platform defaults; **Card customization** checkboxes (Show Header, Show Platform Accents) |
+| **Artwork controls** | Accent color; alignment grid, zoom, rotation, background mode/color; **Header design** checkboxes (Show Header, Show Platform Accents) and header-height control; **Reset card** and **Save to platform defaults** buttons (see below) |
 
 **Sticker / skeleton while ON:**
 
@@ -230,6 +230,30 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 
 **Layout:** Card preview horizontally centered within Edit. Artwork controls in the right sidebar of the Edit column.
 
+**Platform-default actions** (bottom of artwork controls sidebar, below header design):
+
+| Control | Behavior |
+|---------|----------|
+| **Reset card** | Reverts the card currently in the editor to the **saved platform defaults** for its platform. Disabled whenever the editor already matches those defaults (including on first load with no edits). Replaces the former “Reset to Platform Defaults” and “Reset to system defaults” controls — there is no separate in-app factory-reset for a single platform (full project **Clear** still resets everything). |
+| **Save to platform defaults** | Opens a confirmation modal. On confirm, writes the current editor settings into `settings.platformDefaults` for the active platform and bulk-updates every **default** collection card on that platform (see [Card customization state](#card-customization-state)). Customized cards are untouched. |
+
+**Save to platform defaults — confirmation modal copy:**
+
+> This will overwrite **{Platform name}** defaults and update **N** default card(s) in your collection. Customized cards will not change.
+
+Buttons: **Cancel** / **Save** (primary).
+
+**What “Save” captures** (full platform template from Edit):
+
+- Accent color
+- Artwork display (alignment, zoom, background mode/color)
+- Per-image-type rotation for the **currently selected artwork tab** (other types keep their existing platform-default rotations)
+- Header design (show header, show platform accents, header height %)
+
+Artwork **priority order** (box / title / in-game) remains seeded from bundled system defaults unless changed in a future control; it is not part of this save action.
+
+**Customization detection:** Any change to the fields above (or switching artwork type / rotation away from platform defaults) marks the session as customized relative to platform defaults. **Reset card** clears that and returns to platform defaults.
+
 #### Print (`panel--print`, right column)
 
 **Purpose:** Manage the saved card list and export a print-ready PDF.
@@ -241,7 +265,7 @@ There is **no separate “Collection” heading** — the **Print** section titl
 | **Selection meta** | “No cards selected” / “N cards selected” |
 | **Selection actions** | Select All / Deselect All |
 | **Bulk actions** | **Print PDF** (primary) / **Delete Selected** (danger) — disabled when nothing selected |
-| **Card list** | Grouped by platform (`<details>` per platform, open by default). Each row: **copy-in** button, select toggle, label `Game Name - Artwork Type`, optional “placeholder” badge if image failed. No edit (✎) control. |
+| **Card list** | Platform browser + carousel per [#88](https://github.com/TheRealBenForce/nfc-card-designer/issues/88): flat platform rows in Print; tap a platform to open a sidebar/dock overlay with a card carousel. Each card shows a **default vs customized** indicator (see [Card customization state](#card-customization-state)). Row actions: **copy-in**, select toggle. No in-place edit (✎) control. |
 
 **Empty state:** “Search for a game and press Enter to add cards.”
 
@@ -327,10 +351,49 @@ Portrait default — **52 × 84 mm** card, **2 mm** sticker inset default.
 └──────────────────────────────┘
 ```
 
-- **Global:** Header height %, show/hide header, show/hide platform color strip.
-- **Per platform:** Accent color, artwork priority, rotation, alignment, zoom, background.
-- **Per card:** Overrides via preview artwork controls when browsing/editing.
+- **Global (layout only):** Card width/height, sticker inset.
+- **Per platform:** Accent color, artwork priority (system-seeded), per-type rotation, alignment, zoom, background, header design (show header, show platform strip, header height %). Stored in `settings.platformDefaults`.
+- **Per card:** `default` cards inherit live platform defaults; `customized` cards store explicit overrides.
 - **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap, cut marks outside card edges.
+
+### Platform defaults
+
+Three layers:
+
+```
+System defaults (bundled platform-defaults.json)
+       ↓ seeds first run / project Clear
+User platform defaults (settings.platformDefaults, per platform)
+       ↓ inherited by default cards
+Collection cards (customization: default | customized)
+```
+
+| Layer | Source | User can change via |
+|-------|--------|---------------------|
+| **System defaults** | `assets/data/platform-defaults.json` | **Clear** project only (resets all settings) |
+| **Platform defaults** | `localStorage` / export JSON | **Save to platform defaults** in Edit |
+| **Card** | Collection entry | Edit controls; **Reset card** returns to platform defaults |
+
+**Removed UI:** Platform Settings modal and the ✎ edit icon on platform rows in Select. All platform-template editing flows through Edit.
+
+### Card customization state
+
+Every collection card carries:
+
+```text
+customization: "default" | "customized"
+```
+
+| State | Meaning | When platform defaults change |
+|-------|---------|-------------------------------|
+| **default** | Card follows the saved platform template | Overrides cleared; card re-renders from updated platform defaults |
+| **customized** | User diverged from platform defaults | Unchanged |
+
+**Transitions to `customized`:** any edit in the editor that differs from platform defaults before **Add to collection**; copy-in from a customized card.
+
+**Transitions to `default`:** add with no edits; **Reset card** then add; card is the source of **Save to platform defaults**; migration infers `default` when no overrides exist.
+
+**Carousel indicator** (Print overlay, #88): compact dot on the card thumbnail — outline = default, filled = customized. Tooltip: “Uses platform defaults” / “Customized — won’t change when defaults update”.
 
 Landscape variant uses the same long-edge split rules (documented in `README.md`).
 
@@ -399,8 +462,10 @@ Example:
 ### Persistence
 
 - `localStorage` keys: `nfc-card-designer-settings`, `nfc-card-designer-collection`.
-- Export file: `nfc-card-designer.json` (project version 6).
-- Collection cards store both `libretroName` (canonical artwork key) and `gameName` (friendly label derived on load/save).
+- Export file: `nfc-card-designer.json` (project version **7** — adds `customization` on cards and `headerSettings` on platform defaults).
+- Collection cards store `libretroName` (canonical artwork key), `gameName` (friendly label), and `customization` (`default` | `customized`).
+- `platformDefaults` entries include `headerSettings` (show header, show platform strip, header height %).
+- **Migration (v6 → v7):** cards without `customization` infer `default` when they have no artwork/header overrides vs their platform defaults; otherwise `customized`. Global header fields in settings migrate into each platform’s `headerSettings` where missing.
 
 ---
 
@@ -421,6 +486,9 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 - [x] Supplies and Recognition static pages in global nav
 - [x] Unlisted Developer and Colors pages for maintainers
 - [x] Deploy to GitHub Pages (static site only)
+- [ ] Platform defaults edited from Edit (Save / Reset card); no platform-row edit modal
+- [ ] Card `customization` state (`default` | `customized`) with carousel indicator (#88)
+- [ ] Header design per platform (moved out of global settings)
 
 ---
 
@@ -446,3 +514,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | Catalog filters + friendly display names documented (`libretroName` remains canonical metadata) |
 | 2026-07-22 | Designer reframed as Select · Edit · Print; full Edit column gating; copy-in only from Print |
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
+| 2026-07-24 | Platform defaults redesign: Edit-centric Save/Reset card, card default/customized state, remove platform modal |

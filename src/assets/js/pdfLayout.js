@@ -68,7 +68,7 @@ export function stickerRectMm(col, row, layoutSettings) {
   };
 }
 
-/** Cut-mark bounds aligned to printable sticker edges (inset within each card slot). */
+/** Cut-mark bounds aligned to the outer sticker edges of the 3×3 grid. */
 export function computeStickerCutLayout(layoutSettings) {
   const { gridW, gridH, marginX, marginY } = computePdfGridLayout(layoutSettings);
   const { stickerInsetMm } = resolveCardSizing(layoutSettings);
@@ -82,7 +82,35 @@ export function computeStickerCutLayout(layoutSettings) {
 }
 
 /**
- * Perimeter crop marks around the full 3×3 grid.
+ * Vertical cut-line X positions at every sticker left/right edge.
+ * @returns {number[]}
+ */
+export function stickerVerticalCutXs(layoutSettings) {
+  /** @type {number[]} */
+  const xs = [];
+  for (let col = 0; col < CARDS_PER_ROW; col++) {
+    const sticker = stickerRectMm(col, 0, layoutSettings);
+    xs.push(sticker.x, sticker.x + sticker.w);
+  }
+  return xs;
+}
+
+/**
+ * Horizontal cut-line Y positions at every sticker top/bottom edge.
+ * @returns {number[]}
+ */
+export function stickerHorizontalCutYs(layoutSettings) {
+  /** @type {number[]} */
+  const ys = [];
+  for (let row = 0; row < CARDS_PER_COL; row++) {
+    const sticker = stickerRectMm(0, row, layoutSettings);
+    ys.push(sticker.y, sticker.y + sticker.h);
+  }
+  return ys;
+}
+
+/**
+ * Perimeter crop marks around the full 3×3 sticker grid.
  *
  * @param {import("jspdf").jsPDF} pdf
  * @param {number} x
@@ -114,6 +142,7 @@ export function drawPerimeterCutMarks(pdf, x, y, w, h) {
 
 /**
  * X coordinate at the center of the vertical gutter between two columns.
+ * Used as a safe mark placement (white paper), not as a cut line.
  * @param {number} col Left column index (0 or 1 for a 3-column grid).
  */
 export function verticalGutterCenterX(col, layoutSettings) {
@@ -123,6 +152,7 @@ export function verticalGutterCenterX(col, layoutSettings) {
 
 /**
  * Y coordinate at the center of the horizontal gutter between two rows.
+ * Used as a safe mark placement (white paper), not as a cut line.
  * @param {number} row Top row index (0 or 1 for a 3-row grid).
  */
 export function horizontalGutterCenterY(row, layoutSettings) {
@@ -151,15 +181,15 @@ function drawVerticalTick(pdf, cx, cy, m) {
 }
 
 /**
- * Internal crop marks on cut-line intersections only (centered in gutters).
+ * Cut marks on every sticker edge (not card-gutter centers).
  *
- * Vertical cuts between columns get a horizontal tick at:
- * - top and bottom of the sheet grid
- * - the center of each horizontal gutter between rows
+ * Vertical sticker edges get a horizontal tick at:
+ * - top and bottom of the outer sticker grid
+ * - the center of each horizontal gutter between card rows
  *
- * Horizontal cuts between rows get a vertical tick at:
- * - left and right of the sheet grid
- * - the center of each vertical gutter between columns
+ * Horizontal sticker edges get a vertical tick at:
+ * - left and right of the outer sticker grid
+ * - the center of each vertical gutter between card columns
  *
  * @param {import("jspdf").jsPDF} pdf
  */
@@ -167,12 +197,13 @@ export function drawInternalCutMarks(pdf, layoutSettings) {
   const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
+  const cutXs = stickerVerticalCutXs(layoutSettings);
+  const cutYs = stickerHorizontalCutYs(layoutSettings);
 
   pdf.setDrawColor(120);
   pdf.setLineWidth(0.15);
 
-  for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const cutX = verticalGutterCenterX(col, layoutSettings);
+  for (const cutX of cutXs) {
     drawHorizontalTick(pdf, cutX, marginY - o, m);
     drawHorizontalTick(pdf, cutX, marginY + gridH + o, m);
     for (let row = 0; row < CARDS_PER_COL - 1; row++) {
@@ -180,8 +211,7 @@ export function drawInternalCutMarks(pdf, layoutSettings) {
     }
   }
 
-  for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const cutY = horizontalGutterCenterY(row, layoutSettings);
+  for (const cutY of cutYs) {
     drawVerticalTick(pdf, marginX - o, cutY, m);
     drawVerticalTick(pdf, marginX + gridW + o, cutY, m);
     for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
@@ -205,11 +235,12 @@ export function internalCutMarkSegments(layoutSettings) {
   const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
+  const cutXs = stickerVerticalCutXs(layoutSettings);
+  const cutYs = stickerHorizontalCutYs(layoutSettings);
   /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */
   const segments = [];
 
-  for (let col = 0; col < CARDS_PER_ROW - 1; col++) {
-    const cutX = verticalGutterCenterX(col, layoutSettings);
+  for (const cutX of cutXs) {
     for (const cy of [marginY - o, marginY + gridH + o]) {
       segments.push({ x1: cutX - m / 2, y1: cy, x2: cutX + m / 2, y2: cy });
     }
@@ -219,8 +250,7 @@ export function internalCutMarkSegments(layoutSettings) {
     }
   }
 
-  for (let row = 0; row < CARDS_PER_COL - 1; row++) {
-    const cutY = horizontalGutterCenterY(row, layoutSettings);
+  for (const cutY of cutYs) {
     for (const cx of [marginX - o, marginX + gridW + o]) {
       segments.push({ x1: cx, y1: cutY - m / 2, x2: cx, y2: cutY + m / 2 });
     }

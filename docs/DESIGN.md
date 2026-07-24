@@ -330,7 +330,7 @@ Portrait default — **52 × 84 mm** card, **2 mm** sticker inset default.
 - **Global:** Header height %, show/hide header, show/hide platform color strip.
 - **Per platform:** Accent color, artwork priority, rotation, alignment, zoom, background.
 - **Per card:** Overrides via preview artwork controls when browsing/editing.
-- **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap. Continuous cut lines on every sticker left/right/top/bottom edge run straight through bleed, artwork borders, and card gaps (not gutter-centered ticks). Exported artwork bleeds to the full card slot using nearest-edge color extension; cut lines show the trim path.
+- **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap. Crop marks align to every sticker edge (imaginary trim lines through bleed), but are drawn only in page margins and card gutters — never through sticker artwork or bleed. Exported artwork bleeds to the full card slot using nearest-edge color extension.
 
 Landscape variant uses the same long-edge split rules (documented in `README.md`).
 

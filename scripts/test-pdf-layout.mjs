@@ -9,11 +9,10 @@ import {
   CARDS_PER_ROW,
   CARDS_PER_COL,
   PDF_CARD_GAP_MM,
-  PDF_CUT_MARK_LENGTH_MM,
-  PDF_CUT_MARK_OFFSET_MM,
 } from "../src/assets/js/config.js";
 import {
   cardPositionMm,
+  cardRectMm,
   computePdfGridLayout,
   computeStickerCutLayout,
   pointInsideCard,
@@ -22,7 +21,7 @@ import {
   stickerRectMm,
   stickerVerticalCutXs,
   stickerHorizontalCutYs,
-  stickerCutLineSegments,
+  stickerCutMarkSegments,
 } from "../src/assets/js/pdfLayout.js";
 
 const { gridW, gridH, marginX, marginY } = computePdfGridLayout();
@@ -73,9 +72,11 @@ if (
 }
 console.log(`✓ Sticker cut grid inset ${DEFAULT_STICKER_INSET_MM} mm within card slots`);
 
+const cards = [];
 const stickers = [];
 for (let row = 0; row < CARDS_PER_COL; row++) {
   for (let col = 0; col < CARDS_PER_ROW; col++) {
+    cards.push(cardRectMm(col, row));
     stickers.push(stickerRectMm(col, row));
   }
 }
@@ -109,7 +110,7 @@ for (let row = 0; row < CARDS_PER_COL; row++) {
     process.exit(1);
   }
 }
-console.log("✓ Cut lines align to every sticker edge");
+console.log("✓ Imaginary cut lines align to every sticker edge");
 
 if (
   Math.abs(cutXs[0] - stickerLayout.marginX) > 0.01
@@ -134,65 +135,52 @@ if (cutYs.some((y) => Math.abs(y - gutterCutY) < 0.01)) {
 }
 console.log("✓ Cut lines are sticker edges, not gutter centers");
 
-const segments = stickerCutLineSegments();
-const extend = PDF_CUT_MARK_OFFSET_MM + PDF_CUT_MARK_LENGTH_MM;
-const verticalSegments = segments.filter((s) => Math.abs(s.x1 - s.x2) < 0.01);
-const horizontalSegments = segments.filter((s) => Math.abs(s.y1 - s.y2) < 0.01);
-
-if (verticalSegments.length !== cutXs.length || horizontalSegments.length !== cutYs.length) {
-  console.error("FAILED: Expected one continuous segment per sticker edge");
+const segments = stickerCutMarkSegments();
+if (segments.length === 0) {
+  console.error("FAILED: Expected crop mark segments");
   process.exit(1);
 }
 
-for (const segment of verticalSegments) {
-  if (
-    Math.abs(segment.y1 - (stickerLayout.marginY - extend)) > 0.01
-    || Math.abs(segment.y2 - (stickerLayout.marginY + stickerLayout.gridH + extend)) > 0.01
-  ) {
-    console.error("FAILED: Vertical cut lines should run continuously through the sticker grid");
-    process.exit(1);
-  }
-  // Midpoint must sit on a sticker border or in a gap/bleed corridor at that X —
-  // specifically, the line must pass through each column sticker's top bleed.
-  const midY = stickerRectMm(0, 0).y - DEFAULT_STICKER_INSET_MM / 2; // in top bleed
-  if (!cutXs.some((x) => Math.abs(x - segment.x1) < 0.01)) {
-    console.error("FAILED: Vertical segment X must be a sticker edge");
-    process.exit(1);
-  }
-  if (!(segment.y1 < midY && midY < segment.y2)) {
-    console.error("FAILED: Vertical cut line should pass through card bleed");
-    process.exit(1);
-  }
-}
-
-for (const segment of horizontalSegments) {
-  if (
-    Math.abs(segment.x1 - (stickerLayout.marginX - extend)) > 0.01
-    || Math.abs(segment.x2 - (stickerLayout.marginX + stickerLayout.gridW + extend)) > 0.01
-  ) {
-    console.error("FAILED: Horizontal cut lines should run continuously through the sticker grid");
-    process.exit(1);
-  }
-}
-console.log("✓ Cut lines are continuous through bleed, borders, and gaps");
-
-// Lines sit on sticker borders; endpoints should not land inside sticker faces.
 for (const segment of segments) {
   for (const [px, py] of [
     [segment.x1, segment.y1],
     [segment.x2, segment.y2],
+    [(segment.x1 + segment.x2) / 2, (segment.y1 + segment.y2) / 2],
   ]) {
+    for (const card of cards) {
+      if (pointInsideCard(px, py, card)) {
+        console.error(
+          `FAILED: Cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps card/bleed/sticker area`,
+        );
+        process.exit(1);
+      }
+    }
     for (const sticker of stickers) {
       if (pointInsideCard(px, py, sticker)) {
         console.error(
-          `FAILED: Cut line endpoint (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a sticker interior`,
+          `FAILED: Cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps sticker artwork`,
         );
         process.exit(1);
       }
     }
   }
 }
-console.log("✓ Cut line endpoints stay outside sticker interiors");
+console.log("✓ Cut marks stay outside stickers and bleed (margins/gutters only)");
+
+// Every drawn mark should sit on an imaginary sticker-edge cut line.
+for (const segment of segments) {
+  const midX = (segment.x1 + segment.x2) / 2;
+  const midY = (segment.y1 + segment.y2) / 2;
+  const onVerticalCut = cutXs.some((x) => Math.abs(midX - x) < 0.01);
+  const onHorizontalCut = cutYs.some((y) => Math.abs(midY - y) < 0.01);
+  if (!onVerticalCut && !onHorizontalCut) {
+    console.error(
+      `FAILED: Cut mark midpoint (${midX.toFixed(2)}, ${midY.toFixed(2)}) is not on a sticker edge cut line`,
+    );
+    process.exit(1);
+  }
+}
+console.log("✓ Drawn marks lie on sticker-edge cut lines");
 
 const rowGapY = horizontalGutterCenterY(0);
 const expectedGapY = marginY + CARD_HEIGHT_MM + PDF_CARD_GAP_MM / 2;
@@ -206,6 +194,6 @@ if (Math.abs(colGapX - expectedGapX) > 0.01) {
   console.error("FAILED: Vertical gutter placement should stay centered between columns");
   process.exit(1);
 }
-console.log("✓ Gutter centers remain available for layout math");
+console.log("✓ Gutter centers remain safe mark placement points");
 
 console.log("\nAll PDF layout tests passed.");

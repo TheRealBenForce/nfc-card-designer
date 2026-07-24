@@ -3,6 +3,7 @@
 import {
   CARD_WIDTH_MM,
   CARD_HEIGHT_MM,
+  DEFAULT_STICKER_INSET_MM,
   LETTER_WIDTH_MM,
   LETTER_HEIGHT_MM,
   CARDS_PER_ROW,
@@ -12,12 +13,13 @@ import {
 } from "../src/assets/js/config.js";
 import {
   cardPositionMm,
-  cardRectMm,
   computePdfGridLayout,
+  computeStickerCutLayout,
   internalCutMarkSegments,
   pointInsideCard,
   horizontalGutterCenterY,
   verticalGutterCenterX,
+  stickerRectMm,
 } from "../src/assets/js/pdfLayout.js";
 
 const { gridW, gridH, marginX, marginY } = computePdfGridLayout();
@@ -58,27 +60,38 @@ if (pos22.y + CARD_HEIGHT_MM > marginY + gridH + 0.01) {
 }
 console.log("✓ All 9 card slots fit within the sheet");
 
-const perimeterNearestX = marginX - PDF_CUT_MARK_OFFSET_MM;
-if (perimeterNearestX >= marginX) {
-  console.error("FAILED: Perimeter cut marks should sit outside the grid");
+const cardPerimeterNearestX = marginX - PDF_CUT_MARK_OFFSET_MM;
+const stickerPerimeterNearestX = marginX + DEFAULT_STICKER_INSET_MM - PDF_CUT_MARK_OFFSET_MM;
+if (stickerPerimeterNearestX <= cardPerimeterNearestX) {
+  console.error("FAILED: Perimeter cut marks should align to sticker edges, not card edges");
   process.exit(1);
 }
-console.log(`✓ Perimeter cut marks inset ${PDF_CUT_MARK_OFFSET_MM} mm from grid edges`);
+console.log(`✓ Perimeter cut marks inset ${PDF_CUT_MARK_OFFSET_MM} mm from sticker edges`);
 
-const cards = [];
+const stickerLayout = computeStickerCutLayout();
+if (
+  Math.abs(stickerLayout.marginX - (marginX + DEFAULT_STICKER_INSET_MM)) > 0.01
+  || Math.abs(stickerLayout.gridW - (gridW - 2 * DEFAULT_STICKER_INSET_MM)) > 0.01
+) {
+  console.error("FAILED: Sticker cut layout should inset the card grid by sticker inset");
+  process.exit(1);
+}
+console.log(`✓ Sticker cut grid inset ${DEFAULT_STICKER_INSET_MM} mm within card slots`);
+
+const stickers = [];
 for (let row = 0; row < CARDS_PER_COL; row++) {
   for (let col = 0; col < CARDS_PER_ROW; col++) {
-    cards.push(cardRectMm(col, row));
+    stickers.push(stickerRectMm(col, row));
   }
 }
 
 for (const segment of internalCutMarkSegments()) {
   for (const px of [segment.x1, segment.x2]) {
     for (const py of [segment.y1, segment.y2]) {
-      for (const card of cards) {
-        if (pointInsideCard(px, py, card)) {
+      for (const sticker of stickers) {
+        if (pointInsideCard(px, py, sticker)) {
           console.error(
-            `FAILED: Internal cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a card interior`,
+            `FAILED: Internal cut mark (${px.toFixed(2)}, ${py.toFixed(2)}) overlaps a sticker interior`,
           );
           process.exit(1);
         }
@@ -86,7 +99,7 @@ for (const segment of internalCutMarkSegments()) {
     }
   }
 }
-console.log("✓ Internal cut marks stay outside card artwork");
+console.log("✓ Internal cut marks stay outside sticker artwork");
 
 const rowGapY = horizontalGutterCenterY(0);
 const expectedGapY = marginY + CARD_HEIGHT_MM + PDF_CARD_GAP_MM / 2;

@@ -54,6 +54,34 @@ export function cardRectMm(col, row, layoutSettings) {
 }
 
 /**
+ * @param {number} col
+ * @param {number} row
+ */
+export function stickerRectMm(col, row, layoutSettings) {
+  const { x, y } = cardPositionMm(col, row, layoutSettings);
+  const { stickerInsetMm, stickerWidthMm, stickerHeightMm } = resolveCardSizing(layoutSettings);
+  return {
+    x: x + stickerInsetMm,
+    y: y + stickerInsetMm,
+    w: stickerWidthMm,
+    h: stickerHeightMm,
+  };
+}
+
+/** Cut-mark bounds aligned to printable sticker edges (inset within each card slot). */
+export function computeStickerCutLayout(layoutSettings) {
+  const { gridW, gridH, marginX, marginY } = computePdfGridLayout(layoutSettings);
+  const { stickerInsetMm } = resolveCardSizing(layoutSettings);
+  return {
+    marginX: marginX + stickerInsetMm,
+    marginY: marginY + stickerInsetMm,
+    gridW: gridW - 2 * stickerInsetMm,
+    gridH: gridH - 2 * stickerInsetMm,
+    stickerInsetMm,
+  };
+}
+
+/**
  * Perimeter crop marks around the full 3×3 grid.
  *
  * @param {import("jspdf").jsPDF} pdf
@@ -136,7 +164,7 @@ function drawVerticalTick(pdf, cx, cy, m) {
  * @param {import("jspdf").jsPDF} pdf
  */
 export function drawInternalCutMarks(pdf, layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
+  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
 
@@ -164,7 +192,7 @@ export function drawInternalCutMarks(pdf, layoutSettings) {
 
 /** @param {import("jspdf").jsPDF} pdf */
 export function drawSheetCutMarks(pdf, layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
+  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
   drawPerimeterCutMarks(pdf, marginX, marginY, gridW, gridH);
   drawInternalCutMarks(pdf, layoutSettings);
 }
@@ -174,7 +202,7 @@ export function drawSheetCutMarks(pdf, layoutSettings) {
  * @returns {{ x1: number, y1: number, x2: number, y2: number }[]}
  */
 export function internalCutMarkSegments(layoutSettings) {
-  const { marginX, marginY, gridW, gridH } = computePdfGridLayout(layoutSettings);
+  const { marginX, marginY, gridW, gridH } = computeStickerCutLayout(layoutSettings);
   const m = PDF_CUT_MARK_LENGTH_MM;
   const o = PDF_CUT_MARK_OFFSET_MM;
   /** @type {{ x1: number, y1: number, x2: number, y2: number }[]} */

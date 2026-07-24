@@ -72,7 +72,7 @@
           <summary class="collapsible__summary">Global Settings</summary>
           <div class="collapsible__body">
             <label class="field">
-              <span class="field__label">Platform Icons</span>
+              <span class="field__label">Platform Icons (UI)</span>
               <select id="global-platform-icon-theme" class="input">
                 <option value="dot-art">Dot Art</option>
                 <option value="flatui">FlatUI</option>
@@ -362,6 +362,32 @@
           <button id="collection-browser-next" type="button" class="collection-browser__nav-btn" aria-label="Next card">
             <span class="collection-browser__nav-label collection-browser__nav-label--next">Next</span>
           </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog
+      id="confirm-modal"
+      class="platform-settings-modal confirm-modal"
+      aria-labelledby="confirm-modal-title"
+      aria-describedby="confirm-modal-message"
+    >
+      <div class="platform-settings-modal__panel">
+        <div class="platform-settings-modal__accent" aria-hidden="true"></div>
+        <header class="platform-settings-modal__header">
+          <div class="platform-settings-modal__heading">
+            <h2 id="confirm-modal-title" class="platform-settings-modal__title">Confirm</h2>
+          </div>
+          <button id="confirm-modal-close" type="button" class="platform-settings-modal__close" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <div class="platform-settings-modal__body">
+          <p id="confirm-modal-message" class="confirm-modal__message"></p>
+        </div>
+        <footer class="platform-settings-modal__footer">
+          <button id="confirm-modal-cancel" type="button" class="btn btn--secondary">Cancel</button>
+          <button id="confirm-modal-confirm" type="button" class="btn btn--danger">Confirm</button>
         </footer>
       </div>
     </dialog>

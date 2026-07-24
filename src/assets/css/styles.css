@@ -1741,10 +1741,11 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.35;
+  min-height: calc(0.78rem * 1.35);
 }
 
-.field-hint[hidden] {
-  display: none;
+.field-hint--suppressed {
+  visibility: hidden;
 }
 
 .section--platforms {
@@ -2187,6 +2188,17 @@ body {
   background: var(--surface-2);
 }
 
+.confirm-modal {
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.confirm-modal__message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
 .list-more-hint {
   margin: 0;
   padding: 0.5rem 0.75rem;
@@ -2545,6 +2557,10 @@ body {
   border-radius: 3px;
   background: transparent;
   transition: opacity 0.15s ease;
+}
+
+.preview-image[hidden] {
+  display: none !important;
 }
 
 .preview-layout {

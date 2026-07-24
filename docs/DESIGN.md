@@ -318,7 +318,7 @@ Selecting a platform row opens a **viewport-level card browser** — not a panel
 **Sections:**
 
 1. **Lead** — Acknowledgment of bundled third-party assets.
-2. **Platform logos** — Carbon EmulationStation theme (RetroPie), system SVG paths.
+2. **Platform logos** — Carbon EmulationStation theme (RetroPie) SVGs on card headers; RetroArch XMB themes in the platform selector (Global Settings → Platform Icons).
 3. **Game artwork** — [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) on GitHub, loaded at runtime via `raw.githubusercontent.com` (same on every host — GitHub Pages, local dev, or custom domain).
 4. **3D-printed sticker applicator** — Credits [EntirelyTom](https://www.printables.com/@EntirelyTom) (TapTo Sticker Applicator on Printables); cross-link to Supplies.
 5. **Inspiration** — Project influenced by [Wizzo](https://zaparoo.org) / TapTo (Zaparoo) and the MiSTeR FPGA community.

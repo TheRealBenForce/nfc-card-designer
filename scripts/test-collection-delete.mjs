@@ -66,8 +66,9 @@ async function main() {
     await page.fill("#game-search", "e");
     await page.waitForTimeout(200);
 
-    page.once("dialog", (dialog) => dialog.accept());
     await page.locator("#delete-selected").click();
+    await page.waitForSelector("#confirm-modal[open]");
+    await page.locator("#confirm-modal-confirm").click();
     await page.waitForTimeout(300);
     if ((await page.locator("#print-panel .collection-platform-row").count()) !== 0) {
       throw new Error("Print platform list should be empty after deleting the only card");

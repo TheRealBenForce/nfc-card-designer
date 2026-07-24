@@ -36,7 +36,9 @@ export async function exportLetterPdf(deck, platformDefaults, layoutSettings) {
       const row = Math.floor(slot / CARDS_PER_ROW);
       const { x, y } = cardPositionMm(col, row, layoutSettings);
 
-      const canvas = await renderCard(deck[cardIndex], platformDefaults, layoutSettings);
+      const canvas = await renderCard(deck[cardIndex], platformDefaults, layoutSettings, {
+        bleedToCard: true,
+      });
       const dataUrl = canvas.toDataURL("image/png");
       pdf.addImage(dataUrl, "PNG", x, y, cardSizing.cardWidthMm, cardSizing.cardHeightMm);
     }

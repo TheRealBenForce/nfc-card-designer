@@ -26,7 +26,7 @@ export const CARDS_PER_COL = 3;
 /** Gap between adjacent cards on the letter PDF sheet (mm). */
 export const PDF_CARD_GAP_MM = 5;
 
-/** Crop mark length and inset from card edges (mm). Marks sit outside the card. */
+/** Crop mark length and inset from sticker edges (mm). Marks sit outside the sticker. */
 export const PDF_CUT_MARK_LENGTH_MM = 3;
 export const PDF_CUT_MARK_OFFSET_MM = 3;
 

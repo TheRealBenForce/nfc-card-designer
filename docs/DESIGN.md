@@ -395,7 +395,7 @@ Portrait default — **52 × 84 mm** card, **2 mm** sticker inset default.
 - **Global (layout only):** Card width/height, sticker inset.
 - **Per platform:** Accent color, artwork priority (system-seeded), per-type rotation, alignment, zoom, background, header design (show header, show platform strip, header height %). Stored in `settings.platformDefaults`.
 - **Per card:** `default` cards inherit live platform defaults; `customized` cards store explicit overrides.
-- **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap, cut marks outside card edges.
+- **PDF:** US Letter, 3 columns × 3 rows per page, 5 mm gap. Crop marks align to every sticker edge (imaginary trim lines through bleed), but are drawn only in page margins and card gutters — never through sticker artwork or bleed. Exported artwork bleeds to the full card slot using nearest-edge color extension.
 
 ### Platform defaults
 

@@ -291,6 +291,73 @@ function renderArtworkLayer(w, h, img, rotationDeg, align, zoom = 0) {
 }
 
 /**
+ * Extend the inner rect's edge colors into the surrounding canvas margin.
+ * Used for print bleed so sticker artwork fills the card slot while cut marks
+ * still indicate the trim line.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{ x: number, y: number, w: number, h: number }} innerRect
+ */
+export function bleedInnerRectToCanvas(ctx, innerRect) {
+  const canvas = ctx.canvas;
+  const { x, y, w, h } = innerRect;
+  if (w <= 0 || h <= 0) return;
+
+  const bleedLeft = x;
+  const bleedTop = y;
+  const bleedRight = canvas.width - (x + w);
+  const bleedBottom = canvas.height - (y + h);
+  if (bleedLeft <= 0 && bleedTop <= 0 && bleedRight <= 0 && bleedBottom <= 0) return;
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const { data, width, height } = imageData;
+  const rightX = x + w - 1;
+  const bottomY = y + h - 1;
+
+  for (let py = y; py <= bottomY; py++) {
+    const leftIdx = (py * width + x) * 4;
+    for (let px = 0; px < x; px++) {
+      const idx = (py * width + px) * 4;
+      data[idx] = data[leftIdx];
+      data[idx + 1] = data[leftIdx + 1];
+      data[idx + 2] = data[leftIdx + 2];
+      data[idx + 3] = 255;
+    }
+
+    const rightIdx = (py * width + rightX) * 4;
+    for (let px = x + w; px < width; px++) {
+      const idx = (py * width + px) * 4;
+      data[idx] = data[rightIdx];
+      data[idx + 1] = data[rightIdx + 1];
+      data[idx + 2] = data[rightIdx + 2];
+      data[idx + 3] = 255;
+    }
+  }
+
+  for (let px = 0; px < width; px++) {
+    const topIdx = (y * width + px) * 4;
+    for (let py = 0; py < y; py++) {
+      const idx = (py * width + px) * 4;
+      data[idx] = data[topIdx];
+      data[idx + 1] = data[topIdx + 1];
+      data[idx + 2] = data[topIdx + 2];
+      data[idx + 3] = 255;
+    }
+
+    const bottomIdx = (bottomY * width + px) * 4;
+    for (let py = y + h; py < height; py++) {
+      const idx = (py * width + px) * 4;
+      data[idx] = data[bottomIdx];
+      data[idx + 1] = data[bottomIdx + 1];
+      data[idx + 2] = data[bottomIdx + 2];
+      data[idx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+/**
  * @param {ImageData} imageData
  */
 function extendEdgeColors(imageData) {
@@ -490,9 +557,10 @@ async function drawArtBackground(
  *   showPlatformColor?: boolean,
  *   headerHeightPercent?: number,
  * } | null | undefined} [layoutSettings]
+ * @param {{ bleedToCard?: boolean } | null | undefined} [renderOptions]
  * @returns {Promise<HTMLCanvasElement>}
  */
-export async function renderCard(card, platformDefaults, layoutSettings) {
+export async function renderCard(card, platformDefaults, layoutSettings, renderOptions) {
   const cardSizing = resolveCardSizing(layoutSettings);
   const cardWidthPx = mmToRenderPx(cardSizing.cardWidthMm);
   const cardHeightPx = mmToRenderPx(cardSizing.cardHeightMm);
@@ -554,6 +622,10 @@ export async function renderCard(card, platformDefaults, layoutSettings) {
   if (showPlatformColor) {
     ctx.fillStyle = color;
     ctx.fillRect(colorRect.x, colorRect.y, colorRect.w, colorRect.h);
+  }
+
+  if (renderOptions?.bleedToCard && stickerInsetPx > 0) {
+    bleedInnerRectToCanvas(ctx, stickerRect);
   }
 
   return canvas;

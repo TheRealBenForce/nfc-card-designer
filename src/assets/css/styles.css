@@ -1535,7 +1535,7 @@ body {
 }
 
 .preview-artwork-controls .alignment-grid {
-  margin-top: 0.15rem;
+  margin-top: 0.75rem;
   flex: 0 0 auto;
   max-width: none;
   width: 100%;
@@ -2789,7 +2789,11 @@ body {
 }
 
 .artwork-background-section {
-  margin-top: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.artwork-background-section .artwork-zoom-section {
+  margin-top: 0.65rem;
 }
 
 .artwork-actions-row {
@@ -2893,9 +2897,13 @@ body {
 }
 
 .header-design-fields {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.header-design-fields > .edit-control-group__title {
+  margin-bottom: 0.65rem;
 }
 
 .header-design-fields .field {
@@ -2904,6 +2912,18 @@ body {
 
 .header-design-fields .field:first-of-type {
   margin-top: 0;
+}
+
+.field--accent-color {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.field--accent-color .edit-control-group__title {
+  margin: 0;
 }
 
 .artwork-zoom-field:not(.artwork-zoom-field--inline) {

@@ -230,7 +230,7 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 
 **Layout:** Card preview horizontally centered within Edit. Artwork controls in the right sidebar of the Edit column.
 
-**Wide Edit height (short landscape / mid-size tablets):** On ≥1101px viewports the Edit panel is viewport-height capped (header + `.app` padding). The preview mat **fills remaining space** in the workspace grid (`1fr` middle row) instead of a fixed `100dvh − N` height — tabs, artwork controls, calibration, and **Add to collection** stay visible; the card preview shrinks first. If chrome alone still exceeds the viewport (very short height), the Edit panel scrolls (`overflow-y: auto`); it must not clip with `overflow: hidden`. Narrow (stacked) layout keeps a modest fixed preview height (`min(22rem, 45dvh)`) and grows the panel with the page.
+**Wide Edit height (short landscape / mid-size tablets):** On ≥1101px viewports the Edit panel is viewport-height capped (header + `.app` padding). The preview mat **fills remaining space** in the workspace grid (`1fr` middle row) instead of a fixed `100dvh − N` height — tabs, calibration, and **Add to collection** stay on-screen; the card preview shrinks first. The artwork toolbox may scroll inside its grid cell when its controls are taller than that row. If chrome alone still exceeds the viewport, the Edit panel itself scrolls (`overflow-y: auto`); it must not clip with `overflow: hidden`. Narrow (stacked) layout keeps a modest fixed preview height (`min(22rem, 45dvh)`) and grows the panel with the page.
 
 **Platform-default actions** (bottom of artwork controls sidebar, below header design):
 

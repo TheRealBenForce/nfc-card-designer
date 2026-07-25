@@ -126,8 +126,8 @@ Three named columns in a CSS grid (`.app`), left → center → right: **Select*
 
 Each column opens with a **centered, pronounced section title** (`Select`, `Edit`, or `Print`) — larger type, semibold, full panel width, text-align center. Subsection labels inside a column (e.g. “Platform”, “Game”) stay left-aligned as today.
 
-- **Desktop (wide):** `grid-template-columns: minmax(260px, 320px) 1fr minmax(220px, 280px)`; full viewport height minus header.
-- **Narrow viewports:** Collapses to **one column, three rows** — Select → Edit → Print (top to bottom). There is **no** intermediate layout with two sections on one row and the third on another row.
+- **Desktop (wide, ≥1101px):** `grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(240px, 300px)`; panels capped to the viewport below the site header (minus `.app` padding).
+- **Narrow viewports (≤1100px):** Collapses to **one column, three rows** — Select → Edit → Print (top to bottom). There is **no** intermediate layout with two sections on one row and the third on another row. Panel max-heights are lifted so stacked content can grow with the page.
 - Panels are separated by vertical borders on desktop; horizontal borders when stacked. The Print panel has no right border on desktop.
 
 #### User flow
@@ -229,6 +229,8 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 **Add flow:** Select platform → search game → customize in Edit → **Add to collection** → card appears in Print. Copy-in from Print loads settings into Edit for a **new** card; it does not modify the source row.
 
 **Layout:** Card preview horizontally centered within Edit. Artwork controls in the right sidebar of the Edit column.
+
+**Wide Edit height (short landscape / mid-size tablets):** On ≥1101px viewports the Edit panel is viewport-height capped (header + `.app` padding). The preview mat **fills remaining space** in the workspace grid (`1fr` middle row) instead of a fixed `100dvh − N` height — tabs, artwork controls, calibration, and **Add to collection** stay visible; the card preview shrinks first. If chrome alone still exceeds the viewport (very short height), the Edit panel scrolls (`overflow-y: auto`); it must not clip with `overflow: hidden`. Narrow (stacked) layout keeps a modest fixed preview height (`min(22rem, 45dvh)`) and grows the panel with the page.
 
 **Platform-default actions** (bottom of artwork controls sidebar, below header design):
 
@@ -557,3 +559,4 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
 | 2026-07-23 | Print collection UX: platform list + viewport-edge scroll-snap browser (#88); ADR 0004 |
 | 2026-07-24 | Platform defaults redesign: Edit-centric Save/Reset card, card default/customized state, remove platform modal |
+| 2026-07-25 | Edit panel wide layout: preview fills leftover space; fix overflow clipping on short landscape viewports |

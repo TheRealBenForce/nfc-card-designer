@@ -47,7 +47,8 @@
   --sticker-width-mm: 48;
   --sticker-height-mm: 80;
   --preview-mat-min-height: 14rem;
-  --preview-middle-height: calc(100dvh - 15.5rem);
+  /* Header (~5.5rem) + .app vertical padding (2rem). */
+  --app-panel-max-height: calc(100dvh - 7.5rem);
 }
 
 [data-theme="dark"] {
@@ -728,17 +729,7 @@ body {
 .panel--print {
   align-self: start;
   width: 100%;
-  max-height: calc(100dvh - 5.5rem);
-}
-
-.panel--select {
-  overflow-x: hidden;
-  overflow-y: visible;
-}
-
-.panel--edit {
-  overflow-x: hidden;
-  overflow-y: auto;
+  max-height: var(--app-panel-max-height);
 }
 
 .panel {
@@ -752,8 +743,14 @@ body {
   flex-direction: column;
 }
 
+/* Higher specificity than `.panel { overflow }` so these win. */
 .panel.panel--select {
   overflow: visible;
+}
+
+.panel.panel--edit {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .panel__title {
@@ -2364,7 +2361,7 @@ body {
 }
 
 #edit-controls.preview-layout {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-height: 0;
   gap: 0;
 }
@@ -2405,9 +2402,11 @@ body {
   grid-row: 2;
   width: 100%;
   min-width: 0;
-  height: var(--preview-middle-height);
+  /* Wide layout: fill leftover grid space. Narrow overrides with a fixed cap. */
+  height: auto;
   min-height: var(--preview-mat-min-height);
-  max-height: var(--preview-middle-height);
+  max-height: none;
+  align-self: stretch;
   padding: 1rem;
   box-sizing: border-box;
   background: var(--surface-2);
@@ -2591,9 +2590,9 @@ body {
 .preview-layout__workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0.65rem 1rem;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-height: 0;
   width: 100%;
   align-items: start;
@@ -3118,6 +3117,11 @@ body {
     max-height: none;
   }
 
+  .panel.panel--edit {
+    height: auto;
+    overflow-y: visible;
+  }
+
   .panel--select,
   .panel--edit {
     overflow-y: visible;
@@ -3127,10 +3131,17 @@ body {
     max-height: min(70dvh, 36rem);
   }
 
+  #edit-controls.preview-layout,
+  .preview-layout__workspace {
+    flex: 0 0 auto;
+    height: auto;
+  }
+
   .preview-layout__workspace {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
+    grid-template-rows: none;
   }
 
   .preview-meta-game,
@@ -3216,8 +3227,31 @@ body {
 }
 
 @media (min-width: 1101px) {
+  .panel.panel--edit {
+    /* Definite height so the workspace 1fr row can shrink the preview mat. */
+    height: var(--app-panel-max-height);
+    max-height: var(--app-panel-max-height);
+  }
+
+  #edit-controls.preview-layout {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+  }
+
   .preview-layout__workspace {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .preview-frame {
+    height: auto;
+    max-height: none;
+    min-height: var(--preview-mat-min-height);
+    align-self: stretch;
   }
 
   .panel--edit-off .preview-meta-game,

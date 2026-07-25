@@ -50,12 +50,12 @@ export const ARTWORK_BACKGROUND_MODE_ORDER = [
 
 /** @type {Record<ArtworkBackgroundMode, { label: string }>} */
 export const ARTWORK_BACKGROUND_MODES = {
-  select: { label: "Select Tool" },
-  consoleColor: { label: "Console Accent Color" },
-  nearestEdge: { label: "Nearest edge" },
   blurredBoxArt: { label: "Blurred box art" },
   blurredTitleScreen: { label: "Blurred title screen" },
   blurredSnapshot: { label: "Blurred snapshot" },
+  nearestEdge: { label: "Nearest edge" },
+  consoleColor: { label: "Accent Color" },
+  select: { label: "Select Tool" },
 };
 
 export const DEFAULT_ARTWORK_BACKGROUND_MODE = "consoleColor";

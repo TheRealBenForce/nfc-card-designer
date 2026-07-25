@@ -228,7 +228,7 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 
 **Add flow:** Select platform → search game → customize in Edit → **Add to collection** → card appears in Print. Copy-in from Print loads settings into Edit for a **new** card; it does not modify the source row.
 
-**Layout:** Within Edit, **only the preview mat is a card** (bordered mat surface). Artwork controls, calibration, and **Add to collection** sit beside/below as plain controls — no nested card chrome around the toolbox. On wide viewports the mat has its own fixed height for card sizing; the toolbox keeps its natural height and the Edit panel **grows downward** with the page (no inner toolbox scroll, no viewport-locked Edit height). Narrow (stacked) layout keeps a modest mat height (`min(22rem, 45dvh)`) and the same uncarded tools.
+**Layout:** Within Edit, **only the preview mat is a card** (bordered mat surface). Artwork controls and **Add to collection** sit beside as plain controls — no nested card chrome around the toolbox. Card scale (calibration) sits directly under the mat. On wide viewports the mat has its own fixed height for card sizing; the toolbox keeps its natural height and the Edit panel **grows downward** with the page (no inner toolbox scroll, no viewport-locked Edit height). Narrow (stacked) layout keeps a modest mat height (`min(22rem, 45dvh)`) and the same uncarded tools.
 
 **Platform-default actions** (bottom of artwork controls sidebar, below header design):
 

@@ -2403,15 +2403,13 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
-  grid-column: 1;
-  grid-row: 2;
   width: 100%;
   min-width: 0;
   /* Only nested card in Edit — definite height for container-query card sizing. */
   height: var(--preview-mat-height);
   min-height: var(--preview-mat-min-height);
   max-height: var(--preview-mat-height);
-  align-self: start;
+  align-self: stretch;
   padding: 1rem;
   box-sizing: border-box;
   background: var(--surface-2);
@@ -2439,11 +2437,9 @@ body {
 }
 
 .preview-calibration-panel {
-  grid-column: 1;
-  grid-row: 3;
   width: 100%;
   margin-top: 0;
-  padding: 0.35rem 0 0;
+  padding: 0;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -2595,7 +2591,7 @@ body {
 .preview-layout__workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  grid-template-rows: auto auto auto auto;
+  grid-template-rows: auto auto;
   gap: 0.65rem 1rem;
   flex: 0 0 auto;
   min-height: 0;
@@ -2603,9 +2599,32 @@ body {
   align-items: start;
 }
 
-.preview-main,
-.preview-artwork-controls {
+.preview-main {
   display: contents;
+}
+
+.preview-mat-stack {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 0;
+  align-self: start;
+  width: 100%;
+}
+
+.preview-artwork-controls {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  min-width: 0;
+  align-self: start;
+  width: 100%;
 }
 
 .preview-meta-game {
@@ -2631,9 +2650,7 @@ body {
 
 .preview-artwork-controls .edit-control-group,
 .preview-layout__workspace .edit-control-group {
-  grid-column: 2;
-  grid-row: 2 / 4;
-  align-self: start;
+  align-self: stretch;
   height: auto;
   min-height: 0;
   max-height: none;
@@ -2644,8 +2661,6 @@ body {
 
 .preview-artwork-controls .preview-add-btn,
 .preview-layout__workspace .preview-add-btn {
-  grid-column: 2;
-  grid-row: 4;
   margin-top: 0;
   margin-bottom: 0;
   width: 100%;
@@ -2763,10 +2778,6 @@ body {
   .party-favor__piece {
     animation: none;
   }
-}
-
-.preview-artwork-controls {
-  /* display: contents */
 }
 
 .preview-artwork-controls .edit-control-group .field {
@@ -3146,6 +3157,8 @@ body {
 
   .preview-meta-game,
   .preview-layout__workspace .preview-type-tabs,
+  .preview-mat-stack,
+  .preview-artwork-controls,
   .preview-frame,
   .preview-calibration-panel,
   .edit-control-group,
@@ -3165,8 +3178,11 @@ body {
     justify-content: flex-start;
   }
 
-  .preview-frame {
+  .preview-mat-stack {
     order: 3;
+  }
+
+  .preview-frame {
     height: min(22rem, 45dvh);
     min-height: var(--preview-mat-min-height);
     max-height: min(22rem, 45dvh);
@@ -3176,8 +3192,12 @@ body {
     display: none;
   }
 
-  .edit-control-group {
+  .preview-artwork-controls {
     order: 5;
+    gap: 0.65rem;
+  }
+
+  .edit-control-group {
     height: auto;
     min-height: 0;
     max-height: none;
@@ -3185,7 +3205,6 @@ body {
   }
 
   .preview-add-btn {
-    order: 6;
     padding-block: 0.65rem;
     min-height: 0;
   }
@@ -3242,14 +3261,13 @@ body {
     height: auto;
     min-height: 0;
     grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto;
   }
 
   .preview-frame {
     height: var(--preview-mat-height);
     max-height: var(--preview-mat-height);
     min-height: var(--preview-mat-min-height);
-    align-self: start;
   }
 
   .panel--edit-off .preview-meta-game,

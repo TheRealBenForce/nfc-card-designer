@@ -204,7 +204,7 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 - Card frame shows the existing `.preview-skeleton` sticker continuously.
 - **Card scale** (screen calibration) remains available so users can size the idle preview to a physical card before picking a game.
 - Image-type tabs, artwork controls, and **Add to collection** are not available (hidden or non-interactive as one unit).
-- Panel exposes `aria-disabled="true"` (or equivalent) while OFF.
+- The gated toolbox exposes `aria-disabled="true"` / `inert` while OFF; the mat and card scale stay interactive.
 
 **ON (game loaded via Select or copy-in):**
 

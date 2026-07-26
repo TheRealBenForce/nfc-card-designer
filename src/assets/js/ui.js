@@ -2,11 +2,9 @@ import { platforms } from "./data/platforms.js";
 import {
   gamesForPlatform,
   gameForCard,
-  searchGames,
-  pickGameFromCatalog,
-  gameCountForPlatform,
-  catalogCountForPlatform,
-  platformsWithArtwork,
+  searchAllGames,
+  pickGameFromAllCatalog,
+  totalCatalogGameCount,
   platformHasArtwork,
   GAME_SEARCH_PAGE_SIZE,
 } from "./gameCatalog.js";
@@ -127,8 +125,6 @@ function artworkPercentToZoom(rawPercent) {
   return clampedPercent - ARTWORK_ZOOM_BASE_PERCENT;
 }
 
-/** @type {HTMLElement|null} */
-let platformResultsEl = null;
 /** @type {HTMLElement|null} */
 let gameResultsEl = null;
 /** @type {HTMLElement|null} */
@@ -832,43 +828,37 @@ async function copyCardSettingsToEditor(card) {
 }
 
 function refreshSearchViews() {
-  renderPlatformResults();
   filterGames(gameSearchInput?.value ?? "");
 }
 
-function artworkCountLabel(count) {
-  return `${count} game${count === 1 ? "" : "s"} with artwork`;
+function gameSearchPlaceholder() {
+  const count = totalCatalogGameCount();
+  if (count === 0) return "Search games...";
+  return `Search from ${count.toLocaleString()} games`;
 }
 
 function syncGameSearchHintVisibility() {
   if (!gameSearchHintEl || !gameResultsEl) return;
   const resultsOpen = !gameResultsEl.hidden;
-  gameSearchHintEl.classList.toggle("field-hint--suppressed", resultsOpen);
-  gameSearchHintEl.setAttribute("aria-hidden", resultsOpen ? "true" : "false");
+  const query = gameSearchInput?.value.trim() ?? "";
+  const showNavHint = resultsOpen && query.length > 0 && Boolean(gameSearchHintEl.textContent);
+  gameSearchHintEl.hidden = !showNavHint;
+  gameSearchHintEl.setAttribute("aria-hidden", showNavHint ? "false" : "true");
 }
 
 function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   if (!gameSearchHintEl) return;
-  const activePlatformId = getActivePlatformId();
-  if (!activePlatformId) {
-    gameSearchHintEl.textContent = "Select a platform to search retail releases.";
+  const catalogSize = totalCatalogGameCount();
+
+  if (catalogSize === 0) {
+    gameSearchHintEl.textContent = "No games in catalog yet — run npm run build-game-catalog.";
     gameSearchHintEl.classList.remove("field-hint--ready");
     syncGameSearchHintVisibility();
     return;
   }
 
-  const gameCount = gameCountForPlatform(activePlatformId);
-  const catalogSize = catalogCountForPlatform(activePlatformId);
-
   if (query.length === 0) {
-    if (gameCount === 0) {
-      gameSearchHintEl.textContent =
-        catalogSize === 0
-          ? "No retail games in catalog for this platform yet."
-          : "No games in catalog yet — run npm run build-game-catalog, then click search to browse.";
-    } else {
-      gameSearchHintEl.textContent = artworkCountLabel(gameCount);
-    }
+    gameSearchHintEl.textContent = "";
     gameSearchHintEl.classList.remove("field-hint--ready");
     syncGameSearchHintVisibility();
     return;
@@ -882,7 +872,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
   }
 
   if (filteredGamesTotal === 0) {
-    gameSearchHintEl.textContent = `No games with artwork matching "${query}".`;
+    gameSearchHintEl.textContent = `No games matching "${query}".`;
     gameSearchHintEl.classList.remove("field-hint--ready");
     syncGameSearchHintVisibility();
     return;
@@ -899,18 +889,7 @@ function updateGameSearchHint(query = gameSearchInput?.value.trim() ?? "") {
 }
 
 function filterGames(query) {
-  const activePlatformId = getActivePlatformId();
   const q = query.trim();
-  if (!activePlatformId) {
-    filteredGames = [];
-    filteredGamesTotal = 0;
-    filteredGamesNoMatchFallback = false;
-    filteredGamesVisibleCount = GAME_SEARCH_PAGE_SIZE;
-    gameHighlightIndex = 0;
-    renderGameResults();
-    updateGameSearchHint(q);
-    return;
-  }
 
   if (q.length === 0 && !gameSearchFocused) {
     filteredGames = [];
@@ -923,7 +902,7 @@ function filterGames(query) {
     return;
   }
 
-  const result = searchGames(activePlatformId, q);
+  const result = searchAllGames(q);
   filteredGames = result.games;
   filteredGamesTotal = result.isNoMatchFallback ? result.games.length : result.total;
   filteredGamesNoMatchFallback = result.isNoMatchFallback;
@@ -967,40 +946,6 @@ function createPlatformIconElement(platform, iconTheme, options = {}) {
   return icon;
 }
 
-function renderPlatformResults() {
-  if (!platformResultsEl) return;
-  const settings = getSettings();
-  platformResultsEl.innerHTML = "";
-
-  const visiblePlatforms = [...platformsWithArtwork()].sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-  );
-  visiblePlatforms.forEach((platform) => {
-    const row = document.createElement("div");
-    row.className = "platform-row";
-    row.style.setProperty("--platform-color", platform.defaultColor);
-    if (platform.id === settings.selectedPlatformId) {
-      row.classList.add("platform-row--selected");
-    }
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "platform-row__select";
-
-    const icon = createPlatformIconElement(platform, settings.platformIconTheme);
-
-    const label = document.createElement("span");
-    label.className = "platform-row__label";
-    label.textContent = platform.name;
-
-    btn.append(icon, label);
-    btn.addEventListener("click", () => selectPlatform(platform.id));
-
-    row.appendChild(btn);
-    platformResultsEl.appendChild(row);
-  });
-}
-
 function closeGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.hidden = true;
@@ -1012,12 +957,28 @@ function closeGameResults() {
  * @param {number} index
  */
 function createGameResultItem(game, index) {
+  const platformName = platformById[game.platformId]?.name ?? game.platformId;
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "list-item";
+  btn.className = "list-item list-item--game";
   btn.setAttribute("role", "option");
+  btn.setAttribute("aria-label", `${game.name} (${platformName})`);
   if (index === gameHighlightIndex) btn.classList.add("list-item--highlight");
-  btn.textContent = game.name;
+
+  const name = document.createElement("span");
+  name.className = "list-item__name";
+  name.textContent = game.name;
+
+  const pill = document.createElement("span");
+  pill.className = "game-result-pill";
+  pill.textContent = platformName;
+  pill.setAttribute("aria-hidden", "true");
+  pill.style.setProperty(
+    "--platform-color",
+    getPlatformColor(getSettings().platformDefaults, game.platformId),
+  );
+
+  btn.append(name, pill);
   btn.addEventListener("click", () => {
     if (gameSearchInput) gameSearchInput.value = game.name;
     closeGameResults();
@@ -1059,11 +1020,6 @@ function bindGameResultsScroll() {
 function renderGameResults() {
   if (!gameResultsEl) return;
   gameResultsEl.innerHTML = "";
-  const activePlatformId = getActivePlatformId();
-  if (!activePlatformId) {
-    closeGameResults();
-    return;
-  }
 
   const query = gameSearchInput?.value.trim() ?? "";
   const shouldShow = gameSearchFocused;
@@ -1081,8 +1037,8 @@ function renderGameResults() {
     empty.className = "empty-hint";
     empty.textContent =
       query.length > 0
-        ? `No games with artwork matching "${query}".`
-        : "No games with artwork available yet.";
+        ? `No games matching "${query}".`
+        : "No games in catalog yet.";
     gameResultsEl.appendChild(empty);
     return;
   }
@@ -1098,27 +1054,18 @@ function renderGameResults() {
   visibleGames.forEach((game, index) => {
     gameResultsEl.appendChild(createGameResultItem(game, index));
   });
-}
 
-function selectPlatform(platformId) {
-  const previousPlatformId = getSettings().selectedPlatformId;
-  updateSettings({ selectedPlatformId: platformId });
-  saveSettings(getSettings());
-
-  if (platformId !== previousPlatformId) {
-    resetGameSearch();
-    void refreshPreview();
+  if (query.length > 0 && gameSearchHintEl?.textContent) {
+    const footer = document.createElement("p");
+    footer.className = "game-search-dropdown__hint";
+    footer.textContent = gameSearchHintEl.textContent;
+    if (gameSearchHintEl.classList.contains("field-hint--ready")) {
+      footer.classList.add("game-search-dropdown__hint--ready");
+    }
+    gameResultsEl.appendChild(footer);
   }
-
-  syncPlatformControls();
-  syncPreviewPlatformAccent();
-  renderPreviewTypeTabs();
-  logStatus(`Platform: ${platformById[platformId]?.name ?? platformId}`);
 }
 
-/**
- * @param {import("./state.js").AppSettings} settings
- */
 function applyCardSizingCssVariables(settings) {
   const sizing = resolveCardSizing(settings);
   document.documentElement.style.setProperty("--card-width-mm", String(sizing.cardWidthMm));
@@ -1239,16 +1186,11 @@ function syncPlatformControls() {
     saveSettings(getSettings());
   }
 
-  const activePlatformId = getActivePlatformId();
   if (gameSearchInput) {
-    gameSearchInput.disabled = !activePlatformId;
-    gameSearchInput.placeholder = activePlatformId ? "Search games..." : "Select a platform first";
-  }
-  if (!activePlatformId) {
-    closeGameResults();
+    gameSearchInput.disabled = totalCatalogGameCount() === 0;
+    gameSearchInput.placeholder = gameSearchPlaceholder();
   }
 
-  renderPlatformResults();
   filterGames(gameSearchInput?.value ?? "");
 }
 
@@ -1279,19 +1221,13 @@ async function applyPlatformPriorityToBrowse() {
 }
 
 function pickGameFromSearch() {
-  const activePlatformId = getActivePlatformId();
-  if (!activePlatformId) {
-    logStatus("Select a platform before searching for games.", true);
-    return null;
-  }
-
   const query = gameSearchInput?.value.trim() ?? "";
   if (!query) {
     logStatus("Type a game name to search.", true);
     return null;
   }
 
-  const game = pickGameFromCatalog(activePlatformId, query, gameHighlightIndex);
+  const game = pickGameFromAllCatalog(query, gameHighlightIndex);
   if (!game) {
     logStatus(`No game matching "${query}".`, true);
     return null;
@@ -1302,6 +1238,8 @@ function pickGameFromSearch() {
 
 async function browseGameFromSearch(game) {
   const requestId = ++browseRequestId;
+  updateSettings({ selectedPlatformId: game.platformId });
+  saveSettings(getSettings());
   browseLoading = true;
   if (previewMetaGameEl) {
     previewMetaGameEl.textContent = `Loading ${game.name}…`;
@@ -1652,11 +1590,7 @@ function bindEvents() {
   });
 
   gameSearchInput?.addEventListener("keydown", (e) => {
-    const query = gameSearchInput?.value.trim() ?? "";
-    const dropdownOpen =
-      Boolean(getActivePlatformId()) &&
-      gameSearchFocused &&
-      filteredGames.length > 0;
+    const dropdownOpen = gameSearchFocused && filteredGames.length > 0;
 
     if (dropdownOpen && e.key === "ArrowDown") {
       e.preventDefault();
@@ -1741,7 +1675,6 @@ function bindEvents() {
     updateSettings({ platformIconTheme });
     saveSettings(getSettings());
     syncGlobalSettingsControls();
-    renderPlatformResults();
     renderCollection();
     refreshPreview();
   });
@@ -1982,7 +1915,6 @@ function bindEvents() {
 }
 
 export async function initUI() {
-  platformResultsEl = document.getElementById("platform-results");
   gameResultsEl = document.getElementById("game-results");
   collectionListEl = document.getElementById("collection-list");
   collectionSelectionMetaEl = document.getElementById("collection-selection-meta");

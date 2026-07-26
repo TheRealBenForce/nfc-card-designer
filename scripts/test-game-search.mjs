@@ -47,17 +47,20 @@ async function main() {
     }
     console.log("✓ Edit column is OFF with preview skeleton on load");
 
-    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    await page.waitForTimeout(150);
-
     const dropdown = page.locator("#game-results");
     const searchInput = page.locator("#game-search");
+    const placeholder = await searchInput.getAttribute("placeholder");
+    if (!placeholder?.includes("Search from") || !placeholder?.includes("games")) {
+      throw new Error(`Expected catalog placeholder, got: ${placeholder}`);
+    }
+    console.log("✓ Navbar search placeholder shows catalog size");
+
     await searchInput.focus();
     await page.waitForTimeout(500);
 
-    const browseResults = await page.locator("#game-results .list-item").allTextContents();
-    if (browseResults.length === 0) {
-      throw new Error(`Expected browse suggestions on focus, got: ${JSON.stringify(browseResults)}`);
+    const browseResults = await page.locator("#game-results .list-item").count();
+    if (browseResults === 0) {
+      throw new Error("Expected browse suggestions on focus");
     }
     console.log("✓ Focus shows alphabetical browse suggestions");
 
@@ -70,42 +73,35 @@ async function main() {
 
     await page.fill("#game-search", "ecc");
     await page.waitForTimeout(500);
-    const results = await page.locator("#game-results .list-item").allTextContents();
+    const results = await page.locator("#game-results .list-item__name").allTextContents();
     if (!results.some((name) => name.includes("Ecco the Dolphin"))) {
       throw new Error(`Expected Ecco the Dolphin in results, got: ${JSON.stringify(results)}`);
     }
-    console.log("✓ Short query filters browse suggestions");
+    const platformPills = await page.locator("#game-results .game-result-pill").count();
+    if (platformPills < 1) {
+      throw new Error("Expected platform pills on search results");
+    }
+    console.log("✓ Short query filters catalog with platform pills");
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(500);
-    const eccoResults = await page.locator("#game-results .list-item").allTextContents();
+    const eccoResults = await page.locator("#game-results .list-item__name").allTextContents();
     if (!eccoResults.some((name) => name.includes("Ecco the Dolphin"))) {
-      throw new Error(`Expected artwork-backed game in results, got: ${JSON.stringify(eccoResults)}`);
+      throw new Error(`Expected Ecco the Dolphin in results, got: ${JSON.stringify(eccoResults)}`);
     }
-    if (eccoResults.includes("Ecco: The Tides of Time")) {
-      throw new Error(`Expected game without artwork to be excluded, got: ${JSON.stringify(eccoResults)}`);
-    }
-    console.log("✓ Search excludes games without artwork");
-
-    await page.fill("#game-search", "");
-    await page.waitForTimeout(500);
-    const artworkHint = await page.locator("#game-search-hint").textContent();
-    if (!artworkHint?.includes("with artwork")) {
-      throw new Error(`Expected artwork count hint, got: ${artworkHint}`);
-    }
-    console.log("✓ Search hint shows artwork totals");
+    console.log("✓ Search finds games across the full catalog");
 
     await page.fill("#game-search", "zzznomatch");
     await page.waitForTimeout(500);
-    const fallbackResults = await page.locator("#game-results .list-item").allTextContents();
-    if (fallbackResults.length === 0) {
+    const fallbackResults = await page.locator("#game-results .list-item").count();
+    if (fallbackResults === 0) {
       throw new Error("Expected browse fallback when search has no matches");
     }
     console.log("✓ No-match search shows browse fallback");
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.getByRole("option", { name: /Ecco the Dolphin.*Sega CD/i }).click();
     await page.waitForTimeout(500);
 
     const addBtn = page.locator("#add-browsed-game");
@@ -124,11 +120,9 @@ async function main() {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle", timeout: 15000 });
-    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    await page.waitForTimeout(150);
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.getByRole("option", { name: /Ecco the Dolphin.*Sega CD/i }).click();
     await page.waitForTimeout(500);
 
     const previewCardSize = await page.locator("#preview-card").evaluate((el) => {
@@ -176,22 +170,20 @@ async function main() {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.reload({ waitUntil: "networkidle", timeout: 15000 });
 
-    await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
-    await page.waitForTimeout(150);
     await searchInput.focus();
     await page.waitForTimeout(300);
-    const browse32x = await page.locator("#game-results .list-item").allTextContents();
-    if (browse32x.length === 0) {
-      throw new Error(`Expected Sega 32X browse suggestions on focus, got: ${JSON.stringify(browse32x)}`);
+    const browseAll = await page.locator("#game-results .list-item").count();
+    if (browseAll === 0) {
+      throw new Error("Expected browse suggestions on focus after reload");
     }
-    if (browse32x.length > 10) {
-      throw new Error(`Expected at most 10 browse rows, got ${browse32x.length}`);
+    if (browseAll > 10) {
+      throw new Error(`Expected at most 10 browse rows, got ${browseAll}`);
     }
     console.log("✓ Browse dropdown lists indexed games without waiting for background probing");
 
     await page.fill("#game-search", "doo");
     await page.waitForTimeout(300);
-    const doomOption = page.getByRole("option", { name: "Doom", exact: true });
+    const doomOption = page.getByRole("option", { name: /Doom.*Sega 32X/i });
     await doomOption.waitFor({ state: "visible", timeout: 5000 });
     await doomOption.click();
     await page.waitForTimeout(500);
@@ -199,40 +191,23 @@ async function main() {
 
     await addBtn.waitFor({ state: "visible", timeout: 5000 });
 
-    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    await page.waitForTimeout(200);
+    await page.fill("#game-search", "ecc");
+    await page.waitForTimeout(100);
+    const filtered = await page.locator("#game-results .list-item__name").allTextContents();
+    if (filtered.length === 0 || !filtered.every((name) => name.toLowerCase().includes("ecc"))) {
+      throw new Error(`Filtered results should all contain 'ecc': ${JSON.stringify(filtered)}`);
+    }
+    console.log("✓ Results narrow as query grows");
 
-    const previewHiddenAfterPlatformChange = await page.evaluate(() => {
-      const preview = document.getElementById("preview-image");
-      if (!preview) return { ok: false, reason: "missing preview-image" };
-      const style = globalThis.getComputedStyle(preview);
-      return {
-        ok: preview.hidden && style.display === "none" && preview.offsetWidth === 0,
-        hidden: preview.hidden,
-        display: style.display,
-        width: preview.offsetWidth,
-        src: preview.getAttribute("src"),
-      };
-    });
-    if (!previewHiddenAfterPlatformChange.ok) {
-      throw new Error(
-        `Preview image should be hidden after platform change, got: ${JSON.stringify(previewHiddenAfterPlatformChange)}`,
-      );
+    const hint = await page.locator(".game-search-dropdown__hint").textContent();
+    if (!hint?.includes("found")) {
+      throw new Error(`Expected search hint in dropdown, got: ${hint}`);
     }
-    console.log("✓ Platform change hides stale preview image on skeleton card");
-
-    const searchAfterPlatformChange = await page.locator("#game-search").inputValue();
-    if (searchAfterPlatformChange !== "") {
-      throw new Error(`Game search should clear on platform change, got: "${searchAfterPlatformChange}"`);
-    }
-    if (!(await dropdown.isHidden())) {
-      throw new Error("Game dropdown should be hidden after platform change");
-    }
-    console.log("✓ Platform change clears game search and browse preview");
+    console.log("✓ Search hint updates after filtering");
 
     await page.fill("#game-search", "ecco");
     await page.waitForTimeout(300);
-    await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+    await page.getByRole("option", { name: /Ecco the Dolphin.*Sega CD/i }).click();
     await page.waitForTimeout(300);
 
     await addBtn.click();
@@ -253,21 +228,7 @@ async function main() {
     await page.keyboard.press("Escape");
     await page.waitForSelector("#collection-browser[open]", { state: "hidden" });
 
-    await page.fill("#game-search", "ecc");
-    await page.waitForTimeout(100);
-    const filtered = await page.locator("#game-results .list-item").allTextContents();
-    if (filtered.length === 0 || !filtered.every((name) => name.toLowerCase().includes("ecc"))) {
-      throw new Error(`Filtered results should all contain 'ecc': ${JSON.stringify(filtered)}`);
-    }
-    console.log("✓ Results narrow as query grows");
-
-    const hint = await page.locator("#game-search-hint").textContent();
-    if (!hint?.includes("found") && !hint?.includes("with artwork")) {
-      throw new Error(`Expected search hint, got: ${hint}`);
-    }
-    console.log("✓ Search hint updates after filtering");
-
-    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await page.locator("#print-panel").getByRole("button", { name: "Clear", exact: true }).click();
     await page.waitForSelector("#confirm-modal[open]");
     await page.locator("#confirm-modal-confirm").click();
     await page.waitForFunction(() => {

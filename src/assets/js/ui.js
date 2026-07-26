@@ -1911,13 +1911,13 @@ function bindEvents() {
     }
   });
 
-  document.getElementById("clear-project")?.addEventListener("click", async () => {
+  document.getElementById("reset-settings")?.addEventListener("click", async () => {
     const confirmed = await showConfirmModal({
-      title: "Clear project?",
+      title: "Reset Settings?",
       message:
         "Clear your collection and reset all settings to defaults? This cannot be undone.",
-      confirmLabel: "Clear project",
-      cancelLabel: "Keep project",
+      confirmLabel: "Reset Settings",
+      cancelLabel: "Keep settings",
     });
     if (!confirmed) return;
 
@@ -1931,7 +1931,7 @@ function bindEvents() {
     syncPreviewArtworkControls();
     renderCollection();
     refreshPreview();
-    logStatus("Project cleared.");
+    logStatus("Settings reset.");
   });
 
   deleteSelectedBtn?.addEventListener("click", async () => {

@@ -973,6 +973,10 @@ function createGameResultItem(game, index) {
   pill.className = "game-result-pill";
   pill.textContent = platformName;
   pill.setAttribute("aria-hidden", "true");
+  pill.style.setProperty(
+    "--platform-color",
+    getPlatformColor(getSettings().platformDefaults, game.platformId),
+  );
 
   btn.append(name, pill);
   btn.addEventListener("click", () => {

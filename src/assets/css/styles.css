@@ -47,7 +47,9 @@
   --sticker-width-mm: 48;
   --sticker-height-mm: 80;
   --preview-mat-min-height: 14rem;
-  --preview-middle-height: calc(100dvh - 15.5rem);
+  --preview-mat-height: min(28rem, 55dvh);
+  /* Header (~5.5rem) + .app vertical padding (2rem). Used by Select/Print caps. */
+  --app-panel-max-height: calc(100dvh - 7.5rem);
 }
 
 [data-theme="dark"] {
@@ -724,21 +726,16 @@ body {
 }
 
 .panel--select,
-.panel--edit,
 .panel--print {
   align-self: start;
   width: 100%;
-  max-height: calc(100dvh - 5.5rem);
-}
-
-.panel--select {
-  overflow-x: hidden;
-  overflow-y: visible;
+  max-height: var(--app-panel-max-height);
 }
 
 .panel--edit {
-  overflow-x: hidden;
-  overflow-y: auto;
+  align-self: start;
+  width: 100%;
+  max-height: none;
 }
 
 .panel {
@@ -752,7 +749,12 @@ body {
   flex-direction: column;
 }
 
+/* Higher specificity than `.panel { overflow }` so these win. */
 .panel.panel--select {
+  overflow: visible;
+}
+
+.panel.panel--edit {
   overflow: visible;
 }
 
@@ -1533,7 +1535,7 @@ body {
 }
 
 .preview-artwork-controls .alignment-grid {
-  margin-top: 0.15rem;
+  margin-top: 0.75rem;
   flex: 0 0 auto;
   max-width: none;
   width: 100%;
@@ -2401,13 +2403,13 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
-  grid-column: 1;
-  grid-row: 2;
   width: 100%;
   min-width: 0;
-  height: var(--preview-middle-height);
+  /* Only nested card in Edit — definite height for container-query card sizing. */
+  height: var(--preview-mat-height);
   min-height: var(--preview-mat-min-height);
-  max-height: var(--preview-middle-height);
+  max-height: var(--preview-mat-height);
+  align-self: stretch;
   padding: 1rem;
   box-sizing: border-box;
   background: var(--surface-2);
@@ -2435,15 +2437,13 @@ body {
 }
 
 .preview-calibration-panel {
-  grid-column: 1;
-  grid-row: 3;
   width: 100%;
   margin-top: 0;
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -2591,7 +2591,7 @@ body {
 .preview-layout__workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto;
   gap: 0.65rem 1rem;
   flex: 0 0 auto;
   min-height: 0;
@@ -2599,9 +2599,32 @@ body {
   align-items: start;
 }
 
-.preview-main,
-.preview-artwork-controls {
+.preview-main {
   display: contents;
+}
+
+.preview-mat-stack {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 0;
+  align-self: start;
+  width: 100%;
+}
+
+.preview-artwork-controls {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  min-width: 0;
+  align-self: start;
+  width: 100%;
 }
 
 .preview-meta-game {
@@ -2627,21 +2650,17 @@ body {
 
 .preview-artwork-controls .edit-control-group,
 .preview-layout__workspace .edit-control-group {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: start;
+  align-self: stretch;
   height: auto;
   min-height: 0;
   max-height: none;
   display: flex;
   flex-direction: column;
-  overflow-y: visible;
+  overflow: visible;
 }
 
 .preview-artwork-controls .preview-add-btn,
 .preview-layout__workspace .preview-add-btn {
-  grid-column: 2;
-  grid-row: 3;
   margin-top: 0;
   margin-bottom: 0;
   width: 100%;
@@ -2662,11 +2681,11 @@ body {
 
 .edit-control-group {
   width: 100%;
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   box-sizing: border-box;
 }
 
@@ -2761,10 +2780,6 @@ body {
   }
 }
 
-.preview-artwork-controls {
-  /* display: contents */
-}
-
 .preview-artwork-controls .edit-control-group .field {
   margin-top: 0.65rem;
 }
@@ -2774,7 +2789,11 @@ body {
 }
 
 .artwork-background-section {
-  margin-top: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.artwork-background-section .artwork-zoom-section {
+  margin-top: 0.65rem;
 }
 
 .artwork-actions-row {
@@ -2878,9 +2897,13 @@ body {
 }
 
 .header-design-fields {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.header-design-fields > .edit-control-group__title {
+  margin-bottom: 0.65rem;
 }
 
 .header-design-fields .field {
@@ -2889,6 +2912,18 @@ body {
 
 .header-design-fields .field:first-of-type {
   margin-top: 0;
+}
+
+.field--accent-color {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.field--accent-color .edit-control-group__title {
+  margin: 0;
 }
 
 .artwork-zoom-field:not(.artwork-zoom-field--inline) {
@@ -3118,23 +3153,32 @@ body {
     max-height: none;
   }
 
-  .panel--select,
-  .panel--edit {
-    overflow-y: visible;
+  .panel.panel--edit {
+    height: auto;
+    overflow: visible;
   }
 
   .panel--print {
     max-height: min(70dvh, 36rem);
   }
 
+  #edit-controls.preview-layout,
+  .preview-layout__workspace {
+    flex: 0 0 auto;
+    height: auto;
+  }
+
   .preview-layout__workspace {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
+    grid-template-rows: none;
   }
 
   .preview-meta-game,
   .preview-layout__workspace .preview-type-tabs,
+  .preview-mat-stack,
+  .preview-artwork-controls,
   .preview-frame,
   .preview-calibration-panel,
   .edit-control-group,
@@ -3154,9 +3198,11 @@ body {
     justify-content: flex-start;
   }
 
-  .preview-frame {
+  .preview-mat-stack {
     order: 3;
-    /* Definite height so container-query card sizing (100cqh) does not collapse to 0. */
+  }
+
+  .preview-frame {
     height: min(22rem, 45dvh);
     min-height: var(--preview-mat-min-height);
     max-height: min(22rem, 45dvh);
@@ -3166,16 +3212,19 @@ body {
     display: none;
   }
 
-  .edit-control-group {
+  .preview-artwork-controls {
     order: 5;
+    gap: 0.65rem;
+  }
+
+  .edit-control-group {
     height: auto;
     min-height: 0;
     max-height: none;
-    overflow-y: visible;
+    overflow: visible;
   }
 
   .preview-add-btn {
-    order: 6;
     padding-block: 0.65rem;
     min-height: 0;
   }
@@ -3216,8 +3265,29 @@ body {
 }
 
 @media (min-width: 1101px) {
+  .panel.panel--edit {
+    height: auto;
+    max-height: none;
+  }
+
+  #edit-controls.preview-layout {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+  }
+
   .preview-layout__workspace {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr) minmax(0, var(--edit-toolbox-max-width));
+    grid-template-rows: auto auto;
+  }
+
+  .preview-frame {
+    height: var(--preview-mat-height);
+    max-height: var(--preview-mat-height);
+    min-height: var(--preview-mat-min-height);
   }
 
   .panel--edit-off .preview-meta-game,

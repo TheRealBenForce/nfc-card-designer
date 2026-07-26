@@ -355,7 +355,6 @@ function syncEditColumnState() {
   if (editPanelEl) {
     editPanelEl.classList.toggle("panel--edit-on", active);
     editPanelEl.classList.toggle("panel--edit-off", !active);
-    editPanelEl.setAttribute("aria-disabled", interactive ? "false" : "true");
   }
 
   if (editControlsEl) {
@@ -367,8 +366,10 @@ function syncEditColumnState() {
   if (editGatedRegionEl) {
     if (interactive) {
       editGatedRegionEl.removeAttribute("inert");
+      editGatedRegionEl.setAttribute("aria-disabled", "false");
     } else {
       editGatedRegionEl.setAttribute("inert", "");
+      editGatedRegionEl.setAttribute("aria-disabled", "true");
     }
   }
 

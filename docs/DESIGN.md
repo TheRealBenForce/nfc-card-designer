@@ -126,8 +126,8 @@ Three named columns in a CSS grid (`.app`), left → center → right: **Select*
 
 Each column opens with a **centered, pronounced section title** (`Select`, `Edit`, or `Print`) — larger type, semibold, full panel width, text-align center. Subsection labels inside a column (e.g. “Platform”, “Game”) stay left-aligned as today.
 
-- **Desktop (wide):** `grid-template-columns: minmax(260px, 320px) 1fr minmax(220px, 280px)`; full viewport height minus header.
-- **Narrow viewports:** Collapses to **one column, three rows** — Select → Edit → Print (top to bottom). There is **no** intermediate layout with two sections on one row and the third on another row.
+- **Desktop (wide, ≥1101px):** `grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(240px, 300px)`; panels capped to the viewport below the site header (minus `.app` padding).
+- **Narrow viewports (≤1100px):** Collapses to **one column, three rows** — Select → Edit → Print (top to bottom). There is **no** intermediate layout with two sections on one row and the third on another row. Panel max-heights are lifted so stacked content can grow with the page.
 - Panels are separated by vertical borders on desktop; horizontal borders when stacked. The Print panel has no right border on desktop.
 
 #### User flow
@@ -193,16 +193,18 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 │         ┌─────────────┐             │
 │         │  ░ skeleton │             │  ← idle preview-skeleton (continuous)
 │         └─────────────┘             │
+│         [ card scale  ]             │  ← calibration stays interactive
 │                                     │
-│   (controls hidden or inert)        │  ← full column gated, not per-control
+│   (artwork tools inert)             │  ← toolbox gated until a game loads
 │                                     │
 └─────────────────────────────────────┘
 ```
 
 - Preview meta e.g. “Select a game to start editing.”
 - Card frame shows the existing `.preview-skeleton` sticker continuously.
-- Image-type tabs, artwork controls, calibration, and **Add to collection** are not available (hidden or non-interactive as one unit).
-- Panel exposes `aria-disabled="true"` (or equivalent) while OFF.
+- **Card scale** (screen calibration) remains available so users can size the idle preview to a physical card before picking a game.
+- Image-type tabs, artwork controls, and **Add to collection** are not available (hidden or non-interactive as one unit).
+- The gated toolbox exposes `aria-disabled="true"` / `inert` while OFF; the mat and card scale stay interactive.
 
 **ON (game loaded via Select or copy-in):**
 
@@ -210,8 +212,8 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 |-------|----------|
 | **Preview meta** | Status while loading / previewing |
 | **Preview layout** | Flex row: main preview + artwork controls sidebar |
-| **Preview main** | Image-type tabs → card frame → screen calibration slider → **Add to collection** (primary) |
-| **Artwork controls** | Accent color; alignment grid, zoom, rotation, background mode/color; **Header design** checkboxes (Show Header, Show Platform Accents) and header-height control; **Reset card** and **Save to platform defaults** buttons (see below) |
+| **Preview main** | Image-type tabs → card frame → screen calibration slider |
+| **Artwork controls** | **Header controls** (Show Header, Show Platform Accents, Header Height, Accent color) → **Artwork background** (mode/color, artwork zoom, rotate) → alignment 9-grid → **Reset card** / **Save to platform defaults** → **Add to collection** (primary) |
 
 **Sticker / skeleton while ON:**
 
@@ -228,7 +230,7 @@ There is **no** edit-in-place from the Print list — no ✎ button, no “Updat
 
 **Add flow:** Select platform → search game → customize in Edit → **Add to collection** → card appears in Print. Copy-in from Print loads settings into Edit for a **new** card; it does not modify the source row.
 
-**Layout:** Card preview horizontally centered within Edit. Artwork controls in the right sidebar of the Edit column.
+**Layout:** Within Edit, **only the preview mat is a card** (bordered mat surface). Artwork controls and **Add to collection** sit beside as plain controls — no nested card chrome around the toolbox. Card scale (calibration) sits directly under the mat and stays usable while Edit is OFF. On wide viewports the mat has its own fixed height for card sizing; the toolbox keeps its natural height and the Edit panel **grows downward** with the page (no inner toolbox scroll, no viewport-locked Edit height). Narrow (stacked) layout keeps a modest mat height (`min(22rem, 45dvh)`) and the same uncarded tools.
 
 **Platform-default actions** (bottom of artwork controls sidebar, below header design):
 
@@ -557,3 +559,5 @@ High-level checklist — detail lives in [Page specifications](#page-specificati
 | 2026-07-22 | ADR 0003 accepted; Designer status Approved — pending implementation |
 | 2026-07-23 | Print collection UX: platform list + viewport-edge scroll-snap browser (#88); ADR 0004 |
 | 2026-07-24 | Platform defaults redesign: Edit-centric Save/Reset card, card default/customized state, remove platform modal |
+| 2026-07-25 | Edit panel: only preview mat is a nested card; toolbox uncarded and panel grows with content |
+| 2026-07-25 | Card scale usable while Edit OFF; toolbox order Header → Artwork background → alignment grid |

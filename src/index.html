@@ -160,7 +160,7 @@
                       />
                     </div>
                     <div class="artwork-zoom-section">
-                      <div class="artwork-actions-row">
+                      <div class="artwork-actions-row artwork-actions-row--stacked">
                         <label for="preview-artwork-zoom" class="artwork-zoom-field artwork-zoom-field--inline">
                           <input
                             id="preview-artwork-zoom"
@@ -174,28 +174,20 @@
                           />
                           <span id="preview-artwork-zoom-value" class="artwork-zoom-field__value" hidden>100%</span>
                         </label>
-                        <button
-                          id="preview-artwork-rotate"
-                          type="button"
-                          class="alignment-rotate-btn alignment-rotate-btn--inline"
-                          title="Rotate artwork 90°"
-                          aria-label="Rotate artwork 90 degrees"
-                        >
-                          <svg
-                            width="22"
-                            height="22"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M21 12a9 9 0 1 1-3-6.7" />
-                            <polyline points="21 3 21 9 15 9" />
-                          </svg>
-                        </button>
+                        <label for="preview-artwork-rotate" class="artwork-zoom-field artwork-zoom-field--inline artwork-rotate-field">
+                          <span class="artwork-zoom-field__label">Rotate</span>
+                          <input
+                            id="preview-artwork-rotate"
+                            class="artwork-zoom-field__range"
+                            type="range"
+                            min="0"
+                            max="360"
+                            step="1"
+                            value="0"
+                            aria-label="Artwork rotation"
+                          />
+                          <span id="preview-artwork-rotate-value" class="artwork-zoom-field__value">0°</span>
+                        </label>
                       </div>
                     </div>
                   </div>

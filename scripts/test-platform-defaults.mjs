@@ -74,8 +74,8 @@ if (merged.snes.color !== "#ff00ff") {
 const invalidRotation = normalizePlatformDefaults({
   nes: { color: "#000000", imageRotation: { boxArt: 45 } },
 });
-if (invalidRotation.nes.imageRotation.boxArt !== 0) {
-  throw new Error("Invalid rotation degrees should fall back to 0");
+if (invalidRotation.nes.imageRotation.boxArt !== 45) {
+  throw new Error("Arbitrary rotation degrees should be preserved");
 }
 
 const migratedLegacySnesRotation = normalizePlatformDefaults({
@@ -96,10 +96,10 @@ const wrappedRotation = normalizePlatformDefaults({
   nes: { color: "#000000", imageRotation: { boxArt: 450, titleScreen: -90 } },
 });
 if (wrappedRotation.nes.imageRotation.boxArt !== 90) {
-  throw new Error("Rotation >360 should wrap to a valid quarter turn");
+  throw new Error("Rotation >360 should wrap to an equivalent angle");
 }
 if (wrappedRotation.nes.imageRotation.titleScreen !== 270) {
-  throw new Error("Negative rotation should wrap to equivalent quarter turn");
+  throw new Error("Negative rotation should wrap to an equivalent angle");
 }
 
 if (defaults.nes.artworkDisplay.zoom !== 0) {

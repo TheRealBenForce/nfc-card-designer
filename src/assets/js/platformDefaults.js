@@ -173,8 +173,7 @@ export function defaultPlatformDefaults() {
 export function normalizeRotationDegrees(degrees) {
   if (typeof degrees !== "number" || !Number.isFinite(degrees)) return 0;
   const rounded = Math.round(degrees);
-  const normalized = ((rounded % 360) + 360) % 360;
-  return ROTATION_OPTIONS.includes(normalized) ? normalized : 0;
+  return ((rounded % 360) + 360) % 360;
 }
 
 /**

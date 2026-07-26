@@ -183,9 +183,11 @@ function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = 
   ctx.translate(cx, cy);
   ctx.rotate((rotationDeg * Math.PI) / 180);
 
-  const isSideways = rotationDeg % 180 !== 0;
-  const boxW = isSideways ? h : w;
-  const boxH = isSideways ? w : h;
+  const rad = (rotationDeg * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const boxW = w * cos + h * sin;
+  const boxH = w * sin + h * cos;
   const alignedForRotation = mapDisplayAlignmentToRotatedAlignment(align, rotationDeg);
 
   const scale = Math.min(boxW / img.width, boxH / img.height) * (1 + zoom / 100);
@@ -208,16 +210,17 @@ function drawContainImageAligned(ctx, img, x, y, w, h, rotationDeg = 0, align = 
  */
 export function mapDisplayAlignmentToRotatedAlignment(align, rotationDeg) {
   const normalized = ((Math.round(rotationDeg) % 360) + 360) % 360;
-  if (normalized === 90) {
-    return { x: align.y, y: 1 - align.x };
-  }
-  if (normalized === 180) {
-    return { x: 1 - align.x, y: 1 - align.y };
-  }
-  if (normalized === 270) {
-    return { x: 1 - align.y, y: align.x };
-  }
-  return align;
+  if (normalized === 0) return align;
+
+  const angle = (-normalized * Math.PI) / 180;
+  const dx = align.x - 0.5;
+  const dy = align.y - 0.5;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return {
+    x: 0.5 + dx * cos - dy * sin,
+    y: 0.5 + dx * sin + dy * cos,
+  };
 }
 
 /**

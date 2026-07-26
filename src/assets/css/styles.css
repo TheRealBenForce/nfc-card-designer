@@ -2902,6 +2902,25 @@ body {
   display: block;
 }
 
+.artwork-actions-row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.artwork-rotate-field .artwork-zoom-field__label {
+  flex: 0 0 auto;
+  min-width: 3.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.artwork-rotate-field .artwork-zoom-field__value {
+  flex: 0 0 auto;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
 .alignment-rotate-btn--inline {
   flex: 0 0 2.5rem;
   align-self: center;

@@ -197,8 +197,10 @@ let previewArtworkZoomValueEl = null;
 let previewArtworkResetBtn = null;
 /** @type {HTMLButtonElement|null} */
 let savePlatformDefaultsBtn = null;
-/** @type {HTMLButtonElement|null} */
-let previewArtworkRotateBtn = null;
+/** @type {HTMLInputElement|null} */
+let previewArtworkRotateEl = null;
+/** @type {HTMLElement|null} */
+let previewArtworkRotateValueEl = null;
 /** @type {HTMLElement|null} */
 let editPanelEl = null;
 /** @type {HTMLElement|null} */
@@ -279,7 +281,7 @@ function getPreviewArtworkDisplayFallback() {
 function setEditControlsDisabled(disabled) {
   const controls = [
     addBrowsedGameBtn,
-    previewArtworkRotateBtn,
+    previewArtworkRotateEl,
     previewArtworkResetBtn,
     savePlatformDefaultsBtn,
     previewPlatformColorInput,
@@ -588,6 +590,17 @@ function syncArtworkZoomControl(zoomEl, valueEl, artworkDisplay) {
 }
 
 /**
+ * @param {HTMLInputElement | null} rotateEl
+ * @param {HTMLElement | null} valueEl
+ * @param {number} rotation
+ */
+function syncArtworkRotateControl(rotateEl, valueEl, rotation) {
+  const degrees = normalizeRotationDegrees(rotation);
+  if (rotateEl) rotateEl.value = String(degrees);
+  if (valueEl) valueEl.textContent = `${degrees}°`;
+}
+
+/**
  * @param {HTMLElement} gridEl
  * @param {(alignment: string) => void} onSelect
  */
@@ -639,13 +652,11 @@ function syncPreviewArtworkControls() {
     savePlatformDefaultsBtn.disabled = !interactive;
   }
 
-  if (previewArtworkRotateBtn) {
+  if (previewArtworkRotateEl) {
     const rotation = context?.cardRotation ?? 0;
-    previewArtworkRotateBtn.hidden = false;
-    previewArtworkRotateBtn.disabled = !interactive;
-    previewArtworkRotateBtn.title = interactive
-      ? `Rotate artwork 90° (current ${rotation}°)`
-      : "Rotate artwork 90°";
+    previewArtworkRotateEl.hidden = false;
+    previewArtworkRotateEl.disabled = !interactive;
+    syncArtworkRotateControl(previewArtworkRotateEl, previewArtworkRotateValueEl, rotation);
   }
 
   if (previewArtworkControlsEl) {
@@ -670,6 +681,9 @@ function syncPreviewArtworkControls() {
   }
   if (previewArtworkZoomEl) {
     previewArtworkZoomEl.disabled = !interactive;
+  }
+  if (previewArtworkRotateEl) {
+    previewArtworkRotateEl.disabled = !interactive;
   }
   if (previewArtworkBackgroundColorEl && !interactive) {
     previewArtworkBackgroundColorEl.disabled = true;
@@ -1785,14 +1799,19 @@ function bindEvents() {
     logStatus(`Saved ${platform?.name ?? platformId} platform defaults.`);
   });
 
-  previewArtworkRotateBtn?.addEventListener("click", () => {
+  previewArtworkRotateEl?.addEventListener("input", (e) => {
     const context = getPreviewArtworkControlContext();
     if (!context?.isBrowseCard || !browseState) return;
+    const nextRotation = Number(/** @type {HTMLInputElement} */ (e.target).value);
     browseState = {
       ...browseState,
-      imageRotation: normalizeRotationDegrees((context.cardRotation ?? 0) + 90),
+      imageRotation: normalizeRotationDegrees(nextRotation),
     };
-    syncPreviewArtworkControls();
+    syncArtworkRotateControl(
+      previewArtworkRotateEl,
+      previewArtworkRotateValueEl,
+      browseState.imageRotation ?? 0,
+    );
     refreshPreview();
   });
 
@@ -1991,9 +2010,10 @@ export async function initUI() {
   savePlatformDefaultsBtn = /** @type {HTMLButtonElement|null} */ (
     document.getElementById("save-platform-defaults")
   );
-  previewArtworkRotateBtn = /** @type {HTMLButtonElement|null} */ (
+  previewArtworkRotateEl = /** @type {HTMLInputElement|null} */ (
     document.getElementById("preview-artwork-rotate")
   );
+  previewArtworkRotateValueEl = document.getElementById("preview-artwork-rotate-value");
 
   initConfirmModal();
 

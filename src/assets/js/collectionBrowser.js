@@ -1,6 +1,6 @@
-import { IMAGE_TYPES, PLACEHOLDER_SVG } from "./config.js";
+import { PLACEHOLDER_SVG } from "./config.js";
 import { buildGameImageUrl } from "./imageProvider.js";
-import { extractLibretroMetadata } from "./libretroTitle.js";
+import { extractLibretroPublisher } from "./libretroTitle.js";
 import { getBundledPlatformIconPath, getPlatformIconPath } from "./platformIcons.js";
 import {
   normalizePlatformIconTheme,
@@ -239,13 +239,16 @@ function renderCarouselSlides(cards, selectedIds) {
     const info = document.createElement("span");
     info.className = "collection-card__info";
 
+    const titleRow = document.createElement("span");
+    titleRow.className = "collection-card__title-row";
+
     const nameEl = document.createElement("span");
     nameEl.className = "collection-card__name";
     nameEl.textContent = card.gameName;
-    info.appendChild(nameEl);
+    titleRow.appendChild(nameEl);
 
-    const customizationDot = document.createElement("span");
     const isCustomized = card.customization === CUSTOMIZATION_CUSTOMIZED;
+    const customizationDot = document.createElement("span");
     customizationDot.className = `collection-card__customization-dot${
       isCustomized ? " collection-card__customization-dot--customized" : ""
     }`;
@@ -253,20 +256,15 @@ function renderCarouselSlides(cards, selectedIds) {
       ? "Customized — won't change when defaults update"
       : "Uses platform defaults";
     customizationDot.setAttribute("aria-label", customizationDot.title);
-    info.appendChild(customizationDot);
+    titleRow.appendChild(customizationDot);
+    info.appendChild(titleRow);
 
-    const artTypeEl = document.createElement("span");
-    artTypeEl.className = "collection-card__meta";
-    artTypeEl.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
-    info.appendChild(artTypeEl);
-
-    const { year, publisher } = extractLibretroMetadata(card.libretroName);
-    const metaParts = [year, publisher].filter(Boolean);
-    if (metaParts.length > 0) {
-      const metaEl = document.createElement("span");
-      metaEl.className = "collection-card__meta";
-      metaEl.textContent = metaParts.join(" - ");
-      info.appendChild(metaEl);
+    const publisher = extractLibretroPublisher(card.libretroName);
+    if (publisher) {
+      const publisherEl = document.createElement("span");
+      publisherEl.className = "collection-card__meta collection-card__meta--publisher";
+      publisherEl.textContent = publisher;
+      info.appendChild(publisherEl);
     }
 
     content.appendChild(info);

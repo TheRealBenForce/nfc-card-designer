@@ -1319,16 +1319,17 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: row;
-  gap: 0.35rem;
+  gap: 0.5rem;
   overflow: auto;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 6%;
-  padding: 0.55rem 6%;
+  scroll-padding-inline: 0.75rem;
+  padding: 0.55rem 0.75rem;
   -webkit-overflow-scrolling: touch;
 }
 
 .collection-browser__slide {
-  flex: 0 0 88%;
+  flex: 0 0 auto;
+  width: min(80%, 15.5rem);
   scroll-snap-align: center;
   scroll-snap-stop: always;
   min-width: 0;
@@ -1412,13 +1413,15 @@ body {
   .collection-browser__carousel {
     flex-direction: column;
     scroll-snap-type: y mandatory;
-    scroll-padding-block: 4%;
+    scroll-padding-block: 0.65rem;
     scroll-padding-inline: 0;
-    padding: 0.5rem 0.65rem;
+    padding: 0.55rem 0.65rem;
+    gap: 0.65rem;
   }
 
   .collection-browser__slide {
-    flex: 0 0 84%;
+    flex: 0 0 auto;
+    width: 100%;
   }
 
   .collection-browser__thumb {

@@ -28,6 +28,10 @@ let nextBtn = null;
 
 /** @type {string|null} */
 let openPlatformId = null;
+/** @type {import("./data/platforms.js").Platform|null} */
+let openPlatform = null;
+/** @type {import("./state.js").Settings|null} */
+let browserSettings = null;
 /** @type {string|null} */
 let focusCardId = null;
 /** @type {HTMLElement|null} */
@@ -85,6 +89,8 @@ export function initCollectionBrowser({ onCopyCard: copyHandler }) {
 
   dialogEl?.addEventListener("close", () => {
     openPlatformId = null;
+    openPlatform = null;
+    browserSettings = null;
     currentCards = [];
     focusCardId = null;
     triggerElement = null;
@@ -145,6 +151,8 @@ export function openCollectionBrowser(platform, cards, options) {
   if (cards.length === 0) return;
 
   openPlatformId = platform.id;
+  openPlatform = platform;
+  browserSettings = options.settings;
   currentCards = cards;
   focusCardId = options.focusCardId ?? cards[0]?.id ?? null;
   triggerElement = options.triggerEl ?? triggerElement;
@@ -188,6 +196,8 @@ export function syncCollectionBrowser(platform, cards, options) {
   }
 
   const previousFocus = focusCardId;
+  openPlatform = platform;
+  browserSettings = options.settings;
   currentCards = cards;
   if (previousFocus && !cards.some((card) => card.id === previousFocus)) {
     focusCardId = cards[0]?.id ?? null;
@@ -239,13 +249,16 @@ function renderCarouselSlides(cards, selectedIds) {
     const info = document.createElement("span");
     info.className = "collection-card__info";
 
+    const titleRow = document.createElement("span");
+    titleRow.className = "collection-card__title-row";
+
     const nameEl = document.createElement("span");
     nameEl.className = "collection-card__name";
     nameEl.textContent = card.gameName;
-    info.appendChild(nameEl);
+    titleRow.appendChild(nameEl);
 
-    const customizationDot = document.createElement("span");
     const isCustomized = card.customization === CUSTOMIZATION_CUSTOMIZED;
+    const customizationDot = document.createElement("span");
     customizationDot.className = `collection-card__customization-dot${
       isCustomized ? " collection-card__customization-dot--customized" : ""
     }`;
@@ -253,20 +266,46 @@ function renderCarouselSlides(cards, selectedIds) {
       ? "Customized — won't change when defaults update"
       : "Uses platform defaults";
     customizationDot.setAttribute("aria-label", customizationDot.title);
-    info.appendChild(customizationDot);
+    titleRow.appendChild(customizationDot);
+    info.appendChild(titleRow);
 
     const artTypeEl = document.createElement("span");
     artTypeEl.className = "collection-card__meta";
     artTypeEl.textContent = IMAGE_TYPES[card.imageType]?.label ?? card.imageType;
     info.appendChild(artTypeEl);
 
+    const detailsEl = document.createElement("span");
+    detailsEl.className = "collection-card__details";
+
+    if (openPlatform && browserSettings) {
+      const platformRow = document.createElement("span");
+      platformRow.className = "collection-card__platform";
+
+      platformRow.appendChild(
+        createPlatformIconElement(openPlatform, browserSettings.platformIconTheme, {
+          iconClassName: "collection-card__platform-icon",
+          emojiClassName: "collection-card__platform-emoji",
+        }),
+      );
+
+      const platformNameEl = document.createElement("span");
+      platformNameEl.className = "collection-card__platform-name";
+      platformNameEl.textContent = openPlatform.name;
+      platformRow.appendChild(platformNameEl);
+      detailsEl.appendChild(platformRow);
+    }
+
     const { year, publisher } = extractLibretroMetadata(card.libretroName);
     const metaParts = [year, publisher].filter(Boolean);
     if (metaParts.length > 0) {
       const metaEl = document.createElement("span");
-      metaEl.className = "collection-card__meta";
-      metaEl.textContent = metaParts.join(" - ");
-      info.appendChild(metaEl);
+      metaEl.className = "collection-card__detail-meta";
+      metaEl.textContent = metaParts.join(" · ");
+      detailsEl.appendChild(metaEl);
+    }
+
+    if (detailsEl.childElementCount > 0) {
+      info.appendChild(detailsEl);
     }
 
     content.appendChild(info);

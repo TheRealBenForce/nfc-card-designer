@@ -12,7 +12,7 @@ const MASTER_SYSTEM_COLOR = "#2e6db4";
 
 /** @type {Platform[]} */
 export const platforms = [
-  { id: "atari-2600", name: "Atari 2600", emoji: "🕹️", defaultColor: "#e2622b", libretroPlaylist: "Atari - 2600", searchAliases: ["atari", "2600"] },
+  { id: "atari-2600", name: "Atari 2600", emoji: "🕹️", defaultColor: "#c60000", libretroPlaylist: "Atari - 2600", searchAliases: ["atari", "2600"] },
   { id: "nes", name: "NES", emoji: "🎮", defaultColor: "#d6262a", libretroPlaylist: "Nintendo - Nintendo Entertainment System", searchAliases: ["famicom", "nintendo"] },
   { id: "master-system", name: "Sega Master System", emoji: "📺", defaultColor: MASTER_SYSTEM_COLOR, libretroPlaylist: "Sega - Master System - Mark III", searchAliases: ["sms", "sega master"] },
   { id: "game-boy", name: "Game Boy", emoji: "🟩", defaultColor: "#8bac0f", libretroPlaylist: "Nintendo - Game Boy", searchAliases: ["gb", "gameboy"] },

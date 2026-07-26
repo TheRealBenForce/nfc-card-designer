@@ -35,8 +35,8 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
-    const editPanel = page.locator("#edit-panel");
-    if ((await editPanel.getAttribute("aria-disabled")) !== "true") {
+    const editGatedRegion = page.locator("#edit-gated-region");
+    if ((await editGatedRegion.getAttribute("aria-disabled")) !== "true") {
       throw new Error("Edit panel should be disabled on initial load");
     }
     if (!(await page.locator("#preview-skeleton").isVisible())) {
@@ -112,7 +112,7 @@ async function main() {
     if (!(await addBtn.isVisible())) {
       throw new Error("Browse preview should show Add to collection button");
     }
-    if ((await editPanel.getAttribute("aria-disabled")) !== "false") {
+    if ((await editGatedRegion.getAttribute("aria-disabled")) !== "false") {
       throw new Error("Edit panel should be enabled after selecting a game");
     }
 
@@ -271,8 +271,8 @@ async function main() {
     await page.waitForSelector("#confirm-modal[open]");
     await page.locator("#confirm-modal-confirm").click();
     await page.waitForFunction(() => {
-      const panel = document.getElementById("edit-panel");
-      return panel?.getAttribute("aria-disabled") === "true";
+      const region = document.getElementById("edit-gated-region");
+      return region?.getAttribute("aria-disabled") === "true";
     });
     if (!(await page.locator("#preview-skeleton").isVisible())) {
       throw new Error("Edit preview skeleton should return after clearing project");

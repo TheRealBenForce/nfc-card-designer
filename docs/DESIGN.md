@@ -151,7 +151,7 @@ Top to bottom:
 1. **Global Settings** (collapsible `<details>`, collapsed by default)
    - Card Width (mm) — default 52
    - Card Height (mm) — default 84
-   - Sticker Inset (mm) — default 2
+   - Sticker Inset (mm) — default 1
    - Platform Icons theme (unchanged)
 
 2. **Platform** (subsection)

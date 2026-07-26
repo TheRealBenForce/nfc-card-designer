@@ -1,6 +1,6 @@
 {
   "atari-2600": {
-    "color": "#e2622b",
+    "color": "#c60000",
     "imageTypePriority": [
       "boxArt",
       "titleScreen",
@@ -12,9 +12,9 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
-      "backgroundColor": "#000000",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
+      "backgroundColor": "#c60000",
       "zoom": 0
     }
   },
@@ -31,8 +31,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -53,7 +53,7 @@
       "alignment": "top-center",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 12
     }
   },
   "game-boy": {
@@ -69,10 +69,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "center-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 24
     }
   },
   "game-boy-color": {
@@ -88,10 +88,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "center-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 27
     }
   },
   "game-boy-advance": {
@@ -107,10 +107,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center-right",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 32
     }
   },
   "snes": {
@@ -126,10 +126,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "top-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 21
     }
   },
   "genesis": {
@@ -145,10 +145,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "top-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 25
     }
   },
   "sega-cd": {
@@ -164,8 +164,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "nearestEdge",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -183,10 +183,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "top-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 23
     }
   },
   "turbo-grafx": {
@@ -202,8 +202,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -221,8 +221,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -240,10 +240,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
+      "alignment": "top-right",
       "backgroundMode": "consoleColor",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 43
     }
   },
   "n64": {
@@ -259,8 +259,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "nearestEdge",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -278,8 +278,8 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "nearestEdge",
       "backgroundColor": "#000000",
       "zoom": 0
     }
@@ -297,10 +297,10 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center-right",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
-      "zoom": 0
+      "zoom": 17
     }
   },
   "dos": {
@@ -316,14 +316,14 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
       "backgroundColor": "#000000",
       "zoom": 0
     }
   },
   "arcade": {
-    "color": "#ff3d57",
+    "color": "#f4b20c",
     "imageTypePriority": [
       "boxArt",
       "titleScreen",
@@ -335,9 +335,9 @@
       "gamePicture": 0
     },
     "artworkDisplay": {
-      "alignment": "top-center",
-      "backgroundMode": "consoleColor",
-      "backgroundColor": "#000000",
+      "alignment": "center",
+      "backgroundMode": "blurredBoxArt",
+      "backgroundColor": "#f4b20c",
       "zoom": 0
     }
   }

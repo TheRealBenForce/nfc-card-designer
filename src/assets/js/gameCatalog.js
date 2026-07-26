@@ -1,4 +1,4 @@
-import { platforms } from "./data/platforms.js";
+import { platformById, platforms } from "./data/platforms.js";
 import { retailDisplayName } from "./retailFilter.js";
 
 /**
@@ -118,6 +118,80 @@ export function platformHasCatalogGames(platformId) {
 
 export function platformHasArtwork(platformId) {
   return platformHasCatalogGames(platformId);
+}
+
+/**
+ * @returns {Game[]}
+ */
+export function allCatalogGames() {
+  if (!byPlatform) return [];
+  return Object.values(byPlatform).flat();
+}
+
+export function totalCatalogGameCount() {
+  return allCatalogGames().length;
+}
+
+/**
+ * @param {Game} a
+ * @param {Game} b
+ */
+function compareGamesByNameThenPlatform(a, b) {
+  const nameCmp = a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+  if (nameCmp !== 0) return nameCmp;
+  const aPlatform = platformById[a.platformId]?.name ?? a.platformId;
+  const bPlatform = platformById[b.platformId]?.name ?? b.platformId;
+  return aPlatform.localeCompare(bPlatform, undefined, { sensitivity: "base" });
+}
+
+/**
+ * @param {string} query
+ * @returns {{ games: Game[], total: number, isNoMatchFallback: boolean }}
+ */
+export function searchAllGames(query) {
+  const q = query.trim().toLowerCase();
+  const allGames = allCatalogGames();
+
+  if (q.length === 0) {
+    const games = [...allGames].sort(compareGamesByNameThenPlatform);
+    return { games, total: games.length, isNoMatchFallback: false };
+  }
+
+  const matches = allGames
+    .filter((game) => game.name.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const nameCmp = compareSearchResults(a.name, b.name, q);
+      if (nameCmp !== 0) return nameCmp;
+      const aPlatform = platformById[a.platformId]?.name ?? a.platformId;
+      const bPlatform = platformById[b.platformId]?.name ?? b.platformId;
+      return aPlatform.localeCompare(bPlatform, undefined, { sensitivity: "base" });
+    });
+
+  if (matches.length === 0) {
+    const games = [...allGames].sort(compareGamesByNameThenPlatform);
+    return { games, total: 0, isNoMatchFallback: true };
+  }
+
+  return { games: matches, total: matches.length, isNoMatchFallback: false };
+}
+
+/**
+ * @param {string} query
+ * @param {number} [highlightedIndex]
+ */
+export function pickGameFromAllCatalog(query, highlightedIndex = 0) {
+  const { games, isNoMatchFallback } = searchAllGames(query);
+  if (games.length === 0 || isNoMatchFallback) return null;
+
+  const lower = query.trim().toLowerCase();
+  const exact = games.find((g) => g.name.toLowerCase() === lower);
+  if (exact) return exact;
+
+  const startsWith = games.find((g) => g.name.toLowerCase().startsWith(lower));
+  if (startsWith) return startsWith;
+
+  if (games[highlightedIndex]) return games[highlightedIndex];
+  return games[0];
 }
 
 /**

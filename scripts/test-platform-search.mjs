@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser smoke test for platform browse UI.
+ * Browser smoke test for platform-related UI after navbar search experiment.
  * Run: node scripts/test-platform-search.mjs
  * Requires: npm start running on port 8000
  */
@@ -12,11 +12,6 @@ const PNG_1X1 = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
-
-/** @param {import('playwright').Page} page */
-async function countPlatformItems(page) {
-  return page.locator("#platform-results .platform-row").count();
-}
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -39,25 +34,26 @@ async function main() {
   try {
     await page.goto(BASE, { waitUntil: "networkidle", timeout: 15000 });
 
-    const initialCount = await countPlatformItems(page);
-    if (initialCount < 1) {
-      throw new Error(`Expected at least one platform in browse list, got ${initialCount}`);
+    const searchInput = page.locator("#game-search");
+    if ((await searchInput.count()) !== 1) {
+      throw new Error("Expected navbar game search input");
     }
-    console.log(`✓ Shows ${initialCount} platforms with artwork-backed games`);
+    const placeholder = await searchInput.getAttribute("placeholder");
+    if (!placeholder?.includes("Search from") || !placeholder?.includes("games")) {
+      throw new Error(`Expected catalog count placeholder, got: ${placeholder}`);
+    }
+    console.log("✓ Navbar search shows catalog-wide placeholder");
 
-    await page.getByRole("button", { name: "Sega CD", exact: true }).click();
-    const segaCdSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
-    if (!segaCdSelected?.includes("Sega CD")) {
-      throw new Error(`Sega CD should be selected after click, got: ${segaCdSelected}`);
+    if (await page.locator("#platform-results").count() !== 0) {
+      throw new Error("Platform browse list should be removed from the layout");
     }
-    console.log("✓ Clicking a platform selects it");
+    console.log("✓ Left platform selector panel is removed");
 
-    await page.getByRole("button", { name: "Sega 32X", exact: true }).click();
-    const sega32xSelected = await page.locator("#platform-results .platform-row--selected .platform-row__select").textContent();
-    if (!sega32xSelected?.includes("Sega 32X")) {
-      throw new Error(`Sega 32X should be selected after click, got: ${sega32xSelected}`);
+    const globalSettings = page.locator("#print-panel .collapsible__summary", { hasText: "Global Settings" });
+    if ((await globalSettings.count()) !== 1) {
+      throw new Error("Global settings should live in the print panel");
     }
-    console.log("✓ Selected platform is highlighted");
+    console.log("✓ Global settings moved to print panel");
 
     const resetCardBtn = page.locator("#preview-artwork-reset");
     if (await resetCardBtn.count() !== 1) {
@@ -68,12 +64,6 @@ async function main() {
       throw new Error("Save to platform defaults button should exist in Edit controls");
     }
     console.log("✓ Platform defaults actions are available in Edit");
-
-    const editButtons = page.locator("#platform-results .platform-row__edit-btn");
-    if (await editButtons.count() !== 0) {
-      throw new Error("Platform rows should not include edit-defaults buttons");
-    }
-    console.log("✓ Platform list is select-only (no edit icon)");
 
     const deleteBtn = page.locator("#delete-selected");
     const deleteClass = await deleteBtn.getAttribute("class");

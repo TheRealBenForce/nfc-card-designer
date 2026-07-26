@@ -13,11 +13,10 @@ const PNG_1X1 = Buffer.from(
 );
 
 async function browseEcco(page) {
-  await page.getByRole("button", { name: "Sega CD", exact: true }).first().click();
   await page.locator("#game-search").focus();
   await page.fill("#game-search", "ecco");
   await page.waitForTimeout(400);
-  await page.getByRole("option", { name: "Ecco the Dolphin", exact: true }).click();
+  await page.getByRole("option", { name: /Ecco the Dolphin.*Sega CD/i }).click();
   await page.waitForTimeout(300);
 }
 

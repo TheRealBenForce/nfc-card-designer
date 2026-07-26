@@ -281,29 +281,27 @@ export function isCatalogOrSerialTag(tag) {
 }
 
 /**
- * Extract year and publisher from libretro filename metadata tags.
- * @param {string} libretroName
- * @returns {{ year: string | null, publisher: string | null }}
+ * @param {string} tag
  */
-export function extractLibretroMetadata(libretroName) {
-  const { tags } = parseLibretroTitle(libretroName);
+export function isDateTag(tag) {
+  const trimmed = tag.trim();
+  return /^\d{4}(-\d{2})?(-\d{2})?$/.test(trimmed);
+}
 
-  /** @type {string | null} */
-  let year = null;
-  /** @type {string | null} */
-  let publisher = null;
+/**
+ * Extract publisher from libretro filename metadata tags.
+ * Release dates (YYYY, YYYY-MM, YYYY-MM-DD) are ignored.
+ * @param {string} libretroName
+ * @returns {string | null}
+ */
+export function extractLibretroPublisher(libretroName) {
+  const { tags } = parseLibretroTitle(libretroName);
 
   for (const tag of tags) {
     const trimmed = tag.trim();
 
-    if (!year && /^\d{4}$/.test(trimmed)) {
-      year = trimmed;
-      continue;
-    }
-
     if (
-      publisher ||
-      /^\d{4}$/.test(trimmed) ||
+      isDateTag(trimmed) ||
       /^(NTSC|PAL)$/i.test(trimmed) ||
       isRegionTag(tag) ||
       isRevisionTag(tag) ||
@@ -317,8 +315,8 @@ export function extractLibretroMetadata(libretroName) {
       continue;
     }
 
-    publisher = trimmed;
+    return trimmed;
   }
 
-  return { year, publisher };
+  return null;
 }

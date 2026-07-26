@@ -2,7 +2,7 @@
 
 import {
   discNumber,
-  extractLibretroMetadata,
+  extractLibretroPublisher,
   parseLibretroTitle,
   regionPriorityScore,
   revisionNumber,
@@ -117,29 +117,34 @@ if (revisionNumber([]) !== 0) {
   throw new Error("No revision tag should be 0");
 }
 
-const saturnMeta = extractLibretroMetadata(
+const saturnPublisher = extractLibretroPublisher(
   "Akumajou Dracula X - Gekka no Yasoukyoku v1.400 (1998)(Konami)(NTSC)(JP)[!]",
 );
-if (saturnMeta.year !== "1998" || saturnMeta.publisher !== "Konami") {
-  throw new Error(`Expected Saturn year/publisher, got: ${JSON.stringify(saturnMeta)}`);
+if (saturnPublisher !== "Konami") {
+  throw new Error(`Expected Saturn publisher Konami, got: ${JSON.stringify(saturnPublisher)}`);
 }
 
-const pceMeta = extractLibretroMetadata("3x3 Eyes - Sanjiyan Hensei (NEC) (Japan)[HE100523-1]");
-if (pceMeta.publisher !== "NEC" || pceMeta.year !== null) {
-  throw new Error(`Expected PCE publisher NEC, got: ${JSON.stringify(pceMeta)}`);
+const megaMan2Publisher = extractLibretroPublisher("Mega Man 2 (1989-06)(Capcom)(US)");
+if (megaMan2Publisher !== "Capcom") {
+  throw new Error(`Expected Mega Man 2 publisher Capcom, got: ${JSON.stringify(megaMan2Publisher)}`);
 }
 
-const marioMeta = extractLibretroMetadata("Super Mario Bros. (USA)");
-if (marioMeta.year !== null || marioMeta.publisher !== null) {
-  throw new Error(`Expected no metadata for simple title, got: ${JSON.stringify(marioMeta)}`);
+const pcePublisher = extractLibretroPublisher("3x3 Eyes - Sanjiyan Hensei (NEC) (Japan)[HE100523-1]");
+if (pcePublisher !== "NEC") {
+  throw new Error(`Expected PCE publisher NEC, got: ${JSON.stringify(pcePublisher)}`);
 }
 
-const neoGeoMeta = extractLibretroMetadata("Burning Fight (NGH-018)(US)");
-if (neoGeoMeta.publisher !== null) {
-  throw new Error(`Expected no publisher for Neo Geo catalog ID only, got: ${JSON.stringify(neoGeoMeta)}`);
+const marioPublisher = extractLibretroPublisher("Super Mario Bros. (USA)");
+if (marioPublisher !== null) {
+  throw new Error(`Expected no publisher for simple title, got: ${JSON.stringify(marioPublisher)}`);
 }
 
-console.log("✓ extractLibretroMetadata reads year and publisher from tags");
+const neoGeoPublisher = extractLibretroPublisher("Burning Fight (NGH-018)(US)");
+if (neoGeoPublisher !== null) {
+  throw new Error(`Expected no publisher for Neo Geo catalog ID only, got: ${JSON.stringify(neoGeoPublisher)}`);
+}
+
+console.log("✓ extractLibretroPublisher reads publisher from tags and skips dates");
 console.log("✓ parseLibretroTitle extracts base title and tags");
 console.log("✓ stripLibretroDisplayName removes trailing metadata and Neo Geo catalog IDs");
 console.log("✓ stripLibretroDisplayName peels brackets and TOSEC stacks");
